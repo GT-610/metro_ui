@@ -1,0 +1,43 @@
+name: metro_ui
+description: A Flutter component library inspired by Microsoft's Windows 8 Modern UI design language.
+version: 0.1.0-dev.1
+homepage: https://github.com/GT-610/metro_ui
+repository: https://github.com/GT-610/metro_ui
+issue_tracker: https://github.com/GT-610/metro_ui/issues
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=3.32.0"
+
+topics:
+  - metro
+  - modern-ui
+  - windows
+  - desktop
+  - widgets
+
+screenshots:
+  - description: Light theme Metro controls.
+    path: screenshots/metro_controls_light.png
+  - description: Dark theme Metro navigation and overlays.
+    path: screenshots/metro_navigation_dark.png
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  fonts:
+    - family: Metro UI Sans
+      fonts:
+        - asset: assets/fonts/roboto-light.ttf
+          weight: 300
+        - asset: assets/fonts/roboto-regular.ttf
+          weight: 400
+        - asset: assets/fonts/roboto-medium.ttf
+          weight: 500

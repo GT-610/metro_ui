@@ -1,0 +1,34 @@
+{
+    "name": "Metro UI Gallery",
+    "short_name": "Metro UI",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#1D1D1D",
+    "theme_color": "#0050EF",
+    "description": "Gallery and development harness for metro_ui.",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

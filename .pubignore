@@ -1,0 +1,11 @@
+.github/
+.vscode/
+.gitattributes
+CONTRIBUTING.md
+dart_test.yaml
+.dart_tool/
+build/
+coverage/
+doc/api/
+example/.dart_tool/
+example/build/

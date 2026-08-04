@@ -1,0 +1,96 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test tool example/lib example/test
+      - run: dart run tool/check_public_api.dart
+      - run: dart run tool/check_package_screenshots.dart
+      - run: dart pub global activate dartdoc 9.0.8
+      - run: dart pub global run dartdoc
+      - run: flutter analyze
+      - run: flutter test --coverage
+      - run: flutter pub publish --dry-run
+      - working-directory: example
+        run: flutter pub get
+      - working-directory: example
+        run: flutter analyze
+      - working-directory: example
+        run: flutter test
+      - working-directory: example
+        run: flutter build web
+
+  minimum-flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.0"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart run tool/check_public_api.dart
+      - run: dart run tool/check_package_screenshots.dart
+      - run: flutter analyze
+      - run: flutter test --exclude-tags=golden
+
+  desktop-gallery:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - working-directory: example
+        run: flutter create --platforms=${{ matrix.platform }} .
+      - working-directory: example
+        run: flutter build ${{ matrix.platform }} --release
+
+  mobile-gallery:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: android
+            target: apk
+            arguments: --release
+          - os: macos-latest
+            platform: ios
+            target: ios
+            arguments: --release --no-codesign
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - working-directory: example
+        run: flutter create --platforms=${{ matrix.platform }} .
+      - working-directory: example
+        run: flutter build ${{ matrix.target }} ${{ matrix.arguments }}
