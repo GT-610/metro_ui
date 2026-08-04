@@ -262,9 +262,13 @@ reviewing an intentional Golden change, maintainers can run the tool with
 `--update` to refresh those copies.
 
 Golden test libraries carry the `golden` tag registered in `dart_test.yaml`.
-The latest stable Flutter job runs the complete suite, while the declared
-minimum Flutter 3.32 job excludes only that version-sensitive raster comparison
-and still runs every behavioral test. Both jobs analyze the complete package.
+The stable workflow runs behavioral tests with coverage on Ubuntu and runs the
+tagged visual suite on Windows, the canonical renderer used to review the
+committed baselines. This avoids false failures from platform-specific
+high-DPI rasterization while retaining full behavioral and visual coverage.
+The declared minimum Flutter 3.32 job excludes only the version-sensitive
+raster comparisons and still runs every behavioral test. Both test jobs
+analyze the complete package.
 
 The `example` application is both a gallery and a multi-platform integration
 harness. It is intentionally independent and references the package by path.

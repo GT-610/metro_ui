@@ -81,9 +81,11 @@ flutter test
 flutter build web --release
 ```
 
-The hosted workflow additionally analyzes and runs the non-Golden suite on the
-minimum supported Flutter version, and builds the Gallery for all six Flutter
-platform families.
+The hosted workflow runs the behavioral suite with coverage on Ubuntu and the
+tagged Golden suite on Windows, which is the canonical renderer for the
+committed visual baselines. It also analyzes and runs the non-Golden suite on
+the minimum supported Flutter version, and builds the Gallery for all six
+Flutter platform families.
 
 ## Public API changes
 
