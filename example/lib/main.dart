@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:metro_ui/metro_ui.dart';
 
 import 'gallery/catalog.dart';
+import 'gallery/gallery_demo_support.dart';
 import 'gallery/gallery_home.dart';
 import 'gallery/gallery_navigation.dart';
 
@@ -41,10 +42,8 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
         mode: MetroSelectionMode.multiple,
         selectedValues: const ['documents'],
       );
-  late final MetroSelectionController<_GalleryAlbum> _albumSelectionController =
-      MetroSelectionController<_GalleryAlbum>(
-        mode: MetroSelectionMode.multiple,
-      );
+  late final MetroSelectionController<GalleryAlbum> _albumSelectionController =
+      MetroSelectionController<GalleryAlbum>(mode: MetroSelectionMode.multiple);
   late final PageController _semanticZoomPageController = PageController();
   Color _accent = MetroColors.cobalt;
   String _lastAction = 'Choose a control';
@@ -71,32 +70,31 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
   }
 
   void _selectDestination(GalleryDestinationId destination) {
-    setState(() {
+    _updateState(() {
       _selectedDestination = destination;
       _selectedComponent = null;
-      _lastAction = 'Opened ${galleryDestinationOf(destination).title}';
-    });
+    }, 'Opened ${galleryDestinationOf(destination).title}');
   }
 
   void _selectComponent(GalleryComponent component) {
-    setState(() {
+    _updateState(() {
       _selectedDestination = component.destination;
       _selectedComponent = component;
-      _lastAction = 'Found ${component.name}';
-    });
+    }, 'Found ${component.name}');
   }
 
   void _revealSelectedComponent() {
     final component = _selectedComponent;
     if (component == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final targetContext = _componentTarget(component.name).currentContext;
+      if (!mounted || _selectedComponent != component) return;
+      final targetContext = _componentTarget(component.name)?.currentContext;
       if (targetContext == null) return;
       Scrollable.ensureVisible(targetContext, alignment: 0.08);
     });
   }
 
-  GlobalKey _componentTarget(String name) {
+  GlobalKey? _componentTarget(String name) {
     return switch (name) {
       'MetroTile' ||
       'MetroLiveTile' ||
@@ -125,8 +123,15 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
       'MetroSemanticZoom' => _semanticZoomKey,
       'MetroPivot' || 'MetroPageRoute' => _pivotKey,
       'MetroDataGrid' => _dataGridKey,
-      _ => _tilesKey,
+      _ => null,
     };
+  }
+
+  void _updateState(VoidCallback update, String action) {
+    setState(() {
+      update();
+      _lastAction = action;
+    });
   }
 
   @override
@@ -218,7 +223,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                           if (_selectedDestination == GalleryDestinationId.home)
                             GalleryHome(
                               onSelected: _selectDestination,
-                              accentPicker: _AccentPicker(
+                              accentPicker: GalleryAccentPicker(
                                 selected: _accent,
                                 onSelected: (color) =>
                                     setState(() => _accent = color),
@@ -236,7 +241,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                           if (_selectedDestination !=
                               GalleryDestinationId.home) ...[
                             if (_shows(GalleryDestinationId.tiles)) ...[
-                              const _SectionHeading(
+                              const GallerySectionHeading(
                                 title: 'Modern UI for Flutter',
                                 description:
                                     'Typography, flat color, direct interaction, and '
@@ -244,13 +249,16 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                     'decorative chrome.',
                               ),
                               const SizedBox(height: MetroSpacing.lg),
-                              _AccentPicker(
+                              GalleryAccentPicker(
                                 selected: _accent,
                                 onSelected: (color) =>
                                     setState(() => _accent = color),
                               ),
                               const SizedBox(height: MetroSpacing.xl),
-                              _SectionHeading(key: _tilesKey, title: 'Tiles'),
+                              GallerySectionHeading(
+                                key: _tilesKey,
+                                title: 'Tiles',
+                              ),
                               const SizedBox(height: MetroSpacing.sm),
                               MetroFocusTraversalGroup.spatial(
                                 debugLabel: 'Gallery tiles',
@@ -310,7 +318,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                             if (_shows(
                               GalleryDestinationId.buttonsAndFeedback,
                             )) ...[
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _buttonsKey,
                                 title: 'Buttons and feedback',
                               ),
@@ -365,7 +373,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                             if (_shows(
                               GalleryDestinationId.selectionAndLists,
                             )) ...[
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _selectionKey,
                                 title: 'Selection and lists',
                               ),
@@ -467,7 +475,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                             if (_shows(
                               GalleryDestinationId.buttonsAndFeedback,
                             )) ...[
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _progressKey,
                                 title: 'Progress',
                                 description:
@@ -487,7 +495,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                 ),
                               ),
                               const SizedBox(height: MetroSpacing.xl),
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _overlaysKey,
                                 title: 'Dialogs, flyouts, and tooltips',
                                 description:
@@ -527,7 +535,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                             if (_shows(
                               GalleryDestinationId.inputsAndPickers,
                             )) ...[
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _textInputsKey,
                                 title: 'Inputs and pickers',
                               ),
@@ -612,7 +620,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                           : null,
                                     ),
                                     const SizedBox(height: MetroSpacing.md),
-                                    _SectionHeading(
+                                    GallerySectionHeading(
                                       key: _choiceInputsKey,
                                       title: 'Numbers and choices',
                                     ),
@@ -632,8 +640,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                             semanticLabel: 'Copies',
                                             onChanged: (value) {
                                               if (value == null) return;
-                                              setState(() => _copies = value);
-                                              _record('Copies $value');
+                                              _updateState(
+                                                () => _copies = value,
+                                                'Copies $value',
+                                              );
                                             },
                                           ),
                                         ),
@@ -667,10 +677,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                               semanticLabel: 'Temperature',
                                               onChanged: (value) {
                                                 if (value == null) return;
-                                                setState(
+                                                _updateState(
                                                   () => _temperature = value,
+                                                  'Temperature $value',
                                                 );
-                                                _record('Temperature $value');
                                               },
                                             ),
                                           ),
@@ -720,10 +730,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                               ),
                                             ],
                                             onChanged: (value) {
-                                              setState(
+                                              _updateState(
                                                 () => _travelCity = value,
+                                                'Destination $value',
                                               );
-                                              _record('Destination $value');
                                             },
                                           ),
                                         ),
@@ -778,7 +788,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       ],
                                     ),
                                     const SizedBox(height: MetroSpacing.md),
-                                    _SectionHeading(
+                                    GallerySectionHeading(
                                       key: _pickersKey,
                                       title: 'Date and time',
                                     ),
@@ -796,8 +806,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                             monthFormatter: (context, month) =>
                                                 _monthNames[month - 1],
                                             onChanged: (date) {
-                                              setState(() => _eventDate = date);
-                                              _record('Event date selected');
+                                              _updateState(
+                                                () => _eventDate = date,
+                                                'Event date selected',
+                                              );
                                             },
                                             semanticLabel: 'Event date',
                                           ),
@@ -808,8 +820,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                             selected: _eventTime,
                                             minuteIncrement: 15,
                                             onChanged: (time) {
-                                              setState(() => _eventTime = time);
-                                              _record('Event time selected');
+                                              _updateState(
+                                                () => _eventTime = time,
+                                                'Event time selected',
+                                              );
                                             },
                                             semanticLabel: 'Event time',
                                           ),
@@ -817,7 +831,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       ],
                                     ),
                                     const SizedBox(height: MetroSpacing.lg),
-                                    _SectionHeading(
+                                    GallerySectionHeading(
                                       key: _slidersKey,
                                       title: 'Sliders',
                                     ),
@@ -837,11 +851,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       semanticFormatterCallback: (value) =>
                                           '${value.round()} percent',
                                       onChanged: (value) {
-                                        setState(() {
-                                          _volume = value;
-                                          _lastAction =
-                                              'Volume ${value.round()}';
-                                        });
+                                        _updateState(
+                                          () => _volume = value,
+                                          'Volume ${value.round()}',
+                                        );
                                       },
                                     ),
                                     const SizedBox(height: MetroSpacing.md),
@@ -867,12 +880,11 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       semanticFormatterCallback: (value) =>
                                           '${value.round()} degrees',
                                       onChanged: (values) {
-                                        setState(() {
-                                          _comfortRange = values;
-                                          _lastAction =
-                                              'Comfort range ${values.start.round()}–'
-                                              '${values.end.round()}';
-                                        });
+                                        _updateState(
+                                          () => _comfortRange = values,
+                                          'Comfort range ${values.start.round()}–'
+                                          '${values.end.round()}',
+                                        );
                                       },
                                     ),
                                   ],
@@ -881,7 +893,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                               const SizedBox(height: MetroSpacing.md),
                             ],
                             if (_shows(GalleryDestinationId.navigation)) ...[
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _flipViewKey,
                                 title: 'FlipView',
                                 description:
@@ -901,11 +913,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                     showIndicators: true,
                                     semanticLabel: 'Modern UI feature stories',
                                     onChanged: (index) {
-                                      setState(() {
-                                        _flipViewIndex = index;
-                                        _lastAction =
-                                            'FlipView page ${index + 1}';
-                                      });
+                                      _updateState(
+                                        () => _flipViewIndex = index,
+                                        'FlipView page ${index + 1}',
+                                      );
                                     },
                                     items: const [
                                       MetroFlipViewItem(
@@ -914,7 +925,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                         banner: Text(
                                           'SWIPE, CLICK, OR USE THE ARROW KEYS',
                                         ),
-                                        child: _FlipViewStory(
+                                        child: GalleryFlipViewStory(
                                           color: MetroColors.cobalt,
                                           eyebrow: 'MODERN UI',
                                           title: 'CONTENT\nBEFORE CHROME',
@@ -926,7 +937,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                         banner: Text(
                                           'BOLD SCALE CREATES THE HIERARCHY',
                                         ),
-                                        child: _FlipViewStory(
+                                        child: GalleryFlipViewStory(
                                           color: MetroColors.magenta,
                                           eyebrow: 'TYPOGRAPHY',
                                           title: 'CLEAR, FAST,\nCONFIDENT',
@@ -938,7 +949,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                         banner: Text(
                                           'DIRECTIONAL MOTION PRESERVES CONTEXT',
                                         ),
-                                        child: _FlipViewStory(
+                                        child: GalleryFlipViewStory(
                                           color: MetroColors.emerald,
                                           eyebrow: 'MOTION',
                                           title: 'ONE SURFACE,\nNEXT STORY',
@@ -950,7 +961,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                 ),
                               ),
                               const SizedBox(height: MetroSpacing.md),
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _semanticZoomKey,
                                 title: 'Semantic zoom',
                                 description:
@@ -968,12 +979,12 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                   semanticLabel: 'Gallery component groups',
                                   zoomedOut: _semanticZoomedOut,
                                   onZoomedOutChanged: (zoomedOut) {
-                                    setState(() {
-                                      _semanticZoomedOut = zoomedOut;
-                                      _lastAction = zoomedOut
+                                    _updateState(
+                                      () => _semanticZoomedOut = zoomedOut,
+                                      zoomedOut
                                           ? 'Semantic zoom overview'
-                                          : 'Semantic zoom details';
-                                    });
+                                          : 'Semantic zoom details',
+                                    );
                                   },
                                   zoomedInView: PageView.builder(
                                     controller: _semanticZoomPageController,
@@ -984,7 +995,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       );
                                     },
                                     itemBuilder: (context, index) {
-                                      return _SemanticZoomGroupPage(
+                                      return GallerySemanticZoomGroupPage(
                                         group: _semanticZoomGroups[index],
                                         onItemPressed: (item) {
                                           _record('Semantic zoom item $item');
@@ -992,7 +1003,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       );
                                     },
                                   ),
-                                  zoomedOutView: _SemanticZoomOverview(
+                                  zoomedOutView: GallerySemanticZoomOverview(
                                     groups: _semanticZoomGroups,
                                     selectedIndex: _semanticZoomGroupIndex,
                                     onSelected: _openSemanticZoomGroup,
@@ -1002,7 +1013,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                               const SizedBox(height: MetroSpacing.md),
                             ],
                             if (_shows(GalleryDestinationId.data)) ...[
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _dataGridKey,
                                 title: 'Data grid',
                                 description:
@@ -1014,7 +1025,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                 constraints: const BoxConstraints(
                                   maxWidth: 720,
                                 ),
-                                child: MetroDataGrid<_GalleryAlbum>(
+                                child: MetroDataGrid<GalleryAlbum>(
                                   autofocus: true,
                                   columns: _albumColumns,
                                   height: 264,
@@ -1024,11 +1035,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                     );
                                   },
                                   onSortChanged: (sort) {
-                                    setState(() {
-                                      _albumSort = sort;
-                                      _lastAction =
-                                          'Sorted albums ${sort.direction.name}';
-                                    });
+                                    _updateState(
+                                      () => _albumSort = sort,
+                                      'Sorted albums ${sort.direction.name}',
+                                    );
                                   },
                                   rowSemanticLabelBuilder: (album, index) =>
                                       '${album.title}, ${album.artist}, ${album.year}',
@@ -1041,7 +1051,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                               const SizedBox(height: MetroSpacing.md),
                             ],
                             if (_shows(GalleryDestinationId.navigation)) ...[
-                              _SectionHeading(
+                              GallerySectionHeading(
                                 key: _pivotKey,
                                 title: 'Pivot and page routes',
                                 description:
@@ -1111,10 +1121,8 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
         MetroCommandButton(
           icon: Icon(_favorite ? Icons.favorite : Icons.favorite_border),
           label: const Text('Favorite'),
-          onPressed: () {
-            setState(() => _favorite = !_favorite);
-            _record('Favorite command');
-          },
+          onPressed: () =>
+              _updateState(() => _favorite = !_favorite, 'Favorite command'),
           selected: _favorite,
           semanticLabel: 'Favorite gallery',
         ),
@@ -1165,28 +1173,28 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
     'DEC',
   ];
 
-  static const _albums = <_GalleryAlbum>[
-    _GalleryAlbum('Discovery', 'Daft Punk', 2001),
-    _GalleryAlbum('Homework', 'Daft Punk', 1997),
-    _GalleryAlbum('In Colour', 'Jamie xx', 2015),
-    _GalleryAlbum('Settle', 'Disclosure', 2013),
-    _GalleryAlbum('Immunity', 'Jon Hopkins', 2013),
+  static const _albums = <GalleryAlbum>[
+    GalleryAlbum('Discovery', 'Daft Punk', 2001),
+    GalleryAlbum('Homework', 'Daft Punk', 1997),
+    GalleryAlbum('In Colour', 'Jamie xx', 2015),
+    GalleryAlbum('Settle', 'Disclosure', 2013),
+    GalleryAlbum('Immunity', 'Jon Hopkins', 2013),
   ];
 
-  static const _semanticZoomGroups = <_SemanticZoomGroup>[
-    _SemanticZoomGroup(
+  static const _semanticZoomGroups = <GallerySemanticZoomGroup>[
+    GallerySemanticZoomGroup(
       label: 'LAYOUT',
       description: 'Content-first surfaces and responsive Metro composition.',
       color: MetroColors.cobalt,
       items: ['Tile', 'LiveTile', 'Semantic zoom'],
     ),
-    _SemanticZoomGroup(
+    GallerySemanticZoomGroup(
       label: 'NAVIGATION',
       description: 'Directional movement that keeps collection context.',
       color: MetroColors.magenta,
       items: ['Pivot', 'FlipView', 'PageRoute'],
     ),
-    _SemanticZoomGroup(
+    GallerySemanticZoomGroup(
       label: 'INPUT',
       description: 'Direct, square controls with explicit interaction states.',
       color: MetroColors.teal,
@@ -1194,8 +1202,8 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
     ),
   ];
 
-  static final _albumColumns = <MetroDataGridColumn<_GalleryAlbum>>[
-    MetroDataGridColumn<_GalleryAlbum>(
+  static final _albumColumns = <MetroDataGridColumn<GalleryAlbum>>[
+    MetroDataGridColumn<GalleryAlbum>(
       key: 'title',
       label: const Text('TITLE'),
       semanticLabel: 'Sort albums by title',
@@ -1203,7 +1211,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
       minimumWidth: 190,
       cellBuilder: (context, album, index) => Text(album.title),
     ),
-    MetroDataGridColumn<_GalleryAlbum>(
+    MetroDataGridColumn<GalleryAlbum>(
       key: 'artist',
       label: const Text('ARTIST'),
       semanticLabel: 'Sort albums by artist',
@@ -1211,7 +1219,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
       minimumWidth: 170,
       cellBuilder: (context, album, index) => Text(album.artist),
     ),
-    MetroDataGridColumn<_GalleryAlbum>(
+    MetroDataGridColumn<GalleryAlbum>(
       key: 'year',
       label: const Text('YEAR'),
       semanticLabel: 'Sort albums by year',
@@ -1223,8 +1231,8 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
     ),
   ];
 
-  List<_GalleryAlbum> get _sortedAlbums {
-    final albums = List<_GalleryAlbum>.of(_albums);
+  List<GalleryAlbum> get _sortedAlbums {
+    final albums = List<GalleryAlbum>.of(_albums);
     final sort = _albumSort;
     if (sort == null) return albums;
     albums.sort((first, second) {
@@ -1253,11 +1261,10 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
     if (_semanticZoomPageController.hasClients) {
       _semanticZoomPageController.jumpToPage(index);
     }
-    setState(() {
+    _updateState(() {
       _semanticZoomGroupIndex = index;
       _semanticZoomedOut = false;
-      _lastAction = 'Semantic zoom ${_semanticZoomGroups[index].label}';
-    });
+    }, 'Semantic zoom ${_semanticZoomGroups[index].label}');
   }
 
   void _showMotionPage(BuildContext context) {
@@ -1360,299 +1367,4 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
       },
     );
   }
-}
-
-class _SectionHeading extends StatelessWidget {
-  const _SectionHeading({required this.title, this.description, super.key});
-
-  final String title;
-  final String? description;
-
-  @override
-  Widget build(BuildContext context) {
-    final typography = MetroTheme.of(context).typography;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: typography.title),
-        if (description != null) ...[
-          const SizedBox(height: MetroSpacing.xs),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Text(description!),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _AccentPicker extends StatelessWidget {
-  const _AccentPicker({required this.selected, required this.onSelected});
-
-  final Color selected;
-  final ValueChanged<Color> onSelected;
-
-  static const colors = <Color>[
-    MetroColors.cobalt,
-    MetroColors.teal,
-    MetroColors.magenta,
-    MetroColors.orange,
-    MetroColors.yellow,
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: MetroSpacing.xs,
-      runSpacing: MetroSpacing.xs,
-      children: [
-        for (final color in colors)
-          Semantics(
-            button: true,
-            selected: color == selected,
-            label: 'Select accent ${color.toARGB32().toRadixString(16)}',
-            child: GestureDetector(
-              onTap: () => onSelected(color),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: color,
-                  border: Border.all(
-                    color: color == selected
-                        ? MetroTheme.of(context).colors.focus
-                        : const Color(0x00000000),
-                    width: 3,
-                  ),
-                ),
-                child: const SizedBox.square(dimension: 36),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _FlipViewStory extends StatelessWidget {
-  const _FlipViewStory({
-    required this.color,
-    required this.eyebrow,
-    required this.title,
-    required this.icon,
-  });
-
-  final Color color;
-  final String eyebrow;
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: color,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(64, MetroSpacing.lg, 64, 72),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    eyebrow,
-                    style: const TextStyle(
-                      color: Color(0xFFFFFFFF),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: MetroSpacing.sm),
-                  Flexible(
-                    child: FittedBox(
-                      alignment: AlignmentDirectional.centerStart,
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          color: Color(0xFFFFFFFF),
-                          fontSize: 44,
-                          fontWeight: FontWeight.w300,
-                          height: 0.95,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: MetroSpacing.lg),
-            Icon(icon, color: const Color(0xFFFFFFFF), size: 72),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SemanticZoomOverview extends StatelessWidget {
-  const _SemanticZoomOverview({
-    required this.groups,
-    required this.selectedIndex,
-    required this.onSelected,
-  });
-
-  final List<_SemanticZoomGroup> groups;
-  final int selectedIndex;
-  final ValueChanged<int> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(MetroSpacing.md),
-      child: GridView.builder(
-        itemCount: groups.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: MetroSpacing.sm,
-          mainAxisSpacing: MetroSpacing.sm,
-          childAspectRatio: 1.45,
-        ),
-        itemBuilder: (context, index) {
-          final group = groups[index];
-          return MetroButton(
-            semanticLabel:
-                '${group.label}, ${group.items.length} component examples',
-            style: MetroButtonStyle(
-              backgroundColor: WidgetStatePropertyAll(group.color),
-              foregroundColor: const WidgetStatePropertyAll(Color(0xFFFFFFFF)),
-              borderColor: WidgetStatePropertyAll(
-                index == selectedIndex
-                    ? const Color(0xFFFFFFFF)
-                    : const Color(0x00000000),
-              ),
-              borderWidth: WidgetStatePropertyAll(
-                index == selectedIndex ? 3 : 0,
-              ),
-              padding: const EdgeInsets.all(MetroSpacing.sm),
-            ),
-            onPressed: () => onSelected(index),
-            child: Align(
-              alignment: AlignmentDirectional.bottomStart,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    group.label,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text('${group.items.length} COMPONENTS'),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _SemanticZoomGroupPage extends StatelessWidget {
-  const _SemanticZoomGroupPage({
-    required this.group,
-    required this.onItemPressed,
-  });
-
-  final _SemanticZoomGroup group;
-  final ValueChanged<String> onItemPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: group.color,
-      child: Padding(
-        padding: const EdgeInsets.all(MetroSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              group.label,
-              style: const TextStyle(
-                color: Color(0xFFFFFFFF),
-                fontSize: 36,
-                fontWeight: FontWeight.w300,
-              ),
-            ),
-            const SizedBox(height: MetroSpacing.xs),
-            Text(
-              group.description,
-              style: const TextStyle(color: Color(0xFFFFFFFF)),
-            ),
-            const Spacer(),
-            Wrap(
-              spacing: MetroSpacing.sm,
-              runSpacing: MetroSpacing.sm,
-              children: [
-                for (final item in group.items)
-                  MetroButton(
-                    style: const MetroButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        Color(0x26FFFFFF),
-                      ),
-                      foregroundColor: WidgetStatePropertyAll(
-                        Color(0xFFFFFFFF),
-                      ),
-                      borderColor: WidgetStatePropertyAll(Color(0x99FFFFFF)),
-                    ),
-                    onPressed: () => onItemPressed(item),
-                    child: Text(item.toUpperCase()),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-@immutable
-class _SemanticZoomGroup {
-  const _SemanticZoomGroup({
-    required this.label,
-    required this.description,
-    required this.color,
-    required this.items,
-  });
-
-  final String label;
-  final String description;
-  final Color color;
-  final List<String> items;
-}
-
-@immutable
-class _GalleryAlbum {
-  const _GalleryAlbum(this.title, this.artist, this.year);
-
-  final String title;
-  final String artist;
-  final int year;
-
-  @override
-  bool operator ==(Object other) {
-    return other is _GalleryAlbum &&
-        other.title == title &&
-        other.artist == artist &&
-        other.year == year;
-  }
-
-  @override
-  int get hashCode => Object.hash(title, artist, year);
 }

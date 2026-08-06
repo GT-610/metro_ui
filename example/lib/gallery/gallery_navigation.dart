@@ -3,6 +3,31 @@ import 'package:metro_ui/metro_ui.dart';
 
 import 'catalog.dart';
 
+final List<MetroSearchBoxItem<GalleryComponent>>
+_gallerySearchItems = List<MetroSearchBoxItem<GalleryComponent>>.unmodifiable([
+  for (final component in galleryComponents)
+    MetroSearchBoxItem<GalleryComponent>(
+      value: component,
+      queryText: component.name,
+      semanticLabel:
+          '${component.name}, ${galleryDestinationOf(component.destination).title}',
+      child: _SearchResult(component: component),
+    ),
+]);
+
+final Map<GalleryComponent, String> _gallerySearchIndex =
+    Map<GalleryComponent, String>.unmodifiable({
+      for (final component in galleryComponents)
+        component: component.searchText,
+    });
+
+bool _filterGalleryComponent(
+  String query,
+  MetroSearchBoxItem<GalleryComponent> item,
+) {
+  return _gallerySearchIndex[item.value]!.contains(query.trim().toLowerCase());
+}
+
 class GalleryNavigation extends StatelessWidget {
   const GalleryNavigation({
     required this.selected,
@@ -129,22 +154,11 @@ class _GallerySearch extends StatelessWidget {
     return MetroSearchBox<GalleryComponent>(
       placeholder: 'Find a component',
       semanticLabel: 'Find a Metro UI component',
-      items: [
-        for (final component in galleryComponents)
-          MetroSearchBoxItem<GalleryComponent>(
-            value: component,
-            queryText: component.name,
-            semanticLabel:
-                '${component.name}, ${galleryDestinationOf(component.destination).title}',
-            child: _SearchResult(component: component),
-          ),
-      ],
-      filter: (query, item) {
-        return item.value.searchText.contains(query.trim().toLowerCase());
-      },
+      items: _gallerySearchItems,
+      filter: _filterGalleryComponent,
       onSelected: (item) {
         FocusManager.instance.primaryFocus?.unfocus();
-        Future<void>.microtask(() => onSelected(item.value));
+        onSelected(item.value);
       },
       noResultsBuilder: (context) => const Padding(
         padding: EdgeInsets.all(MetroSpacing.sm),

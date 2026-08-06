@@ -313,13 +313,28 @@ const galleryComponents = <GalleryComponent>[
   ),
 ];
 
+final Map<GalleryDestinationId, GalleryDestination> _destinationsById =
+    Map<GalleryDestinationId, GalleryDestination>.unmodifiable({
+      for (final destination in galleryDestinations)
+        destination.id: destination,
+    });
+
+final Map<GalleryDestinationId, List<GalleryComponent>>
+_componentsByDestination =
+    Map<GalleryDestinationId, List<GalleryComponent>>.unmodifiable({
+      for (final destination in galleryDestinations)
+        destination.id: List<GalleryComponent>.unmodifiable(
+          galleryComponents.where(
+            (component) => component.destination == destination.id,
+          ),
+        ),
+    });
+
 GalleryDestination galleryDestinationOf(GalleryDestinationId id) {
-  return galleryDestinations.firstWhere((destination) => destination.id == id);
+  return _destinationsById[id]!;
 }
 
 List<GalleryComponent> galleryComponentsFor(GalleryDestinationId id) {
   if (id == GalleryDestinationId.allControls) return galleryComponents;
-  return galleryComponents
-      .where((component) => component.destination == id)
-      .toList(growable: false);
+  return _componentsByDestination[id] ?? const <GalleryComponent>[];
 }
