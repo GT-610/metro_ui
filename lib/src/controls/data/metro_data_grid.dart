@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -145,15 +146,15 @@ class MetroDataGrid<T extends Object> extends StatefulWidget {
 class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
   final Map<Object, FocusNode> _rowFocusNodes = <Object, FocusNode>{};
   final Map<Object, GlobalKey> _rowKeys = <Object, GlobalKey>{};
-  late final ScrollController _internalVerticalScrollController;
+  ScrollController? _internalVerticalScrollController;
 
   ScrollController get _verticalScrollController =>
-      widget.verticalScrollController ?? _internalVerticalScrollController;
+      widget.verticalScrollController ??
+      (_internalVerticalScrollController ??= ScrollController());
 
   @override
   void initState() {
     super.initState();
-    _internalVerticalScrollController = ScrollController();
     _reconcileRows();
   }
 
@@ -168,7 +169,7 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
     for (final node in _rowFocusNodes.values) {
       node.dispose();
     }
-    _internalVerticalScrollController.dispose();
+    _internalVerticalScrollController?.dispose();
     super.dispose();
   }
 
@@ -200,19 +201,18 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
         );
 
         Widget buildTable() {
-          final table = _buildTable(
-            controller: controller,
-            sortAscendingSemanticLabel:
-                widget.sortAscendingSemanticLabel ??
-                localizations.sortAscendingLabel,
-            sortDescendingSemanticLabel:
-                widget.sortDescendingSemanticLabel ??
-                localizations.sortDescendingLabel,
-            style: style,
-            widths: widths,
-          );
           if (controller == null) {
-            return table;
+            return _buildTable(
+              controller: null,
+              sortAscendingSemanticLabel:
+                  widget.sortAscendingSemanticLabel ??
+                  localizations.sortAscendingLabel,
+              sortDescendingSemanticLabel:
+                  widget.sortDescendingSemanticLabel ??
+                  localizations.sortDescendingLabel,
+              style: style,
+              widths: widths,
+            );
           }
           return AnimatedBuilder(
             animation: controller,
@@ -258,6 +258,7 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
   }) {
     final headerHeight = style.headerHeight ?? 44;
     final rowHeight = style.rowHeight ?? 44;
+    final autofocusIndex = widget.autofocus ? _firstEnabledRow : -1;
     final children = <Widget>[
       if (widget.showHeader)
         _MetroDataGridHeader<T>(
@@ -285,6 +286,7 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
                     itemExtent: rowHeight,
                     primary: false,
                     itemBuilder: (context, index) => _buildRow(
+                      autofocusIndex: autofocusIndex,
                       controller: controller,
                       index: index,
                       rowHeight: rowHeight,
@@ -306,6 +308,7 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
         else
           for (var index = 0; index < widget.rows.length; index += 1)
             _buildRow(
+              autofocusIndex: autofocusIndex,
               controller: controller,
               index: index,
               rowHeight: rowHeight,
@@ -326,6 +329,7 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
   }
 
   Widget _buildRow({
+    required int autofocusIndex,
     required MetroSelectionController<T>? controller,
     required int index,
     required double rowHeight,
@@ -337,12 +341,12 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
     final enabled = widget.rowEnabledBuilder?.call(row) ?? true;
     final selected = controller?.isSelected(row) ?? false;
     return _MetroDataGridRow<T>(
-      key: _rowKeys[key],
+      key: _rowKeyFor(key),
       actionable: controller != null || widget.onRowPressed != null,
-      autofocus: widget.autofocus && index == _firstEnabledRow,
+      autofocus: index == autofocusIndex,
       columns: widget.columns,
       enabled: enabled,
-      focusNode: _rowFocusNodes[key]!,
+      focusNode: _focusNodeFor(key),
       index: index,
       onActivate: () => _activateRow(row, controller),
       onMoveFocus: (movement) => _moveFocus(index, movement, rowHeight),
@@ -401,10 +405,11 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
       final row = widget.rows[index];
       if (widget.rowEnabledBuilder?.call(row) ?? true) {
         final key = _keyFor(row);
-        final focusNode = _rowFocusNodes[key];
-        final rowContext = _rowKeys[key]?.currentContext;
+        final focusNode = _focusNodeFor(key);
+        final rowKey = _rowKeyFor(key);
+        final rowContext = rowKey.currentContext;
         if (rowContext != null) {
-          focusNode?.requestFocus();
+          focusNode.requestFocus();
           Scrollable.ensureVisible(rowContext, alignment: 0.5);
         } else if (widget.height != null &&
             _verticalScrollController.hasClients) {
@@ -415,8 +420,8 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
           );
           _verticalScrollController.jumpTo(targetOffset);
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            focusNode?.requestFocus();
+            if (!mounted || _rowFocusNodes[key] != focusNode) return;
+            focusNode.requestFocus();
             final builtContext = _rowKeys[key]?.currentContext;
             if (builtContext != null) {
               Scrollable.ensureVisible(builtContext, alignment: 0.5);
@@ -442,23 +447,31 @@ class _MetroDataGridState<T extends Object> extends State<MetroDataGrid<T>> {
 
   Object _keyFor(T row) => widget.rowKeyBuilder?.call(row) ?? row;
 
+  FocusNode _focusNodeFor(Object key) {
+    return _rowFocusNodes.putIfAbsent(
+      key,
+      () => FocusNode(debugLabel: 'MetroDataGrid row $key'),
+    );
+  }
+
+  GlobalKey _rowKeyFor(Object key) {
+    return _rowKeys.putIfAbsent(key, GlobalKey.new);
+  }
+
   void _reconcileRows() {
     final keys = <Object>{};
     for (final row in widget.rows) {
       final key = _keyFor(row);
       assert(!keys.contains(key), 'MetroDataGrid row keys must be unique.');
       keys.add(key);
-      _rowFocusNodes.putIfAbsent(
-        key,
-        () => FocusNode(debugLabel: 'MetroDataGrid row $key'),
-      );
-      _rowKeys.putIfAbsent(key, () => GlobalKey());
     }
-    final removed = _rowFocusNodes.keys.where((key) => !keys.contains(key));
-    for (final key in removed.toList()) {
+    final removed = _rowFocusNodes.keys
+        .where((key) => !keys.contains(key))
+        .toList();
+    for (final key in removed) {
       _rowFocusNodes.remove(key)?.dispose();
-      _rowKeys.remove(key);
     }
+    _rowKeys.removeWhere((key, _) => !keys.contains(key));
   }
 }
 
@@ -708,6 +721,7 @@ class _MetroDataGridRowState<T extends Object>
 
   @override
   Widget build(BuildContext context) {
+    final theme = MetroTheme.of(context);
     final states = <WidgetState>{
       if (!widget.enabled) WidgetState.disabled,
       if (widget.selected) WidgetState.selected,
@@ -720,61 +734,70 @@ class _MetroDataGridRowState<T extends Object>
       background = widget.style.alternateRowBackgroundColor ?? background;
     }
     final foreground = widget.style.rowForegroundColor?.resolve(states);
-    Widget visual = Container(
-      height: widget.rowHeight,
-      decoration: BoxDecoration(
-        color: background,
-        border: Border(
-          bottom: BorderSide(
-            color: widget.style.dividerColor ?? const Color(0x00000000),
-            width: widget.style.dividerWidth ?? 1,
+    Widget visual = AnimatedScale(
+      key: ValueKey<String>('metro-data-grid-row-${widget.index}-scale'),
+      scale: _pressed ? 0.975 : 1,
+      duration: metroReduceMotion(context)
+          ? Duration.zero
+          : theme.motion.normal,
+      curve: theme.motion.standardCurve,
+      child: Container(
+        key: ValueKey<String>('metro-data-grid-row-${widget.index}-surface'),
+        height: widget.rowHeight,
+        decoration: BoxDecoration(
+          color: background,
+          border: Border(
+            bottom: BorderSide(
+              color: widget.style.dividerColor ?? const Color(0x00000000),
+              width: widget.style.dividerWidth ?? 1,
+            ),
           ),
         ),
-      ),
-      foregroundDecoration: _focused
-          ? BoxDecoration(
-              border: Border.all(
-                color: widget.style.focusColor ?? const Color(0x00000000),
-                width: widget.style.focusWidth ?? 2,
-              ),
-            )
-          : null,
-      child: DefaultTextStyle.merge(
-        style: widget.style.cellTextStyle
-            ?.resolve(states)
-            ?.copyWith(color: foreground),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        child: Row(
-          children: [
-            for (var index = 0; index < widget.columns.length; index += 1)
-              SizedBox(
-                width: widget.widths[index],
-                child: Container(
-                  alignment: widget.columns[index].alignment,
-                  padding:
-                      widget.style.cellPadding ??
-                      const EdgeInsets.symmetric(horizontal: MetroSpacing.sm),
-                  decoration: BoxDecoration(
-                    border: index == widget.columns.length - 1
-                        ? null
-                        : BorderDirectional(
-                            end: BorderSide(
-                              color:
-                                  widget.style.dividerColor ??
-                                  const Color(0x00000000),
-                              width: widget.style.dividerWidth ?? 1,
+        foregroundDecoration: _focused
+            ? BoxDecoration(
+                border: Border.all(
+                  color: widget.style.focusColor ?? const Color(0x00000000),
+                  width: widget.style.focusWidth ?? 2,
+                ),
+              )
+            : null,
+        child: DefaultTextStyle.merge(
+          style: widget.style.cellTextStyle
+              ?.resolve(states)
+              ?.copyWith(color: foreground),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          child: Row(
+            children: [
+              for (var index = 0; index < widget.columns.length; index += 1)
+                SizedBox(
+                  width: widget.widths[index],
+                  child: Container(
+                    alignment: widget.columns[index].alignment,
+                    padding:
+                        widget.style.cellPadding ??
+                        const EdgeInsets.symmetric(horizontal: MetroSpacing.sm),
+                    decoration: BoxDecoration(
+                      border: index == widget.columns.length - 1
+                          ? null
+                          : BorderDirectional(
+                              end: BorderSide(
+                                color:
+                                    widget.style.dividerColor ??
+                                    const Color(0x00000000),
+                                width: widget.style.dividerWidth ?? 1,
+                              ),
                             ),
-                          ),
-                  ),
-                  child: widget.columns[index].cellBuilder(
-                    context,
-                    widget.row,
-                    widget.index,
+                    ),
+                    child: widget.columns[index].cellBuilder(
+                      context,
+                      widget.row,
+                      widget.index,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -984,9 +1007,19 @@ MetroDataGridStyle _defaultDataGridStyle(MetroThemeData theme) {
       if (states.contains(WidgetState.disabled)) {
         return colors.disabledBackground;
       }
-      if (states.contains(WidgetState.selected)) return colors.accent;
-      if (states.contains(WidgetState.pressed)) return colors.accentPressed;
-      if (states.contains(WidgetState.hovered)) return colors.surfaceVariant;
+      if (states.contains(WidgetState.selected)) {
+        if (states.contains(WidgetState.hovered)) {
+          return colors.isHighContrast ? colors.accent : colors.accentHover;
+        }
+        return colors.accent;
+      }
+      if (states.contains(WidgetState.hovered)) {
+        if (colors.isHighContrast) return colors.accent;
+        return Color.alphaBlend(
+          colors.foreground.withValues(alpha: 0.3),
+          colors.background,
+        );
+      }
       return colors.background;
     }),
     alternateRowBackgroundColor: colors.surface,
@@ -995,8 +1028,10 @@ MetroDataGridStyle _defaultDataGridStyle(MetroThemeData theme) {
         return colors.disabledForeground;
       }
       if (states.contains(WidgetState.selected) ||
-          states.contains(WidgetState.pressed)) {
-        return colors.onAccent;
+          (colors.isHighContrast && states.contains(WidgetState.hovered))) {
+        return colors.isHighContrast
+            ? colors.onAccent
+            : const Color(0xFFFFFFFF);
       }
       return colors.foreground;
     }),

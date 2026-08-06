@@ -5,6 +5,54 @@ import 'package:metro_ui/metro_ui.dart';
 import '../test_utils.dart';
 
 void main() {
+  testWidgets(
+    'bar defaults match WinJS determinate and indeterminate metrics',
+    (tester) async {
+      await tester.pumpWidget(
+        metroTestApp(
+          child: const Center(
+            child: SizedBox(width: 180, child: MetroProgressBar(value: 0.5)),
+          ),
+        ),
+      );
+
+      var paintFinder = find.descendant(
+        of: find.byType(MetroProgressBar),
+        matching: find.byType(CustomPaint),
+      );
+      expect(tester.getSize(find.byType(MetroProgressBar)).height, 6);
+      expect(
+        paintFinder,
+        paints
+          ..rect(color: const Color(0x33000000))
+          ..rect(color: MetroColors.cobalt),
+      );
+
+      await tester.pumpWidget(
+        metroTestApp(
+          mediaQueryData: const MediaQueryData(
+            size: Size(800, 600),
+            disableAnimations: true,
+          ),
+          child: const Center(
+            child: SizedBox(width: 180, child: MetroProgressBar()),
+          ),
+        ),
+      );
+      paintFinder = find.descendant(
+        of: find.byType(MetroProgressBar),
+        matching: find.byType(CustomPaint),
+      );
+      expect(tester.getSize(find.byType(MetroProgressBar)).height, 4);
+      expect(
+        paintFinder,
+        paints
+          ..rect(color: const Color(0x00000000))
+          ..circle(color: MetroColors.cobalt),
+      );
+    },
+  );
+
   testWidgets('determinate bar exposes progress semantics', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(

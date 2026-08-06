@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
@@ -77,6 +78,8 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
   bool _pressed = false;
   bool _open = false;
   int? _highlightedIndex;
+  bool _closeScheduled = false;
+  bool _scrollScheduled = false;
 
   FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
 
@@ -116,20 +119,12 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
       }
       _focusNode.addListener(_handleFocusChanged);
       if (_open && !_focusNode.hasFocus) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            _closeMenu(restoreFocus: false);
-          }
-        });
+        _scheduleMenuClose();
       }
     }
 
     if (_open && !_enabled) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _closeMenu(restoreFocus: false);
-        }
-      });
+      _scheduleMenuClose();
       return;
     }
 
@@ -141,11 +136,7 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
           !widget.items[highlighted].enabled) {
         _highlightedIndex = _selectedIndex ?? _firstEnabledIndex();
       }
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _scrollHighlightedIntoView();
-        }
-      });
+      _scheduleHighlightedScroll();
     }
   }
 
@@ -229,11 +220,7 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
       _pressed = false;
     });
     _overlayController.show();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _scrollHighlightedIntoView();
-      }
-    });
+    _scheduleHighlightedScroll();
   }
 
   void _closeMenu({bool restoreFocus = true}) {
@@ -274,11 +261,7 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
       return;
     }
     setState(() => _highlightedIndex = next);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _scrollHighlightedIntoView();
-      }
-    });
+    _scheduleHighlightedScroll();
   }
 
   void _moveToBoundary({required bool end}) {
@@ -291,7 +274,29 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
       return;
     }
     setState(() => _highlightedIndex = next);
+    _scheduleHighlightedScroll();
+  }
+
+  void _scheduleMenuClose() {
+    if (_closeScheduled) {
+      return;
+    }
+    _closeScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _closeScheduled = false;
+      if (mounted) {
+        _closeMenu(restoreFocus: false);
+      }
+    });
+  }
+
+  void _scheduleHighlightedScroll() {
+    if (_scrollScheduled) {
+      return;
+    }
+    _scrollScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollScheduled = false;
       if (mounted) {
         _scrollHighlightedIntoView();
       }
@@ -377,7 +382,7 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
     final textStyle = style.textStyle!
         .resolve(states)!
         .copyWith(color: foreground);
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
 
     Widget selectedChild;
     if (selectedItem != null) {
@@ -589,7 +594,7 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
       preferBelow: widget.preferBelow,
     );
     final theme = MetroTheme.of(context);
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     final selectedIndex = _selectedIndex;
 
     return SizedBox.fromSize(
@@ -614,14 +619,26 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
               textDirection: Directionality.of(context),
             ),
             child: TweenAnimationBuilder<double>(
-              duration: reduceMotion ? Duration.zero : theme.motion.normal,
-              curve: theme.motion.standardCurve,
+              duration: reduceMotion ? Duration.zero : theme.motion.entrance,
               tween: Tween<double>(begin: 0, end: 1),
               builder: (context, progress, child) {
+                final durationMicros = theme.motion.entrance.inMicroseconds;
+                final fadeDelay = durationMicros == 0
+                    ? 0.0
+                    : theme.motion.popupFade.inMicroseconds / durationMicros;
+                final fadeLength = durationMicros == 0
+                    ? 1.0
+                    : theme.motion.popupFade.inMicroseconds / durationMicros;
+                final movementProgress = theme.motion.standardCurve.transform(
+                  progress,
+                );
+                final opacity = fadeLength <= 0
+                    ? 1.0
+                    : ((progress - fadeDelay) / fadeLength).clamp(0.0, 1.0);
                 return Opacity(
-                  opacity: progress,
+                  opacity: opacity,
                   child: Transform.translate(
-                    offset: Offset(0, (opensAbove ? 8 : -8) * (1 - progress)),
+                    offset: Offset(0, 50 * (1 - movementProgress)),
                     child: child,
                   ),
                 );
@@ -981,12 +998,6 @@ bool _shouldOpenAbove({
     return below < desiredHeight && above > below;
   }
   return !(above >= desiredHeight || above >= below);
-}
-
-bool _reduceMotion(BuildContext context) {
-  final mediaQuery = MediaQuery.maybeOf(context);
-  return mediaQuery?.disableAnimations == true ||
-      mediaQuery?.accessibleNavigation == true;
 }
 
 class _NextComboBoxItemIntent extends Intent {

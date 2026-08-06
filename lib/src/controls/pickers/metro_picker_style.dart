@@ -14,7 +14,11 @@ class MetroPickerStyle {
     this.textStyle,
     this.padding,
     this.minimumHeight,
-  });
+    this.minimumSegmentWidth,
+    this.segmentSpacing,
+  }) : assert(minimumHeight == null || minimumHeight > 0),
+       assert(minimumSegmentWidth == null || minimumSegmentWidth > 0),
+       assert(segmentSpacing == null || segmentSpacing >= 0);
 
   final WidgetStateProperty<Color?>? backgroundColor;
   final WidgetStateProperty<Color?>? foregroundColor;
@@ -24,6 +28,8 @@ class MetroPickerStyle {
   final WidgetStateProperty<TextStyle?>? textStyle;
   final EdgeInsetsGeometry? padding;
   final double? minimumHeight;
+  final double? minimumSegmentWidth;
+  final double? segmentSpacing;
 
   MetroPickerStyle copyWith({
     WidgetStateProperty<Color?>? backgroundColor,
@@ -34,6 +40,8 @@ class MetroPickerStyle {
     WidgetStateProperty<TextStyle?>? textStyle,
     EdgeInsetsGeometry? padding,
     double? minimumHeight,
+    double? minimumSegmentWidth,
+    double? segmentSpacing,
   }) {
     return MetroPickerStyle(
       backgroundColor: backgroundColor ?? this.backgroundColor,
@@ -44,6 +52,8 @@ class MetroPickerStyle {
       textStyle: textStyle ?? this.textStyle,
       padding: padding ?? this.padding,
       minimumHeight: minimumHeight ?? this.minimumHeight,
+      minimumSegmentWidth: minimumSegmentWidth ?? this.minimumSegmentWidth,
+      segmentSpacing: segmentSpacing ?? this.segmentSpacing,
     );
   }
 
@@ -60,6 +70,8 @@ class MetroPickerStyle {
       textStyle: other.textStyle,
       padding: other.padding,
       minimumHeight: other.minimumHeight,
+      minimumSegmentWidth: other.minimumSegmentWidth,
+      segmentSpacing: other.segmentSpacing,
     );
   }
 
@@ -109,6 +121,16 @@ class MetroPickerStyle {
       ),
       padding: EdgeInsetsGeometry.lerp(first.padding, second.padding, t),
       minimumHeight: lerpDouble(first.minimumHeight, second.minimumHeight, t),
+      minimumSegmentWidth: lerpDouble(
+        first.minimumSegmentWidth,
+        second.minimumSegmentWidth,
+        t,
+      ),
+      segmentSpacing: lerpDouble(
+        first.segmentSpacing,
+        second.segmentSpacing,
+        t,
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../theme/metro_theme.dart';
 import 'metro_picker_style.dart';
 
@@ -52,7 +53,7 @@ class _MetroPickerWheelState extends State<MetroPickerWheel> {
     if (next == widget.selectedIndex) {
       return;
     }
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     if (reduceMotion) {
       _controller.jumpToItem(next);
     } else {
@@ -147,7 +148,7 @@ class _MetroPickerWheelState extends State<MetroPickerWheel> {
                       child: AnimatedContainer(
                         alignment: Alignment.center,
                         color: selected ? selectedColor : null,
-                        duration: _reduceMotion(context)
+                        duration: metroReduceMotion(context)
                             ? Duration.zero
                             : theme.motion.fast,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -171,12 +172,6 @@ class _MetroPickerWheelState extends State<MetroPickerWheel> {
         ),
       ),
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final media = MediaQuery.maybeOf(context);
-    return media?.disableAnimations == true ||
-        media?.accessibleNavigation == true;
   }
 
   @override

@@ -117,6 +117,58 @@ void main() {
     );
     expect((box.decoration as BoxDecoration).color, customColor);
   });
+
+  testWidgets('dialog exits with the WinJS 83ms popup fade in place', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _overlayTestApp(
+        child: Builder(
+          builder: (context) {
+            return MetroButton(
+              onPressed: () {
+                showMetroDialog<void>(
+                  context: context,
+                  builder: (dialogContext) => MetroDialog(
+                    title: const Text('Timed dismissal'),
+                    actions: <Widget>[
+                      MetroButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        child: const Text('CLOSE'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('OPEN'),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('OPEN'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('CLOSE'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 42));
+
+    final opacity = tester.widget<Opacity>(
+      find.byKey(const ValueKey<String>('metro-dialog-transition-opacity')),
+    );
+    final translation = tester.widget<Transform>(
+      find.byKey(const ValueKey<String>('metro-dialog-transition-translation')),
+    );
+    expect(opacity.opacity, closeTo(41 / 83, 0.02));
+    expect(translation.transform.getTranslation().y, closeTo(0, 0.01));
+    expect(find.text('Timed dismissal'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(find.text('Timed dismissal'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 1));
+    await tester.pumpAndSettle();
+    expect(find.text('Timed dismissal'), findsNothing);
+  });
 }
 
 Widget _overlayTestApp({required Widget child}) {

@@ -264,8 +264,6 @@ class _MetroTextFieldState extends State<MetroTextField> {
     final supportingStyle = baseSupportingStyle.copyWith(
       color: supportingColor,
     );
-    final reduceMotion = _reduceMotion(context);
-
     Widget field = MouseRegion(
       onEnter: widget.enabled ? (_) => setState(() => _hovered = true) : null,
       onExit: widget.enabled ? (_) => setState(() => _hovered = false) : null,
@@ -273,7 +271,7 @@ class _MetroTextFieldState extends State<MetroTextField> {
           ? SystemMouseCursors.text
           : SystemMouseCursors.basic,
       child: AnimatedContainer(
-        duration: reduceMotion ? Duration.zero : theme.motion.fast,
+        duration: Duration.zero,
         curve: theme.motion.standardCurve,
         padding:
             effectiveStyle.padding ??
@@ -404,24 +402,46 @@ class _MetroTextFieldState extends State<MetroTextField> {
     final colors = theme.colors;
     return MetroTextFieldStyle(
       backgroundColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledBackground
-            : colors.background;
+        if (states.contains(WidgetState.disabled)) {
+          return colors.isDark
+              ? const Color(0x00000000)
+              : const Color(0x66CACACA);
+        }
+        if (states.contains(WidgetState.focused)) {
+          return const Color(0xFFFFFFFF);
+        }
+        return states.contains(WidgetState.hovered)
+            ? const Color(0xDEFFFFFF)
+            : const Color(0xCCFFFFFF);
       }),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledForeground
-            : colors.foreground;
+        if (states.contains(WidgetState.disabled)) {
+          return colors.isDark
+              ? const Color(0x66FFFFFF)
+              : const Color(0x66000000);
+        }
+        return const Color(0xFF000000);
       }),
-      placeholderColor: WidgetStatePropertyAll(colors.mutedForeground),
+      placeholderColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return colors.isDark
+              ? const Color(0x38FFFFFF)
+              : const Color(0x38000000);
+        }
+        return const Color(0x99000000);
+      }),
       borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) {
-          return colors.accent;
+        if (states.contains(WidgetState.disabled)) {
+          return colors.isDark
+              ? const Color(0x66FFFFFF)
+              : const Color(0x26000000);
         }
-        if (states.contains(WidgetState.hovered)) {
-          return colors.foreground;
+        if (colors.isDark) {
+          return const Color(0x00000000);
         }
-        return colors.border;
+        return states.contains(WidgetState.hovered)
+            ? const Color(0x70000000)
+            : const Color(0x45000000);
       }),
       borderWidth: const WidgetStatePropertyAll(2),
       cursorColor: WidgetStatePropertyAll(colors.accent),
@@ -436,14 +456,8 @@ class _MetroTextFieldState extends State<MetroTextField> {
       successColor: WidgetStatePropertyAll(colors.success),
       padding: const EdgeInsets.symmetric(
         horizontal: MetroSpacing.xs,
-        vertical: MetroSpacing.xs,
+        vertical: MetroSpacing.xxs,
       ),
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final mediaQuery = MediaQuery.maybeOf(context);
-    return mediaQuery?.disableAnimations == true ||
-        mediaQuery?.accessibleNavigation == true;
   }
 }

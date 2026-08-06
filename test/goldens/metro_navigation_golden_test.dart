@@ -9,9 +9,9 @@ import 'package:metro_ui/metro_ui.dart';
 void main() {
   setUpAll(() async {
     final fontLoader = FontLoader('Metro UI Sans')
-      ..addFont(rootBundle.load('assets/fonts/roboto-light.ttf'))
-      ..addFont(rootBundle.load('assets/fonts/roboto-regular.ttf'))
-      ..addFont(rootBundle.load('assets/fonts/roboto-medium.ttf'));
+      ..addFont(rootBundle.load('assets/fonts/selawik-light.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/selawik-regular.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/selawik-semibold.ttf'));
     await fontLoader.load();
   });
 

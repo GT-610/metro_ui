@@ -79,6 +79,32 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('dark theme text input keeps the Windows 8 light editing well', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        theme: MetroThemeData.dark(),
+        child: const Center(
+          child: SizedBox(width: 280, child: MetroTextField()),
+        ),
+      ),
+    );
+
+    final container = tester.widget<AnimatedContainer>(
+      find.descendant(
+        of: find.byType(MetroTextField),
+        matching: find.byType(AnimatedContainer),
+      ),
+    );
+    final editable = tester.widget<EditableText>(find.byType(EditableText));
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.color, const Color(0xCCFFFFFF));
+    expect(decoration.border!.top.color, const Color(0x00000000));
+    expect(editable.style.color, const Color(0xFF000000));
+    expect(container.duration, Duration.zero);
+  });
+
   testWidgets('validation feedback colors the field and updates semantics', (
     tester,
   ) async {

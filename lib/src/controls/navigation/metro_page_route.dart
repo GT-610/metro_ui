@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../theme/metro_theme.dart';
 
 /// Motion recipe used by [MetroPageRoute].
@@ -27,19 +28,23 @@ class MetroPageRoute<T> extends PageRouteBuilder<T> {
     final navigator = Navigator.of(context);
     final themes = InheritedTheme.capture(from: context, to: navigator.context);
     final theme = MetroTheme.of(context);
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     final noMotion = reduceMotion || transition == MetroPageTransition.none;
     final duration = noMotion
         ? Duration.zero
-        : transitionDuration ?? theme.motion.navigation;
+        : transitionDuration ??
+              (transition == MetroPageTransition.fade
+                  ? theme.motion.navigationFade
+                  : theme.motion.navigation);
     final reverseDuration = noMotion
         ? Duration.zero
-        : reverseTransitionDuration ?? duration;
+        : reverseTransitionDuration ?? theme.motion.exit;
     final textDirection = Directionality.of(context);
 
     return MetroPageRoute<T>._(
       builder: builder,
       curve: theme.motion.navigationCurve,
+      fadeDuration: theme.motion.navigationFade,
       fullscreenDialog: fullscreenDialog,
       maintainState: maintainState,
       reverseTransitionDuration: reverseDuration,
@@ -54,6 +59,7 @@ class MetroPageRoute<T> extends PageRouteBuilder<T> {
   MetroPageRoute._({
     required WidgetBuilder builder,
     required Curve curve,
+    required Duration fadeDuration,
     required CapturedThemes themes,
     required TextDirection textDirection,
     required MetroPageTransition transition,
@@ -74,6 +80,11 @@ class MetroPageRoute<T> extends PageRouteBuilder<T> {
              animation: animation,
              child: child,
              curve: curve,
+             fadeFraction: transitionDuration == Duration.zero
+                 ? 1
+                 : (fadeDuration.inMicroseconds /
+                           transitionDuration.inMicroseconds)
+                       .clamp(0.0, 1.0),
              textDirection: textDirection,
              transition: transition,
            );
@@ -84,49 +95,48 @@ class MetroPageRoute<T> extends PageRouteBuilder<T> {
     required Animation<double> animation,
     required Widget child,
     required Curve curve,
+    required double fadeFraction,
     required TextDirection textDirection,
     required MetroPageTransition transition,
   }) {
     if (transition == MetroPageTransition.none) {
       return child;
     }
-    final curved = CurvedAnimation(parent: animation, curve: curve);
-    final fade = FadeTransition(
-      opacity: Tween<double>(begin: 0, end: 1).animate(curved),
-      child: child,
-    );
     final logicalEnd = textDirection == TextDirection.ltr ? 1.0 : -1.0;
-    return switch (transition) {
-      MetroPageTransition.slideForward => SlideTransition(
-        position: Tween<Offset>(
-          begin: Offset(0.18 * logicalEnd, 0),
-          end: Offset.zero,
-        ).animate(curved),
-        child: fade,
-      ),
-      MetroPageTransition.slideBackward => SlideTransition(
-        position: Tween<Offset>(
-          begin: Offset(-0.18 * logicalEnd, 0),
-          end: Offset.zero,
-        ).animate(curved),
-        child: fade,
-      ),
-      MetroPageTransition.drillIn => ScaleTransition(
-        scale: Tween<double>(begin: 0.92, end: 1).animate(curved),
-        child: fade,
-      ),
-      MetroPageTransition.drillOut => ScaleTransition(
-        scale: Tween<double>(begin: 1.08, end: 1).animate(curved),
-        child: fade,
-      ),
-      MetroPageTransition.fade => fade,
-      MetroPageTransition.none => child,
-    };
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (context, child) {
+        final reversing = animation.status == AnimationStatus.reverse;
+        final movementProgress = reversing
+            ? 1.0
+            : curve.transform(animation.value);
+        final opacityProgress = reversing
+            ? animation.value
+            : fadeFraction <= 0
+            ? 1.0
+            : curve.transform((animation.value / fadeFraction).clamp(0.0, 1.0));
+        final transformed = switch (transition) {
+          MetroPageTransition.slideForward => Transform.translate(
+            offset: Offset(100 * logicalEnd * (1 - movementProgress), 0),
+            child: child,
+          ),
+          MetroPageTransition.slideBackward => Transform.translate(
+            offset: Offset(-100 * logicalEnd * (1 - movementProgress), 0),
+            child: child,
+          ),
+          MetroPageTransition.drillIn => Transform.scale(
+            scale: 0.92 + 0.08 * movementProgress,
+            child: child,
+          ),
+          MetroPageTransition.drillOut => Transform.scale(
+            scale: 1.08 - 0.08 * movementProgress,
+            child: child,
+          ),
+          MetroPageTransition.fade || MetroPageTransition.none => child!,
+        };
+        return Opacity(opacity: opacityProgress, child: transformed);
+      },
+    );
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final mediaQuery = MediaQuery.maybeOf(context);
-  return mediaQuery?.disableAnimations == true ||
-      mediaQuery?.accessibleNavigation == true;
 }

@@ -1,13 +1,14 @@
 # metro_ui
 
-`metro_ui` is a Flutter component library inspired by Microsoft's Windows 8
-Modern UI (formerly Metro) design language.
+`metro_ui` is a Flutter component library inspired by Microsoft's Windows 8,
+Windows 8.1, and Windows Phone 8-era Modern UI (formerly Metro) design
+language.
 
 The project focuses on the original system's durable ideas: typography-led
 hierarchy, flat high-saturation color, square geometry, direct manipulation,
 clear interaction states, and directional motion. Its defaults intentionally
-exclude later Fluent features such as acrylic, Mica, reveal highlights, and
-rounded surfaces.
+exclude the Windows 10/11 Fluent direction, including acrylic, Mica, reveal
+highlights, and rounded surfaces.
 
 This is an independent open-source project and is not affiliated with or
 endorsed by Microsoft.
@@ -35,8 +36,10 @@ endorsed by Microsoft.
   `MetroSelectableListTile`, and `MetroProgressBar`
 - `MetroSelectionController` and `MetroSelectionGroup`
 - `MetroFocusTraversalGroup` for desktop and spatial navigation regions
-- `MetroCommandBar` and `MetroCommandButton`
+- `MetroCommandBar`, `MetroCommandButton`, and transient
+  `MetroCommandBarLayer`
 - `MetroFlipView` with direct swipe, banners, and circular navigation
+- `MetroSemanticZoom` with detailed/summary views, pinch and desktop input
 - `MetroDialog`, `MetroFlyout`, `MetroTooltip`, and their show helpers
 - `MetroDatePicker`, `MetroTimePicker`, and their show helpers
 - `MetroSlider` and `MetroRangeSlider`
@@ -263,6 +266,15 @@ policies cover integer, decimal, and domain-specific input. Holding either
 step button repeats after a configurable delay. `MetroNumberBoxTheme` controls
 the embedded text field and both step buttons for a subtree.
 
+## Pivots
+
+`MetroPivot` uses the oversized, low-opacity header rail associated with
+Windows 8 and keeps item subtrees mounted while navigating. Header and keyboard
+changes give the outgoing and incoming pages their separate WinJS 350ms slide
+curves; horizontal dragging remains directly attached to the pointer and then
+settles to the nearest accepted page. Direction and gestures mirror in RTL,
+and reduced-motion settings commit immediately.
+
 ## Flip views
 
 `MetroFlipView` presents one content story at a time using the direct,
@@ -298,12 +310,43 @@ Reduced-motion settings commit changes without a page transition.
 `MetroFlipViewTheme` overrides navigation, banner, indicator, border, and
 surface tokens for a subtree.
 
+## Semantic zoom
+
+`MetroSemanticZoom` switches between detailed and summarized presentations of
+the same grouped collection. Both view subtrees remain mounted, so local state
+and the last focus target survive a switch. The default WinJS transition uses
+a 0.65 cross-scale over 333ms and aligns the transform to the pinch or wheel
+focal point.
+
+```dart
+MetroSemanticZoom(
+  zoomedOut: overviewVisible,
+  onZoomedOutChanged: (value) {
+    setState(() => overviewVisible = value);
+  },
+  zoomedInView: const GroupedPhotoCollection(),
+  zoomedOutView: PhotoGroupOverview(
+    onSelected: (group) {
+      selectPhotoGroup(group);
+      setState(() => overviewVisible = false);
+    },
+  ),
+)
+```
+
+Two-pointer pinch, Ctrl+mouse wheel, Ctrl+Plus/Minus, adjustable semantics,
+and the transient 25px desktop minus button share the same state contract.
+`locked` disables all switching, while reduced-motion settings commit the new
+view immediately. Mapping a selected summary group to the corresponding
+detailed item remains application-owned.
+
 ## Date and time pickers
 
-The picker fields use the segmented, scrolling-column interaction associated
-with Windows 8 instead of Material calendar or clock surfaces. Changes remain
-local to the popup until the user confirms them with `DONE`; cancelling leaves
-the controlled value unchanged.
+The closed picker fields use separate dropdown-like segments following WinJS
+desktop geometry instead of a Material calendar or clock surface. Opening the
+field presents a keyboard-accessible scrolling-column dialog as a Flutter
+selection adaptation. Changes remain local until the user confirms them with
+`DONE`; cancelling leaves the controlled value unchanged.
 
 ```dart
 MetroDatePicker(
@@ -437,7 +480,10 @@ matching `MetroSelectionGroup<T>`. Arrow keys move between enabled rows,
 Page Up/Page Down move by larger steps, Home/End reach the boundaries, Space
 changes selection, and Enter activates a row. A non-null `height` enables a
 lazy vertical viewport; without it, the grid lays out all rows for embedding
-small tables in a page. Wide fixed columns scroll horizontally.
+small tables in a page. Wide fixed columns scroll horizontally. Selected rows
+use an accent fill with a lighter hover state, and actionable rows use the
+167ms WinJS pointer-down scale while preserving the grid's dividers and full
+focus border.
 
 ## Progress indicators
 
@@ -495,13 +541,17 @@ or the platform requests reduced motion.
 
 ## Bottom commands
 
-`MetroPage.bottomBar` accepts a `MetroCommandBar`. Its command buttons preserve
-the circular glyph treatment used by the Windows 8 AppBar while the rest of
-the component system remains square.
+`MetroCommandBarLayer` reproduces the transient Windows 8 AppBar pattern: the
+bar overlays page content, opens from a secondary click or inward edge swipe,
+dismisses on an outside primary click, Escape, or outward drag, and slides
+through its complete height using the 367ms WinJS edge-UI recipe. Its command
+buttons preserve the circular glyph treatment while the rest of the component
+system remains square.
 
 ```dart
-MetroPage(
-  bottomBar: MetroCommandBar(
+MetroCommandBarLayer(
+  child: const MetroPage(child: Text('Page content')),
+  commandBar: MetroCommandBar(
     commands: [
       MetroCommandButton(
         icon: const Icon(Icons.save_outlined),
@@ -510,9 +560,13 @@ MetroPage(
       ),
     ],
   ),
-  child: const Text('Page content'),
 )
 ```
+
+Pass `open` and `onOpenChanged` for application-controlled visibility, or use
+`initiallyOpen` for an internally managed layer. `MetroPage.bottomBar` remains
+available when an application deliberately needs a permanently visible,
+layout-reserving command surface.
 
 ## Selection models
 
@@ -521,6 +575,12 @@ multi-selection state. `MetroRadioButton` and `MetroSelectableListTile` can
 consume the nearest matching `MetroSelectionGroup`, or receive a controller
 directly. Controllers support required selection, maximum counts, replacement,
 and batch selection while exposing immutable selected-value snapshots.
+
+Selectable list rows use the Windows Store filled-selection treatment: a
+square accent well, white content, a logical top-end checkmark, complete
+hover/focus outlines, and the WinJS 0.975 pointer-down scale. The row's 52px
+minimum height is a package layout default and can be changed through
+`MetroListTileStyle`.
 
 ```dart
 final selection = MetroSelectionController<String>(
@@ -585,9 +645,10 @@ when an application needs a different ordering model.
 
 `showMetroDialog` and `showMetroFlyout` capture the active Metro component
 themes across the Navigator boundary and use directional,
-reduced-motion-aware transitions. `MetroTooltip` appears on hover, descendant
-focus, or long press and keeps its message available to assistive technologies
-while hidden.
+reduced-motion-aware transitions. Dialogs enter with the 367ms WinJS popup
+movement and close with its separate 83ms in-place fade; edge flyouts slide in
+and out for 550ms. `MetroTooltip` appears on hover, descendant focus, or long
+press and keeps its message available to assistive technologies while hidden.
 
 ```dart
 MetroTooltip(
@@ -604,8 +665,10 @@ MetroTooltip(
 
 Windows uses the installed system `Segoe UI`. The package does not redistribute
 Segoe UI because the font is proprietary. Web and non-Windows platforms use a
-bundled Roboto fallback so text remains reliable without a font CDN; Roboto is
-licensed under Apache 2.0.
+bundled copy of Microsoft's Selawik, an OFL-licensed open-source replacement
+for Segoe UI, so the same light, regular, and semibold faces remain available
+without a font CDN. Selawik currently covers primarily Latin text; the default
+font fallback list lets the platform supply broader scripts such as CJK.
 
 Applications can supply their own licensed typeface, including a font with
 broader CJK coverage, through `MetroTypography.fromColorScheme`:
@@ -622,6 +685,7 @@ final typography = MetroTypography.fromColorScheme(
 
 See the [contribution guide](https://github.com/GT-610/metro_ui/blob/main/CONTRIBUTING.md),
 [design principles](https://github.com/GT-610/metro_ui/blob/main/doc/design_principles.md),
+[Windows 8 reference audit](https://github.com/GT-610/metro_ui/blob/main/doc/reference_audit.md),
 [component coverage](https://github.com/GT-610/metro_ui/blob/main/doc/component_coverage.md),
 [architecture](https://github.com/GT-610/metro_ui/blob/main/doc/architecture.md),
 [roadmap](https://github.com/GT-610/metro_ui/blob/main/doc/roadmap.md),

@@ -8,6 +8,7 @@ class MetroPage extends StatelessWidget {
   const MetroPage({
     required this.child,
     this.title,
+    this.leading,
     this.actions = const <Widget>[],
     this.padding = const EdgeInsets.all(MetroSpacing.lg),
     this.scrollable = true,
@@ -18,6 +19,7 @@ class MetroPage extends StatelessWidget {
 
   final Widget child;
   final Widget? title;
+  final Widget? leading;
   final List<Widget> actions;
   final EdgeInsetsGeometry padding;
   final bool scrollable;
@@ -32,14 +34,18 @@ class MetroPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (title != null || actions.isNotEmpty) ...[
+          if (leading != null || title != null || actions.isNotEmpty) ...[
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (leading != null) ...[
+                  leading!,
+                  if (title != null) const SizedBox(width: 20),
+                ],
                 if (title != null)
                   Expanded(
                     child: DefaultTextStyle.merge(
-                      style: theme.typography.header,
+                      style: theme.typography.hero,
                       child: title!,
                     ),
                   )

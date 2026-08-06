@@ -14,9 +14,11 @@ import '../controls/inputs/metro_search_box_style.dart';
 import '../controls/inputs/metro_slider_style.dart';
 import '../controls/inputs/metro_text_field_style.dart';
 import '../controls/lists/metro_list_tile_style.dart';
+import '../controls/navigation/metro_back_button.dart';
 import '../controls/navigation/metro_command_bar_style.dart';
 import '../controls/navigation/metro_flip_view_style.dart';
 import '../controls/navigation/metro_pivot.dart';
+import '../controls/navigation/metro_semantic_zoom_style.dart';
 import '../controls/overlays/metro_dialog_theme.dart';
 import '../controls/overlays/metro_flyout_theme.dart';
 import '../controls/overlays/metro_tooltip_theme.dart';
@@ -47,9 +49,11 @@ class MetroThemeData {
     this.textFieldTheme = const MetroTextFieldThemeData(),
     this.sliderTheme = const MetroSliderThemeData(),
     this.listTileTheme = const MetroListTileThemeData(),
+    this.backButtonTheme = const MetroBackButtonThemeData(),
     this.commandBarTheme = const MetroCommandBarThemeData(),
     this.flipViewTheme = const MetroFlipViewThemeData(),
     this.pivotTheme = const MetroPivotThemeData(),
+    this.semanticZoomTheme = const MetroSemanticZoomThemeData(),
     this.dialogTheme = const MetroDialogThemeData(),
     this.flyoutTheme = const MetroFlyoutThemeData(),
     this.tooltipTheme = const MetroTooltipThemeData(),
@@ -97,9 +101,11 @@ class MetroThemeData {
   final MetroTextFieldThemeData textFieldTheme;
   final MetroSliderThemeData sliderTheme;
   final MetroListTileThemeData listTileTheme;
+  final MetroBackButtonThemeData backButtonTheme;
   final MetroCommandBarThemeData commandBarTheme;
   final MetroFlipViewThemeData flipViewTheme;
   final MetroPivotThemeData pivotTheme;
+  final MetroSemanticZoomThemeData semanticZoomTheme;
   final MetroDialogThemeData dialogTheme;
   final MetroFlyoutThemeData flyoutTheme;
   final MetroTooltipThemeData tooltipTheme;
@@ -125,9 +131,11 @@ class MetroThemeData {
     MetroTextFieldThemeData? textFieldTheme,
     MetroSliderThemeData? sliderTheme,
     MetroListTileThemeData? listTileTheme,
+    MetroBackButtonThemeData? backButtonTheme,
     MetroCommandBarThemeData? commandBarTheme,
     MetroFlipViewThemeData? flipViewTheme,
     MetroPivotThemeData? pivotTheme,
+    MetroSemanticZoomThemeData? semanticZoomTheme,
     MetroDialogThemeData? dialogTheme,
     MetroFlyoutThemeData? flyoutTheme,
     MetroTooltipThemeData? tooltipTheme,
@@ -151,9 +159,11 @@ class MetroThemeData {
       textFieldTheme: textFieldTheme ?? this.textFieldTheme,
       sliderTheme: sliderTheme ?? this.sliderTheme,
       listTileTheme: listTileTheme ?? this.listTileTheme,
+      backButtonTheme: backButtonTheme ?? this.backButtonTheme,
       commandBarTheme: commandBarTheme ?? this.commandBarTheme,
       flipViewTheme: flipViewTheme ?? this.flipViewTheme,
       pivotTheme: pivotTheme ?? this.pivotTheme,
+      semanticZoomTheme: semanticZoomTheme ?? this.semanticZoomTheme,
       dialogTheme: dialogTheme ?? this.dialogTheme,
       flyoutTheme: flyoutTheme ?? this.flyoutTheme,
       tooltipTheme: tooltipTheme ?? this.tooltipTheme,
@@ -218,6 +228,11 @@ class MetroThemeData {
         b.listTileTheme,
         t,
       ),
+      backButtonTheme: MetroBackButtonThemeData.lerp(
+        a.backButtonTheme,
+        b.backButtonTheme,
+        t,
+      ),
       commandBarTheme: MetroCommandBarThemeData.lerp(
         a.commandBarTheme,
         b.commandBarTheme,
@@ -229,6 +244,11 @@ class MetroThemeData {
         t,
       ),
       pivotTheme: MetroPivotThemeData.lerp(a.pivotTheme, b.pivotTheme, t),
+      semanticZoomTheme: MetroSemanticZoomThemeData.lerp(
+        a.semanticZoomTheme,
+        b.semanticZoomTheme,
+        t,
+      ),
       dialogTheme: MetroDialogThemeData.lerp(a.dialogTheme, b.dialogTheme, t),
       flyoutTheme: MetroFlyoutThemeData.lerp(a.flyoutTheme, b.flyoutTheme, t),
       tooltipTheme: MetroTooltipThemeData.lerp(

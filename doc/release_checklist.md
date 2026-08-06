@@ -6,24 +6,26 @@ that the gallery has been published.
 
 ## Current verification
 
-Verified locally on 2026-08-04:
+Verified locally on 2026-08-06:
 
 - Dart formatting is clean.
-- The package test suite passes all 172 widget and Golden tests.
-- Golden tagging is complete: the 159 behavioral tests and 13 visual tests
-  pass independently and together cover the full suite.
-- Flutter 3.32.0 with Dart 3.8.0 passes dependency resolution, full static
-  analysis, all 159 non-Golden behavioral tests, the public API guard, and the
-  package screenshot guard in a local isolated SDK clone. The first hosted
-  lower-bound CI result remains pending.
-- The public API inventory passes with 143 documented declarations.
+- Current stable Flutter passes full static analysis and all 216 non-Golden
+  behavioral tests.
+- Golden tagging remains complete with 13 visual tests. Windows-rendered
+  baselines remain canonical and were intentionally not regenerated on macOS;
+  the package screenshot guard still validates both published previews.
+- Flutter 3.32.0 with Dart 3.8.0 previously passed the then-current 159
+  non-Golden tests plus analysis and repository guards in a local isolated SDK
+  clone. The expanded 216-test suite must be repeated at the lower bound and
+  in hosted CI before release.
+- The public API inventory passes with 153 documented declarations.
 - The [1.0 API freeze review](api_freeze_review.md) approves the current
   inventory as the release-candidate surface.
 - Dartdoc 9.0.8 generates the complete public library with zero warnings and
   zero errors; the quality workflow pins the same version.
-- The gallery passes static analysis, both widget tests, and release builds.
-  The widget tests were rerun after the latest NumberBox and local-theme
-  gallery additions.
+- The gallery passes static analysis, both widget tests, and its Web release
+  build. The widget tests cover the controlled Semantic Zoom overview-to-group
+  mapping in addition to the existing navigation and overlay scenarios.
 - Release Web, Windows, and Android gallery builds succeed locally. The
   Android release APK was built from a temporary platform harness so Android
   scaffolding does not expand the published example. Hosting-specific Web
@@ -68,11 +70,11 @@ awaits its hosted repetition.
   preprocessing Flutter dependency comments, so the release workflow
   explicitly uses dartdoc 9.0.8. The freeze must be reconfirmed from the
   intended release commit.
-- **Declared SDK range — complete locally; pending hosted confirmation.**
-  Flutter 3.32.0 and current stable both pass full static analysis. The lower
-  bound passes all 159 version-independent behavioral tests plus the API and
-  screenshot guards; current stable passes all 172 behavioral and Golden
-  tests. CI repeats the lower-bound checks on a hosted runner.
+- **Declared SDK range — pending expanded lower-bound confirmation.** Current
+  stable passes full static analysis and all 216 non-Golden tests. Flutter
+  3.32.0 passed the earlier 159-test surface, but the added controls and tests
+  require a fresh lower-bound and hosted run. Canonical Windows Goldens remain
+  a separate visual gate.
 - **Package identity — available at the latest audit.** The name and metadata
   links are valid as of 2026-08-04. Recheck the time-sensitive pub.dev name
   immediately before publication.

@@ -9,6 +9,7 @@ class MetroListTileStyle {
     this.backgroundColor,
     this.foregroundColor,
     this.borderColor,
+    this.borderWidth,
     this.titleStyle,
     this.subtitleStyle,
     this.padding,
@@ -18,6 +19,7 @@ class MetroListTileStyle {
   final WidgetStateProperty<Color?>? backgroundColor;
   final WidgetStateProperty<Color?>? foregroundColor;
   final WidgetStateProperty<Color?>? borderColor;
+  final WidgetStateProperty<double?>? borderWidth;
   final WidgetStateProperty<TextStyle?>? titleStyle;
   final WidgetStateProperty<TextStyle?>? subtitleStyle;
   final EdgeInsetsGeometry? padding;
@@ -27,6 +29,7 @@ class MetroListTileStyle {
     WidgetStateProperty<Color?>? backgroundColor,
     WidgetStateProperty<Color?>? foregroundColor,
     WidgetStateProperty<Color?>? borderColor,
+    WidgetStateProperty<double?>? borderWidth,
     WidgetStateProperty<TextStyle?>? titleStyle,
     WidgetStateProperty<TextStyle?>? subtitleStyle,
     EdgeInsetsGeometry? padding,
@@ -35,6 +38,7 @@ class MetroListTileStyle {
     backgroundColor: backgroundColor ?? this.backgroundColor,
     foregroundColor: foregroundColor ?? this.foregroundColor,
     borderColor: borderColor ?? this.borderColor,
+    borderWidth: borderWidth ?? this.borderWidth,
     titleStyle: titleStyle ?? this.titleStyle,
     subtitleStyle: subtitleStyle ?? this.subtitleStyle,
     padding: padding ?? this.padding,
@@ -47,6 +51,7 @@ class MetroListTileStyle {
           backgroundColor: other.backgroundColor,
           foregroundColor: other.foregroundColor,
           borderColor: other.borderColor,
+          borderWidth: other.borderWidth,
           titleStyle: other.titleStyle,
           subtitleStyle: other.subtitleStyle,
           padding: other.padding,
@@ -78,6 +83,12 @@ class MetroListTileStyle {
         second.borderColor,
         t,
         Color.lerp,
+      ),
+      borderWidth: lerpStateProperty(
+        first.borderWidth,
+        second.borderWidth,
+        t,
+        lerpDouble,
       ),
       titleStyle: lerpStateProperty(
         first.titleStyle,

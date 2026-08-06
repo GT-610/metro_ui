@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_spacing.dart';
@@ -92,11 +93,15 @@ class _MetroFlipViewState extends State<MetroFlipView>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
   Animation<double>? _offsetAnimation;
+  Animation<double>? _incomingOffsetAnimation;
+  Animation<double>? _incomingOpacityAnimation;
+  Animation<double>? _outgoingOpacityAnimation;
   FocusNode? _internalFocusNode;
   late int _displayedIndex = widget.index ?? widget.initialIndex;
   int? _incomingIndex;
   int _transitionDirection = 1;
   bool _commitAnimation = false;
+  bool _programmaticTransition = false;
   bool _hovered = false;
   bool _focusWithin = false;
   double _dragOffset = 0;
@@ -223,7 +228,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
     if (notify) {
       widget.onChanged?.call(target);
     }
-    if (_reduceMotion(context) || _viewportExtent <= 0) {
+    if (metroReduceMotion(context) || _viewportExtent <= 0) {
       setState(() => _displayedIndex = target);
       _scheduleControlledReconciliation();
       return;
@@ -232,14 +237,43 @@ class _MetroFlipViewState extends State<MetroFlipView>
       _incomingIndex = target;
       _transitionDirection = resolvedDirection;
       _dragOffset = 0;
+      _programmaticTransition = true;
     });
-    final end = -_physicalForwardSign * resolvedDirection * _viewportExtent;
-    _animateOffset(
-      begin: 0,
-      end: end,
-      commit: true,
-      duration: MetroTheme.of(context).motion.normal,
+    final motion = MetroTheme.of(context).motion;
+    _commitAnimation = true;
+    _animationController.duration = motion.contentEntrance;
+    _offsetAnimation = null;
+    _incomingOffsetAnimation =
+        Tween<double>(
+          begin: _physicalForwardSign * resolvedDirection * 40,
+          end: 0,
+        ).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: motion.standardCurve,
+          ),
+        );
+    _incomingOpacityAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: _phaseCurve(
+          motion.contentFade,
+          motion.contentEntrance,
+          motion.standardCurve,
+        ),
+      ),
     );
+    _outgoingOpacityAnimation = Tween<double>(begin: 1, end: 0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: _phaseCurve(
+          motion.normal,
+          motion.contentEntrance,
+          Curves.linear,
+        ),
+      ),
+    );
+    _animationController.forward(from: 0);
   }
 
   void _animateOffset({
@@ -249,7 +283,11 @@ class _MetroFlipViewState extends State<MetroFlipView>
     required Duration duration,
   }) {
     _commitAnimation = commit;
+    _programmaticTransition = false;
     _animationController.duration = duration;
+    _incomingOffsetAnimation = null;
+    _incomingOpacityAnimation = null;
+    _outgoingOpacityAnimation = null;
     _offsetAnimation = Tween<double>(begin: begin, end: end).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -260,9 +298,16 @@ class _MetroFlipViewState extends State<MetroFlipView>
   }
 
   void _handleAnimationTick() {
-    final animation = _offsetAnimation;
-    if (animation != null && mounted) {
-      setState(() => _dragOffset = animation.value);
+    if (!mounted) {
+      return;
+    }
+    final offsetAnimation = _offsetAnimation;
+    if (offsetAnimation != null || _programmaticTransition) {
+      setState(() {
+        if (offsetAnimation != null) {
+          _dragOffset = offsetAnimation.value;
+        }
+      });
     }
   }
 
@@ -273,6 +318,10 @@ class _MetroFlipViewState extends State<MetroFlipView>
     final target = _incomingIndex;
     final commit = _commitAnimation && target != null;
     _offsetAnimation = null;
+    _incomingOffsetAnimation = null;
+    _incomingOpacityAnimation = null;
+    _outgoingOpacityAnimation = null;
+    _programmaticTransition = false;
     _animationController.reset();
     setState(() {
       if (commit) {
@@ -304,6 +353,10 @@ class _MetroFlipViewState extends State<MetroFlipView>
   void _cancelAnimation() {
     _animationController.stop();
     _offsetAnimation = null;
+    _incomingOffsetAnimation = null;
+    _incomingOpacityAnimation = null;
+    _outgoingOpacityAnimation = null;
+    _programmaticTransition = false;
     _animationController.reset();
     _incomingIndex = null;
     _dragOffset = 0;
@@ -318,6 +371,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
     setState(() {
       _incomingIndex = null;
       _dragOffset = 0;
+      _programmaticTransition = false;
     });
   }
 
@@ -375,7 +429,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
       }
       return;
     }
-    if (_reduceMotion(context)) {
+    if (metroReduceMotion(context)) {
       final target = _incomingIndex;
       setState(() {
         if (commit && target != null) {
@@ -402,10 +456,9 @@ class _MetroFlipViewState extends State<MetroFlipView>
 
   @override
   Widget build(BuildContext context) {
-    final theme = MetroTheme.of(context);
     final style = _resolveStyle(context);
     final localizations = MetroLocalizations.of(context);
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     final textDirection = Directionality.of(context);
     final surfaceStates = <WidgetState>{
       if (!_inputEnabled) WidgetState.disabled,
@@ -461,9 +514,18 @@ class _MetroFlipViewState extends State<MetroFlipView>
 
         final currentOffset = _primaryOffset(_dragOffset);
         final incomingIndex = _incomingIndex;
-        final incomingStart =
-            _physicalForwardSign * _transitionDirection * _viewportExtent;
-        final incomingOffset = _primaryOffset(incomingStart + _dragOffset);
+        final programmatic = _programmaticTransition && incomingIndex != null;
+        final incomingStart = programmatic
+            ? (_incomingOffsetAnimation?.value ?? 0)
+            : _physicalForwardSign * _transitionDirection * _viewportExtent +
+                  _dragOffset;
+        final incomingOffset = _primaryOffset(incomingStart);
+        final outgoingOpacity = programmatic
+            ? (_outgoingOpacityAnimation?.value ?? 1)
+            : 1.0;
+        final incomingOpacity = programmatic
+            ? (_incomingOpacityAnimation?.value ?? 0)
+            : 1.0;
 
         Widget content = ClipRect(
           child: Stack(
@@ -471,12 +533,20 @@ class _MetroFlipViewState extends State<MetroFlipView>
             children: [
               if (incomingIndex != null)
                 Transform.translate(
+                  key: const ValueKey<String>('metro-flip-view-incoming-item'),
                   offset: incomingOffset,
-                  child: _buildItem(incomingIndex, selected: false),
+                  child: Opacity(
+                    opacity: incomingOpacity,
+                    child: _buildItem(incomingIndex, selected: false),
+                  ),
                 ),
               Transform.translate(
-                offset: currentOffset,
-                child: _buildItem(_displayedIndex, selected: true),
+                key: const ValueKey<String>('metro-flip-view-current-item'),
+                offset: programmatic ? Offset.zero : currentOffset,
+                child: Opacity(
+                  opacity: outgoingOpacity,
+                  child: _buildItem(_displayedIndex, selected: true),
+                ),
               ),
             ],
           ),
@@ -523,15 +593,16 @@ class _MetroFlipViewState extends State<MetroFlipView>
           child: content,
         );
 
-        return AnimatedContainer(
-          duration: reduceMotion ? Duration.zero : theme.motion.fast,
-          curve: theme.motion.standardCurve,
+        return Container(
+          key: const ValueKey<String>('metro-flip-view-surface'),
           decoration: BoxDecoration(
             color: style.backgroundColor,
-            border: Border.all(
-              color: borderColor ?? const Color(0x00000000),
-              width: borderWidth,
-            ),
+            border: borderWidth > 0
+                ? Border.all(
+                    color: borderColor ?? const Color(0x00000000),
+                    width: borderWidth,
+                  )
+                : null,
           ),
           child: Stack(
             fit: StackFit.expand,
@@ -541,25 +612,26 @@ class _MetroFlipViewState extends State<MetroFlipView>
               if (widget.showIndicators && widget.items.length > 1)
                 _buildIndicators(style),
               if (widget.navigationVisibility !=
-                  MetroFlipViewNavigationVisibility.hidden) ...[
-                if (_canGoPrevious)
-                  _buildNavigationButton(
-                    style: style,
-                    forward: false,
-                    semanticLabel:
-                        widget.previousSemanticLabel ??
-                        localizations.flipViewPreviousLabel,
-                    reduceMotion: reduceMotion,
-                  ),
-                if (_canGoNext)
-                  _buildNavigationButton(
-                    style: style,
-                    forward: true,
-                    semanticLabel:
-                        widget.nextSemanticLabel ??
-                        localizations.flipViewNextLabel,
-                    reduceMotion: reduceMotion,
-                  ),
+                      MetroFlipViewNavigationVisibility.hidden &&
+                  widget.items.length > 1) ...[
+                _buildNavigationButton(
+                  style: style,
+                  forward: false,
+                  available: _canGoPrevious,
+                  semanticLabel:
+                      widget.previousSemanticLabel ??
+                      localizations.flipViewPreviousLabel,
+                  reduceMotion: reduceMotion,
+                ),
+                _buildNavigationButton(
+                  style: style,
+                  forward: true,
+                  available: _canGoNext,
+                  semanticLabel:
+                      widget.nextSemanticLabel ??
+                      localizations.flipViewNextLabel,
+                  reduceMotion: reduceMotion,
+                ),
               ],
             ],
           ),
@@ -647,6 +719,20 @@ class _MetroFlipViewState extends State<MetroFlipView>
     return widget.axis == Axis.horizontal ? Offset(value, 0) : Offset(0, value);
   }
 
+  Curve _phaseCurve(Duration phase, Duration total, Curve curve) {
+    if (phase <= Duration.zero) {
+      return const Threshold(0);
+    }
+    if (total <= Duration.zero || phase >= total) {
+      return curve;
+    }
+    return Interval(
+      0,
+      phase.inMicroseconds / total.inMicroseconds,
+      curve: curve,
+    );
+  }
+
   Widget _buildItem(int index, {required bool selected}) {
     final item = widget.items[index];
     return Semantics(
@@ -711,7 +797,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
               dimension: math.max(32, style.indicatorSize! + 12),
               child: Center(
                 child: AnimatedContainer(
-                  duration: _reduceMotion(context)
+                  duration: metroReduceMotion(context)
                       ? Duration.zero
                       : MetroTheme.of(context).motion.fast,
                   width: style.indicatorSize,
@@ -740,14 +826,17 @@ class _MetroFlipViewState extends State<MetroFlipView>
   Widget _buildNavigationButton({
     required MetroFlipViewStyle style,
     required bool forward,
+    required bool available,
     required String semanticLabel,
     required bool reduceMotion,
   }) {
-    final show = switch (widget.navigationVisibility) {
-      MetroFlipViewNavigationVisibility.auto => _hovered || _focusWithin,
-      MetroFlipViewNavigationVisibility.always => true,
-      MetroFlipViewNavigationVisibility.hidden => false,
-    };
+    final show =
+        available &&
+        switch (widget.navigationVisibility) {
+          MetroFlipViewNavigationVisibility.auto => _hovered || _focusWithin,
+          MetroFlipViewNavigationVisibility.always => true,
+          MetroFlipViewNavigationVisibility.hidden => false,
+        };
     final button = ExcludeSemantics(
       excluding: !show,
       child: IgnorePointer(
@@ -755,7 +844,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
         child: AnimatedOpacity(
           duration: reduceMotion
               ? Duration.zero
-              : MetroTheme.of(context).motion.fast,
+              : MetroTheme.of(context).motion.normal,
           opacity: show ? 1 : 0,
           child: _MetroFlipViewNavigationButton(
             key: ValueKey<String>(
@@ -763,7 +852,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
             ),
             axis: widget.axis,
             forward: forward,
-            onPressed: () => _requestDelta(forward ? 1 : -1),
+            onPressed: available ? () => _requestDelta(forward ? 1 : -1) : null,
             semanticLabel: semanticLabel,
             style: style,
           ),
@@ -794,55 +883,57 @@ class _MetroFlipViewState extends State<MetroFlipView>
 
   static MetroFlipViewStyle _defaultStyle(MetroThemeData theme) {
     final colors = theme.colors;
-    final translucentBackground = colors.isHighContrast
-        ? colors.background
-        : colors.background.withValues(alpha: 0.86);
     return MetroFlipViewStyle(
-      backgroundColor: colors.surface,
-      borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) {
-          return colors.accent;
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return colors.foreground;
-        }
-        return colors.border;
-      }),
-      borderWidth: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.focused) ||
-                states.contains(WidgetState.hovered)
-            ? 2
-            : 1;
-      }),
+      backgroundColor: const Color(0x00000000),
+      borderColor: const WidgetStatePropertyAll(Color(0x00000000)),
+      borderWidth: const WidgetStatePropertyAll(0),
       navigationBackgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (colors.isHighContrast) {
+          if (states.contains(WidgetState.pressed)) {
+            return colors.foreground;
+          }
+          if (states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused)) {
+            return colors.accent;
+          }
+          return colors.background;
+        }
         if (states.contains(WidgetState.pressed)) {
-          return colors.accentPressed;
+          return const Color(0xBD292929);
         }
         if (states.contains(WidgetState.hovered) ||
             states.contains(WidgetState.focused)) {
-          return colors.accent;
+          return const Color(0xF0D7D7D7);
         }
-        return translucentBackground;
+        return const Color(0x59D5D5D5);
       }),
       navigationForegroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.hovered) ||
-            states.contains(WidgetState.focused) ||
-            states.contains(WidgetState.pressed)) {
-          return colors.onAccent;
+        if (colors.isHighContrast) {
+          if (states.contains(WidgetState.pressed)) {
+            return colors.background;
+          }
+          if (states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused)) {
+            return colors.onAccent;
+          }
+          return colors.foreground;
         }
-        return colors.foreground;
+        return states.contains(WidgetState.pressed)
+            ? const Color(0xFFFFFFFF)
+            : states.contains(WidgetState.hovered) ||
+                  states.contains(WidgetState.focused)
+            ? const Color(0xFF000000)
+            : const Color(0x99000000);
       }),
-      navigationBorderColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.focused)
-            ? colors.focus
-            : colors.border;
-      }),
-      navigationBorderWidth: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.focused) ? 2 : 1;
-      }),
-      navigationButtonExtent: 44,
-      navigationButtonCrossExtent: 64,
-      navigationInset: MetroSpacing.xs,
+      navigationBorderColor: WidgetStatePropertyAll(
+        colors.isHighContrast ? colors.foreground : const Color(0x00000000),
+      ),
+      navigationBorderWidth: WidgetStatePropertyAll(
+        colors.isHighContrast ? 2 : 0,
+      ),
+      navigationButtonExtent: 69,
+      navigationButtonCrossExtent: 39,
+      navigationInset: 0,
       bannerBackgroundColor: colors.accent.withValues(alpha: 0.92),
       bannerForegroundColor: colors.onAccent,
       bannerTextStyle: theme.typography.bodyStrong,
@@ -879,14 +970,13 @@ class _MetroFlipViewNavigationButton extends StatelessWidget {
 
   final Axis axis;
   final bool forward;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String semanticLabel;
   final MetroFlipViewStyle style;
 
   @override
   Widget build(BuildContext context) {
     final direction = Directionality.of(context);
-    final horizontal = axis == Axis.horizontal;
     return MetroInteractive(
       onPressed: onPressed,
       semanticLabel: semanticLabel,
@@ -895,22 +985,22 @@ class _MetroFlipViewNavigationButton extends StatelessWidget {
         final foreground = style.navigationForegroundColor!.resolve(states);
         final borderColor = style.navigationBorderColor!.resolve(states);
         final borderWidth = style.navigationBorderWidth!.resolve(states)!;
-        return AnimatedContainer(
-          duration: _reduceMotion(context)
-              ? Duration.zero
-              : MetroTheme.of(context).motion.fast,
-          width: horizontal
-              ? style.navigationButtonExtent
-              : style.navigationButtonCrossExtent,
-          height: horizontal
-              ? style.navigationButtonCrossExtent
-              : style.navigationButtonExtent,
+        return Container(
+          key: ValueKey<String>(
+            forward
+                ? 'metro-flip-view-next-surface'
+                : 'metro-flip-view-previous-surface',
+          ),
+          width: style.navigationButtonExtent,
+          height: style.navigationButtonCrossExtent,
           decoration: BoxDecoration(
             color: background,
-            border: Border.all(
-              color: borderColor ?? const Color(0x00000000),
-              width: borderWidth,
-            ),
+            border: borderWidth > 0
+                ? Border.all(
+                    color: borderColor ?? const Color(0x00000000),
+                    width: borderWidth,
+                  )
+                : null,
           ),
           child: CustomPaint(
             painter: _MetroFlipViewChevronPainter(
@@ -973,12 +1063,6 @@ class _MetroFlipViewChevronPainter extends CustomPainter {
         forward != oldDelegate.forward ||
         textDirection != oldDelegate.textDirection;
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final media = MediaQuery.maybeOf(context);
-  return media?.disableAnimations == true ||
-      media?.accessibleNavigation == true;
 }
 
 class _PreviousFlipViewIntent extends Intent {

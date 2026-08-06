@@ -43,6 +43,9 @@ abstract class MetroLocalizations {
   String get sortAscendingLabel;
   String get sortDescendingLabel;
 
+  /// Default accessible label for a navigation back button.
+  String get backButtonLabel => 'Back';
+
   /// Default accessible label for submitting a search query.
   String get searchBoxSearchLabel => 'Search';
 
@@ -66,6 +69,15 @@ abstract class MetroLocalizations {
 
   /// Default accessible label for moving to the next FlipView item.
   String get flipViewNextLabel => 'Next item';
+
+  /// Default accessible label for a semantic zoom container.
+  String get semanticZoomLabel => 'Semantic zoom';
+
+  /// Accessible value for the detailed semantic zoom view.
+  String get semanticZoomedInLabel => 'Detailed view';
+
+  /// Accessible value for the summarized semantic zoom view.
+  String get semanticZoomedOutLabel => 'Summary view';
 
   String datePickerSemanticLabel(Iterable<String> values);
   String timePickerSemanticLabel(Iterable<String> values);
@@ -158,6 +170,14 @@ class MetroLocalizationsZh extends MetroLocalizations {
   String get flipViewPreviousLabel => '\u4e0a\u4e00\u9879';
   @override
   String get flipViewNextLabel => '\u4e0b\u4e00\u9879';
+  @override
+  String get semanticZoomLabel => '\u8bed\u4e49\u7f29\u653e';
+  @override
+  String get semanticZoomedInLabel => '\u8be6\u7ec6\u89c6\u56fe';
+  @override
+  String get semanticZoomedOutLabel => '\u6458\u8981\u89c6\u56fe';
+  @override
+  String get backButtonLabel => '\u8fd4\u56de';
 
   @override
   String flipViewItemPosition(int index, int count) {

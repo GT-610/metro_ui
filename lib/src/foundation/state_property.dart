@@ -22,3 +22,17 @@ double? lerpDouble(double? a, double? b, double t) {
   }
   return (a ?? b)! + ((b ?? a)! - (a ?? b)!) * t;
 }
+
+Duration? lerpDuration(Duration? a, Duration? b, double t) {
+  if (a == null && b == null) {
+    return null;
+  }
+  final first = a ?? b!;
+  final second = b ?? a!;
+  return Duration(
+    microseconds:
+        (first.inMicroseconds +
+                (second.inMicroseconds - first.inMicroseconds) * t)
+            .round(),
+  );
+}

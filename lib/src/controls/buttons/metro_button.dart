@@ -84,14 +84,14 @@ class MetroButton extends StatelessWidget {
         final borderColor = effectiveStyle.borderColor?.resolve(states);
         final borderWidth = effectiveStyle.borderWidth?.resolve(states) ?? 0;
         final textStyle = effectiveStyle.textStyle?.resolve(states);
-        final reduceMotion = _reduceMotion(context);
+        final focused = states.contains(WidgetState.focused);
 
-        return AnimatedContainer(
+        Widget button = AnimatedContainer(
           constraints: BoxConstraints(
             minWidth: effectiveStyle.minimumSize?.width ?? 0,
             minHeight: effectiveStyle.minimumSize?.height ?? 0,
           ),
-          duration: reduceMotion ? Duration.zero : theme.motion.fast,
+          duration: Duration.zero,
           curve: theme.motion.standardCurve,
           padding: effectiveStyle.padding,
           decoration: BoxDecoration(
@@ -113,6 +113,13 @@ class MetroButton extends StatelessWidget {
             ),
           ),
         );
+        if (focused) {
+          button = CustomPaint(
+            foregroundPainter: _DottedFocusPainter(color: theme.colors.focus),
+            child: button,
+          );
+        }
+        return button;
       },
     );
   }
@@ -123,58 +130,111 @@ class MetroButton extends StatelessWidget {
   ) {
     final colors = theme.colors;
     final isAccent = variant == MetroButtonVariant.accent;
+    final pressedBackground = colors.isDark
+        ? const Color(0xFFFFFFFF)
+        : const Color(0xFF000000);
+    final pressedForeground = colors.isDark
+        ? const Color(0xFF000000)
+        : const Color(0xFFFFFFFF);
     return MetroButtonStyle(
       backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return colors.disabledBackground;
+          return colors.isDark
+              ? const Color(0x00000000)
+              : const Color(0x66CACACA);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return pressedBackground;
         }
         if (isAccent) {
-          if (states.contains(WidgetState.pressed)) {
-            return colors.accentPressed;
-          }
           if (states.contains(WidgetState.hovered)) {
             return colors.accentHover;
           }
           return colors.accent;
         }
-        if (states.contains(WidgetState.pressed)) {
-          return colors.surfaceVariant;
-        }
         if (states.contains(WidgetState.hovered)) {
-          return colors.surface;
+          return colors.isDark
+              ? const Color(0x21FFFFFF)
+              : const Color(0xD1CDCDCD);
         }
-        return colors.background;
+        return colors.isDark
+            ? const Color(0x00000000)
+            : const Color(0xB3B6B6B6);
       }),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return colors.disabledForeground;
+          return colors.foreground.withValues(alpha: 0.4);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return pressedForeground;
         }
         return isAccent ? colors.onAccent : colors.foreground;
       }),
       borderColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return colors.disabledForeground;
+          return colors.foreground.withValues(
+            alpha: colors.isDark ? 0.4 : 0.08,
+          );
         }
-        if (states.contains(WidgetState.focused)) {
-          return colors.focus;
+        if (states.contains(WidgetState.pressed)) {
+          return pressedBackground;
         }
-        return isAccent ? colors.accent : colors.border;
+        if (isAccent) {
+          if (colors.isDark && states.contains(WidgetState.hovered)) {
+            return colors.foreground;
+          }
+          return const Color(0x00000000);
+        }
+        if (colors.isDark) {
+          return colors.foreground;
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return const Color(0x73A4A4A4);
+        }
+        return const Color(0x33000000);
       }),
-      borderWidth: WidgetStateProperty.resolveWith(
-        (states) => states.contains(WidgetState.focused) ? 2.5 : 2,
-      ),
+      borderWidth: const WidgetStatePropertyAll(2),
       textStyle: WidgetStatePropertyAll(theme.typography.button),
       padding: const EdgeInsets.symmetric(
-        horizontal: MetroSpacing.sm,
-        vertical: MetroSpacing.xs,
+        horizontal: MetroSpacing.xs,
+        vertical: MetroSpacing.xxs,
       ),
-      minimumSize: const Size(80, 36),
+      minimumSize: const Size(90, 32),
     );
   }
+}
 
-  static bool _reduceMotion(BuildContext context) {
-    final mediaQuery = MediaQuery.maybeOf(context);
-    return mediaQuery?.disableAnimations == true ||
-        mediaQuery?.accessibleNavigation == true;
+class _DottedFocusPainter extends CustomPainter {
+  const _DottedFocusPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width <= 7 || size.height <= 7) return;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+    final rect = Rect.fromLTWH(3.5, 3.5, size.width - 7, size.height - 7);
+    _drawDottedLine(canvas, rect.topLeft, rect.topRight, paint);
+    _drawDottedLine(canvas, rect.topRight, rect.bottomRight, paint);
+    _drawDottedLine(canvas, rect.bottomRight, rect.bottomLeft, paint);
+    _drawDottedLine(canvas, rect.bottomLeft, rect.topLeft, paint);
   }
+
+  void _drawDottedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
+    final delta = end - start;
+    final length = delta.distance;
+    if (length == 0) return;
+    final direction = delta / length;
+    for (double distance = 0; distance < length; distance += 3) {
+      final dot = start + direction * distance;
+      canvas.drawLine(dot, dot + direction, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DottedFocusPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

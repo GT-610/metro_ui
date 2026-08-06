@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../theme/metro_theme.dart';
 import 'metro_tile.dart';
 
@@ -127,8 +128,8 @@ class _MetroLiveTileState extends State<MetroLiveTile> {
     _timer = null;
     if (widget.frames.length < 2 ||
         !widget.active ||
-        !_tickerModeEnabled(context) ||
-        _reduceMotion(context)) {
+        !metroTickerModeEnabled(context) ||
+        metroReduceMotion(context)) {
       return;
     }
     final duration = widget.frames[_index].displayDuration ?? widget.interval;
@@ -164,7 +165,7 @@ class _MetroLiveTileState extends State<MetroLiveTile> {
     final frameKey = ValueKey<(String, Object)>(
       frame.id == null ? ('index', _index) : ('id', frame.id!),
     );
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     final duration =
         reduceMotion || widget.transition == MetroLiveTileTransition.none
         ? Duration.zero
@@ -226,18 +227,6 @@ class _MetroLiveTileState extends State<MetroLiveTile> {
       MetroLiveTileTransition.fade => fade,
       MetroLiveTileTransition.none => child,
     };
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final media = MediaQuery.maybeOf(context);
-    return media?.disableAnimations == true ||
-        media?.accessibleNavigation == true;
-  }
-
-  static bool _tickerModeEnabled(BuildContext context) {
-    // TickerMode.valuesOf is unavailable on the minimum Flutter version.
-    // ignore: deprecated_member_use
-    return TickerMode.of(context);
   }
 
   @override

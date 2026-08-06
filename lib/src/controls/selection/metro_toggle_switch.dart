@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../foundation/state_property.dart';
-import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
 
@@ -216,40 +216,47 @@ class MetroToggleSwitch extends StatelessWidget {
         );
         final borderWidth =
             effectiveStyle.borderWidth?.resolve(effectiveStates) ?? 2;
-        final reduceMotion = _reduceMotion(context);
+        final reduceMotion = metroReduceMotion(context);
 
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
+            SizedBox(
               width: trackSize.width,
               height: trackSize.height,
-              duration: reduceMotion ? Duration.zero : theme.motion.normal,
-              curve: theme.motion.standardCurve,
-              padding: EdgeInsets.all(borderWidth),
-              decoration: BoxDecoration(
-                color: trackColor,
-                border: Border.all(
-                  color: borderColor ?? const Color(0x00000000),
-                  width: borderWidth,
-                ),
-              ),
-              child: AnimatedAlign(
-                alignment: value
-                    ? AlignmentDirectional.centerEnd
-                    : AlignmentDirectional.centerStart,
-                duration: reduceMotion ? Duration.zero : theme.motion.normal,
-                curve: theme.motion.standardCurve,
-                child: SizedBox.square(
-                  dimension: thumbSize,
-                  child: ColoredBox(
-                    color: thumbColor ?? const Color(0x00000000),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: AnimatedContainer(
+                      duration: reduceMotion
+                          ? Duration.zero
+                          : theme.motion.fast,
+                      curve: theme.motion.standardCurve,
+                      decoration: BoxDecoration(
+                        color: trackColor,
+                        border: Border.all(
+                          color: borderColor ?? const Color(0x00000000),
+                          width: borderWidth,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  AnimatedPositionedDirectional(
+                    duration: reduceMotion ? Duration.zero : theme.motion.fast,
+                    start: value ? trackSize.width - thumbSize : 0,
+                    top: 0,
+                    width: thumbSize,
+                    height: trackSize.height,
+                    child: ColoredBox(
+                      color: thumbColor ?? const Color(0x00000000),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (label != null) ...[
-              const SizedBox(width: MetroSpacing.sm),
+              const SizedBox(width: 20),
               DefaultTextStyle.merge(
                 style: effectiveStyle.labelStyle?.resolve(effectiveStates),
                 child: label!,
@@ -266,50 +273,55 @@ class MetroToggleSwitch extends StatelessWidget {
     return MetroToggleSwitchStyle(
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return colors.disabledBackground;
+          return colors.foreground.withValues(alpha: 0.12);
         }
         if (states.contains(WidgetState.selected)) {
-          return states.contains(WidgetState.pressed)
-              ? colors.accentPressed
-              : colors.accent;
+          if (states.contains(WidgetState.pressed)) {
+            return Color.lerp(colors.accent, colors.onAccent, 0.28);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return Color.lerp(colors.accent, colors.onAccent, 0.12);
+          }
+          return colors.accent;
         }
-        return states.contains(WidgetState.hovered)
-            ? colors.surfaceVariant
-            : colors.surface;
+        final opacity = colors.isDark ? 0.26 : 0.35;
+        if (states.contains(WidgetState.pressed)) {
+          return colors.foreground.withValues(
+            alpha: colors.isDark ? 0.35 : 0.26,
+          );
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return colors.foreground.withValues(alpha: 0.29);
+        }
+        return colors.foreground.withValues(alpha: opacity);
       }),
       thumbColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return colors.disabledForeground;
+          return colors.isDark
+              ? const Color(0xFF7E7E7E)
+              : const Color(0xFF929292);
         }
-        return states.contains(WidgetState.selected)
-            ? colors.onAccent
-            : colors.foreground;
+        return colors.foreground;
       }),
       borderColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.focused)) {
           return colors.focus;
         }
-        if (states.contains(WidgetState.selected)) {
-          return colors.accent;
+        if (states.contains(WidgetState.disabled)) {
+          return colors.foreground.withValues(alpha: 0.2);
         }
-        return colors.border;
+        return colors.foreground.withValues(alpha: 0.35);
       }),
       borderWidth: const WidgetStatePropertyAll(2),
       labelStyle: WidgetStateProperty.resolveWith((states) {
-        return theme.typography.body.copyWith(
+        return theme.typography.bodyStrong.copyWith(
           color: states.contains(WidgetState.disabled)
               ? colors.disabledForeground
               : colors.foreground,
         );
       }),
-      trackSize: const Size(48, 24),
-      thumbSize: 16,
+      trackSize: const Size(50, 19),
+      thumbSize: 12,
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final mediaQuery = MediaQuery.maybeOf(context);
-    return mediaQuery?.disableAnimations == true ||
-        mediaQuery?.accessibleNavigation == true;
   }
 }

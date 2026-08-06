@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_theme.dart';
 import 'metro_progress_bar_theme.dart';
@@ -58,8 +59,8 @@ class _MetroProgressBarState extends State<MetroProgressBar>
     final animate =
         widget.value == null &&
         widget.active &&
-        _tickerModeEnabled(context) &&
-        !_reduceMotion(context);
+        metroTickerModeEnabled(context) &&
+        !metroReduceMotion(context);
     if (animate && !_controller.isAnimating) {
       _controller.repeat();
     } else if (!animate && _controller.isAnimating) {
@@ -81,8 +82,14 @@ class _MetroProgressBarState extends State<MetroProgressBar>
     final background =
         widget.backgroundColor ??
         barTheme.backgroundColor ??
-        theme.colors.surfaceVariant;
-    final height = widget.height ?? barTheme.height;
+        (widget.value == null
+            ? const Color(0x00000000)
+            : theme.colors.isDark
+            ? const Color(0x59FFFFFF)
+            : const Color(0x33000000));
+    final height =
+        widget.height ??
+        (widget.value == null ? barTheme.indeterminateHeight : barTheme.height);
     final textDirection = Directionality.of(context);
     return Semantics(
       label: widget.semanticLabel,
@@ -112,18 +119,6 @@ class _MetroProgressBarState extends State<MetroProgressBar>
         ),
       ),
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final media = MediaQuery.maybeOf(context);
-    return media?.disableAnimations == true ||
-        media?.accessibleNavigation == true;
-  }
-
-  static bool _tickerModeEnabled(BuildContext context) {
-    // TickerMode.valuesOf is unavailable on the minimum Flutter version.
-    // ignore: deprecated_member_use
-    return TickerMode.of(context);
   }
 
   MetroProgressBarThemeData _progressTheme(BuildContext context) {

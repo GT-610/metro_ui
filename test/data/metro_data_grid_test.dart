@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -187,6 +188,39 @@ void main() {
     },
   );
 
+  testWidgets('autofocus scans enabled rows once per table build', (
+    tester,
+  ) async {
+    final rows = List<_Album>.generate(
+      10,
+      (index) => _Album('Album $index', 'Artist', 2000 + index),
+    );
+    final controller = MetroSelectionController<_Album>();
+    var enabledChecks = 0;
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 420,
+            child: MetroDataGrid<_Album>(
+              autofocus: true,
+              columns: _columns(),
+              rowEnabledBuilder: (row) {
+                enabledChecks += 1;
+                return identical(row, rows.last);
+              },
+              rows: rows,
+              selectionController: controller,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(enabledChecks, rows.length * 2);
+    controller.dispose();
+  });
+
   testWidgets('End navigates through a lazy viewport to the final row', (
     tester,
   ) async {
@@ -273,6 +307,134 @@ void main() {
     );
 
     expect(tester.getSize(find.byType(MetroDataGrid<_Album>)).height, 52);
+  });
+
+  testWidgets('selected rows use the filled Metro selection treatment', (
+    tester,
+  ) async {
+    const discovery = _Album('Discovery', 'Daft Punk', 2001);
+    final theme = MetroThemeData.light();
+    final controller = MetroSelectionController<_Album>(
+      selectedValues: const <_Album>[discovery],
+    );
+    await tester.pumpWidget(
+      metroTestApp(
+        theme: theme,
+        child: Center(
+          child: SizedBox(
+            width: 420,
+            child: MetroDataGrid<_Album>(
+              columns: _columns(),
+              rows: const <_Album>[discovery],
+              selectionController: controller,
+              showHeader: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final surface = find.byKey(
+      const ValueKey<String>('metro-data-grid-row-0-surface'),
+    );
+    final container = tester.widget<Container>(surface);
+    expect((container.decoration! as BoxDecoration).color, theme.colors.accent);
+    expect(
+      DefaultTextStyle.of(tester.element(find.text('Discovery'))).style.color,
+      const Color(0xFFFFFFFF),
+    );
+    controller.dispose();
+  });
+
+  testWidgets('selected row hover uses the lighter accent state', (
+    tester,
+  ) async {
+    final previousStrategy = FocusManager.instance.highlightStrategy;
+    addTearDown(() {
+      FocusManager.instance.highlightStrategy = previousStrategy;
+    });
+    FocusManager.instance.highlightStrategy =
+        FocusHighlightStrategy.alwaysTraditional;
+    const discovery = _Album('Discovery', 'Daft Punk', 2001);
+    final theme = MetroThemeData.light();
+    final controller = MetroSelectionController<_Album>(
+      selectedValues: const <_Album>[discovery],
+    );
+    await tester.pumpWidget(
+      metroTestApp(
+        theme: theme,
+        child: Center(
+          child: SizedBox(
+            width: 420,
+            child: MetroDataGrid<_Album>(
+              columns: _columns(),
+              rows: const <_Album>[discovery],
+              selectionController: controller,
+              showHeader: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final surface = find.byKey(
+      const ValueKey<String>('metro-data-grid-row-0-surface'),
+    );
+    final position = tester.getCenter(surface);
+    await tester.sendEventToBinding(
+      const PointerAddedEvent(kind: PointerDeviceKind.mouse),
+    );
+    await tester.sendEventToBinding(
+      PointerHoverEvent(kind: PointerDeviceKind.mouse, position: position),
+    );
+    await tester.pump();
+
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      theme.colors.accentHover,
+    );
+    await tester.sendEventToBinding(
+      PointerRemovedEvent(kind: PointerDeviceKind.mouse, position: position),
+    );
+    controller.dispose();
+  });
+
+  testWidgets('row pointer press uses the 0.975 scale without a pressed fill', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 420,
+            child: MetroDataGrid<_Album>(
+              columns: _columns(),
+              rows: const <_Album>[_Album('Discovery', 'Daft Punk', 2001)],
+              onRowPressed: (_) {},
+              showHeader: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final surface = find.byKey(
+      const ValueKey<String>('metro-data-grid-row-0-surface'),
+    );
+    final scale = find.byKey(
+      const ValueKey<String>('metro-data-grid-row-0-scale'),
+    );
+    final gesture = await tester.startGesture(tester.getCenter(surface));
+    await tester.pump();
+
+    final animatedScale = tester.widget<AnimatedScale>(scale);
+    expect(animatedScale.scale, 0.975);
+    expect(animatedScale.duration, const Duration(milliseconds: 167));
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      MetroThemeData.light().colors.background,
+    );
+    await gesture.up();
   });
 }
 

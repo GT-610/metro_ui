@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -30,10 +31,12 @@ void main() {
     MetroFlipViewStyle? style,
     List<MetroFlipViewItem> items = _items,
     TextDirection textDirection = TextDirection.ltr,
+    MetroThemeData? theme,
     MediaQueryData mediaQueryData = const MediaQueryData(size: Size(800, 600)),
   }) {
     return metroTestApp(
       mediaQueryData: mediaQueryData,
+      theme: theme,
       child: Center(
         child: Directionality(
           textDirection: textDirection,
@@ -69,7 +72,20 @@ void main() {
     expect(find.text('First banner'), findsOneWidget);
     expect(
       find.byKey(const ValueKey<String>('metro-flip-view-previous')),
-      findsNothing,
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<AnimatedOpacity>(
+            find.ancestor(
+              of: find.byKey(
+                const ValueKey<String>('metro-flip-view-previous'),
+              ),
+              matching: find.byType(AnimatedOpacity),
+            ),
+          )
+          .opacity,
+      0,
     );
 
     await tester.tap(
@@ -142,6 +158,176 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(changes, const <int>[1]);
+    expect(find.text('SECOND'), findsOneWidget);
+  });
+
+  testWidgets('direct drag keeps full-page manipulation geometry', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildFlipView(onChanged: (_) {}));
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(MetroFlipView)),
+    );
+    await gesture.moveBy(const Offset(-20, 0));
+    await gesture.moveBy(const Offset(-80, 0));
+    await tester.pump();
+
+    final current = tester.widget<Transform>(
+      find.byKey(const ValueKey<String>('metro-flip-view-current-item')),
+    );
+    final incoming = tester.widget<Transform>(
+      find.byKey(const ValueKey<String>('metro-flip-view-incoming-item')),
+    );
+    expect(current.transform.getTranslation().x, closeTo(-80, 0.01));
+    expect(incoming.transform.getTranslation().x, closeTo(240, 0.01));
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('navigation buttons use WinJS geometry and neutral states', (
+    tester,
+  ) async {
+    final previousHighlightStrategy =
+        tester.binding.focusManager.highlightStrategy;
+    addTearDown(() {
+      tester.binding.focusManager.highlightStrategy = previousHighlightStrategy;
+    });
+    tester.binding.focusManager.highlightStrategy =
+        FocusHighlightStrategy.alwaysTraditional;
+    await tester.pumpWidget(buildFlipView(initialIndex: 1));
+
+    const nextKey = ValueKey<String>('metro-flip-view-next-surface');
+    final flipRect = tester.getRect(find.byType(MetroFlipView));
+    final nextRect = tester.getRect(find.byKey(nextKey));
+    BoxDecoration decoration() {
+      return tester.widget<Container>(find.byKey(nextKey)).decoration!
+          as BoxDecoration;
+    }
+
+    expect(nextRect.size, const Size(69, 39));
+    expect(nextRect.right, flipRect.right);
+    expect(nextRect.center.dy, flipRect.center.dy);
+    expect(decoration().color, const Color(0x59D5D5D5));
+    expect(decoration().border, isNull);
+
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer();
+    await mouse.moveTo(nextRect.center);
+    await tester.pumpAndSettle();
+    expect(decoration().color, const Color(0xF0D7D7D7));
+
+    await mouse.down(nextRect.center);
+    await tester.pump();
+    expect(decoration().color, const Color(0xBD292929));
+    await mouse.up();
+  });
+
+  testWidgets('high contrast navigation buttons keep a two-pixel border', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildFlipView(initialIndex: 1, theme: MetroThemeData.highContrastLight()),
+    );
+
+    final decoration =
+        tester
+                .widget<Container>(
+                  find.byKey(
+                    const ValueKey<String>('metro-flip-view-next-surface'),
+                  ),
+                )
+                .decoration!
+            as BoxDecoration;
+    expect(decoration.border!.top.width, 2);
+  });
+
+  testWidgets('automatic navigation visibility fades linearly over 167ms', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildFlipView(
+        initialIndex: 1,
+        navigationVisibility: MetroFlipViewNavigationVisibility.auto,
+      ),
+    );
+
+    final animatedOpacity = find.ancestor(
+      of: find.byKey(const ValueKey<String>('metro-flip-view-next')),
+      matching: find.byType(AnimatedOpacity),
+    );
+    double opacity() {
+      return tester
+          .widget<FadeTransition>(
+            find.descendant(
+              of: animatedOpacity,
+              matching: find.byType(FadeTransition),
+            ),
+          )
+          .opacity
+          .value;
+    }
+
+    expect(opacity(), 0);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer();
+    await mouse.moveTo(tester.getCenter(find.byType(MetroFlipView)));
+    await tester.pump();
+    expect(opacity(), 0);
+
+    await tester.pump(const Duration(milliseconds: 83));
+    expect(opacity(), closeTo(83 / 167, 0.01));
+    await tester.pump(const Duration(milliseconds: 84));
+    expect(opacity(), 1);
+  });
+
+  testWidgets('programmatic navigation uses WinJS content transition', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildFlipView(onChanged: (_) {}));
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('metro-flip-view-next')),
+    );
+    await tester.pump();
+
+    Transform currentTransform() => tester.widget<Transform>(
+      find.byKey(const ValueKey<String>('metro-flip-view-current-item')),
+    );
+    Transform incomingTransform() => tester.widget<Transform>(
+      find.byKey(const ValueKey<String>('metro-flip-view-incoming-item')),
+    );
+    double opacityOf(Transform transform) {
+      return (transform.child! as Opacity).opacity;
+    }
+
+    expect(currentTransform().transform.getTranslation().x, 0);
+    expect(incomingTransform().transform.getTranslation().x, 40);
+    expect(opacityOf(currentTransform()), 1);
+    expect(opacityOf(incomingTransform()), 0);
+
+    await tester.pump(const Duration(milliseconds: 167));
+    expect(currentTransform().transform.getTranslation().x, 0);
+    expect(opacityOf(currentTransform()), closeTo(0, 0.001));
+    expect(
+      incomingTransform().transform.getTranslation().x,
+      allOf(greaterThan(0), lessThan(40)),
+    );
+    expect(opacityOf(incomingTransform()), lessThan(1));
+
+    await tester.pump(const Duration(milliseconds: 3));
+    expect(opacityOf(incomingTransform()), closeTo(1, 0.001));
+    expect(
+      incomingTransform().transform.getTranslation().x,
+      allOf(greaterThan(0), lessThan(40)),
+    );
+
+    await tester.pump(const Duration(milliseconds: 379));
+    expect(find.text('FIRST'), findsOneWidget);
+    expect(find.text('SECOND'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 2));
+    expect(find.text('FIRST'), findsNothing);
     expect(find.text('SECOND'), findsOneWidget);
   });
 
@@ -253,13 +439,8 @@ void main() {
     }
 
     Color surfaceColor() {
-      final container = tester.widget<AnimatedContainer>(
-        find
-            .descendant(
-              of: find.byType(MetroFlipView),
-              matching: find.byType(AnimatedContainer),
-            )
-            .first,
+      final container = tester.widget<Container>(
+        find.byKey(const ValueKey<String>('metro-flip-view-surface')),
       );
       return (container.decoration! as BoxDecoration).color!;
     }

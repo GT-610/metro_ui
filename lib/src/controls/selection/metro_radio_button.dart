@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 import '../../foundation/metro_interactive.dart';
-import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
 import 'metro_selection_control_style.dart';
@@ -92,45 +91,44 @@ class MetroRadioButton<T> extends StatelessWidget {
           ...states,
           if (selected) WidgetState.selected,
         };
-        final size = effective.size ?? 24;
+        final size = effective.size ?? 23;
         final indicatorSize = effective.indicatorSize ?? 12;
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
+            SizedBox(
               width: size,
               height: size,
-              duration: _reduceMotion(context)
-                  ? Duration.zero
-                  : theme.motion.fast,
-              decoration: BoxDecoration(
-                color: effective.backgroundColor?.resolve(selectedStates),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color:
-                      effective.borderColor?.resolve(selectedStates) ??
-                      const Color(0x00000000),
-                  width: effective.borderWidth?.resolve(selectedStates) ?? 2,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: effective.backgroundColor?.resolve(selectedStates),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color:
+                        effective.borderColor?.resolve(selectedStates) ??
+                        const Color(0x00000000),
+                    width: effective.borderWidth?.resolve(selectedStates) ?? 2,
+                  ),
                 ),
-              ),
-              child: selected
-                  ? Center(
-                      child: SizedBox.square(
-                        dimension: indicatorSize,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: effective.foregroundColor?.resolve(
-                              selectedStates,
+                child: selected
+                    ? Center(
+                        child: SizedBox.square(
+                          dimension: indicatorSize,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: effective.foregroundColor?.resolve(
+                                selectedStates,
+                              ),
+                              shape: BoxShape.circle,
                             ),
-                            shape: BoxShape.circle,
                           ),
                         ),
-                      ),
-                    )
-                  : null,
+                      )
+                    : null,
+              ),
             ),
             if (label != null) ...[
-              const SizedBox(width: MetroSpacing.sm),
+              const SizedBox(width: 4),
               DefaultTextStyle.merge(
                 style: effective.labelStyle?.resolve(selectedStates),
                 child: label!,
@@ -144,25 +142,72 @@ class MetroRadioButton<T> extends StatelessWidget {
 
   static MetroSelectionControlStyle _defaultStyle(MetroThemeData theme) {
     final colors = theme.colors;
+    final dark = colors.isDark;
+    if (colors.isHighContrast) {
+      return MetroSelectionControlStyle(
+        backgroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.pressed)
+              ? colors.foreground
+              : colors.background,
+        ),
+        foregroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.pressed)
+              ? colors.background
+              : colors.foreground,
+        ),
+        borderColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.disabled)
+              ? colors.disabledForeground
+              : colors.border,
+        ),
+        borderWidth: const WidgetStatePropertyAll(2),
+        labelStyle: WidgetStateProperty.resolveWith(
+          (states) => theme.typography.body.copyWith(
+            color: states.contains(WidgetState.disabled)
+                ? colors.disabledForeground
+                : colors.foreground,
+          ),
+        ),
+        size: 23,
+        indicatorSize: 12,
+      );
+    }
     return MetroSelectionControlStyle(
-      backgroundColor: WidgetStateProperty.resolveWith(
-        (states) => states.contains(WidgetState.disabled)
-            ? colors.disabledBackground
-            : colors.background,
-      ),
-      foregroundColor: WidgetStateProperty.resolveWith(
-        (states) => states.contains(WidgetState.disabled)
-            ? colors.disabledForeground
-            : colors.accent,
-      ),
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return dark ? const Color(0x66FFFFFF) : const Color(0x66CACACA);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return dark ? const Color(0xFFFFFFFF) : const Color(0xFF000000);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return const Color(0xDEFFFFFF);
+        }
+        return const Color(0xCCFFFFFF);
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return const Color(0x66000000);
+        }
+        if (!dark && states.contains(WidgetState.pressed)) {
+          return const Color(0xFFFFFFFF);
+        }
+        return const Color(0xFF000000);
+      }),
       borderColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.focused)) return colors.focus;
         if (states.contains(WidgetState.disabled)) {
-          return colors.disabledForeground;
+          return dark ? const Color(0x00000000) : const Color(0x26000000);
         }
-        return states.contains(WidgetState.selected)
-            ? colors.accent
-            : colors.border;
+        if (states.contains(WidgetState.pressed)) {
+          return const Color(0x00000000);
+        }
+        if (dark) {
+          return const Color(0x00000000);
+        }
+        return states.contains(WidgetState.hovered)
+            ? const Color(0x70000000)
+            : const Color(0x45000000);
       }),
       borderWidth: const WidgetStatePropertyAll(2),
       labelStyle: WidgetStateProperty.resolveWith(
@@ -172,14 +217,8 @@ class MetroRadioButton<T> extends StatelessWidget {
               : colors.foreground,
         ),
       ),
-      size: 24,
+      size: 23,
       indicatorSize: 12,
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final media = MediaQuery.maybeOf(context);
-    return media?.disableAnimations == true ||
-        media?.accessibleNavigation == true;
   }
 }

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_spacing.dart';
@@ -127,6 +128,8 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
   FocusNode? _internalFocusNode;
   int? _highlightedIndex;
   bool _open = false;
+  bool _overlaySyncScheduled = false;
+  bool _scrollScheduled = false;
 
   TextEditingController get _controller =>
       widget.controller ?? _internalController!;
@@ -164,11 +167,7 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
       }
       _controller.addListener(_handleControllerChanged);
       _highlightedIndex = null;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _syncOverlay();
-        }
-      });
+      _scheduleOverlaySync();
     }
     if (oldWidget.focusNode != widget.focusNode) {
       final oldFocusNode = oldWidget.focusNode ?? _internalFocusNode!;
@@ -180,11 +179,7 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
         _internalFocusNode = null;
       }
       _focusNode.addListener(_handleFocusChanged);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _syncOverlay();
-        }
-      });
+      _scheduleOverlaySync();
     }
 
     if (oldWidget.items != widget.items ||
@@ -195,11 +190,7 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
         oldWidget.enabled != widget.enabled ||
         oldWidget.readOnly != widget.readOnly) {
       _highlightedIndex = null;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _syncOverlay();
-        }
-      });
+      _scheduleOverlaySync();
     }
   }
 
@@ -273,9 +264,21 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
     }
   }
 
+  void _scheduleOverlaySync() {
+    if (_overlaySyncScheduled) {
+      return;
+    }
+    _overlaySyncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _overlaySyncScheduled = false;
+      if (mounted) {
+        _syncOverlay();
+      }
+    });
+  }
+
   void _openSuggestions() {
     if (_open) {
-      setState(() {});
       return;
     }
     _overlayController.show();
@@ -377,7 +380,16 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
       return;
     }
     setState(() => _highlightedIndex = index);
+    _scheduleHighlightedScroll();
+  }
+
+  void _scheduleHighlightedScroll() {
+    if (_scrollScheduled) {
+      return;
+    }
+    _scrollScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollScheduled = false;
       if (mounted) {
         _scrollHighlightedIntoView();
       }
@@ -529,15 +541,7 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
       ),
     );
     field = Listener(
-      onPointerDown: _canEdit
-          ? (_) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  _syncOverlay();
-                }
-              });
-            }
-          : null,
+      onPointerDown: _canEdit ? (_) => _scheduleOverlaySync() : null,
       child: field,
     );
     return OverlayPortal.overlayChildLayoutBuilder(
@@ -574,7 +578,7 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
       preferBelow: widget.preferBelow,
     );
     final theme = MetroTheme.of(context);
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
 
     Widget content;
     if (items.isEmpty) {
@@ -633,14 +637,26 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
               textDirection: Directionality.of(context),
             ),
             child: TweenAnimationBuilder<double>(
-              duration: reduceMotion ? Duration.zero : theme.motion.normal,
-              curve: theme.motion.standardCurve,
+              duration: reduceMotion ? Duration.zero : theme.motion.entrance,
               tween: Tween<double>(begin: 0, end: 1),
               builder: (context, progress, child) {
+                final durationMicros = theme.motion.entrance.inMicroseconds;
+                final fadeDelay = durationMicros == 0
+                    ? 0.0
+                    : theme.motion.popupFade.inMicroseconds / durationMicros;
+                final fadeLength = durationMicros == 0
+                    ? 1.0
+                    : theme.motion.popupFade.inMicroseconds / durationMicros;
+                final movementProgress = theme.motion.standardCurve.transform(
+                  progress,
+                );
+                final opacity = fadeLength <= 0
+                    ? 1.0
+                    : ((progress - fadeDelay) / fadeLength).clamp(0.0, 1.0);
                 return Opacity(
-                  opacity: progress,
+                  opacity: opacity,
                   child: Transform.translate(
-                    offset: Offset(0, (opensAbove ? 8 : -8) * (1 - progress)),
+                    offset: Offset(0, 50 * (1 - movementProgress)),
                     child: child,
                   ),
                 );
@@ -843,7 +859,7 @@ class _MetroSearchActionButton extends StatelessWidget {
       semanticLabel: semanticLabel,
       builder: (context, states) {
         return AnimatedContainer(
-          duration: _reduceMotion(context)
+          duration: metroReduceMotion(context)
               ? Duration.zero
               : MetroTheme.of(context).motion.fast,
           width: extent,
@@ -1100,10 +1116,4 @@ double _effectiveSearchItemHeight(
 ) {
   final textScale = MediaQuery.maybeTextScalerOf(context)?.scale(1) ?? 1;
   return style.itemHeight! * textScale.clamp(1.0, 1.5);
-}
-
-bool _reduceMotion(BuildContext context) {
-  final media = MediaQuery.maybeOf(context);
-  return media?.disableAnimations == true ||
-      media?.accessibleNavigation == true;
 }

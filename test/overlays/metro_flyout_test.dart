@@ -123,6 +123,53 @@ void main() {
     );
     expect(backgrounds.first.color, customColor);
   });
+
+  testWidgets('flyout exits along its edge for the full 550ms recipe', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _overlayTestApp(
+        child: Builder(
+          builder: (context) {
+            return MetroButton(
+              onPressed: () {
+                showMetroFlyout<void>(
+                  context: context,
+                  builder: (flyoutContext) => MetroFlyout(
+                    actions: <Widget>[
+                      MetroButton(
+                        onPressed: () => Navigator.of(flyoutContext).pop(),
+                        child: const Text('CLOSE'),
+                      ),
+                    ],
+                    child: const Text('Timed flyout'),
+                  ),
+                );
+              },
+              child: const Text('OPEN'),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('OPEN'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('CLOSE'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 275));
+
+    final panel = tester.getRect(find.byType(MetroFlyout));
+    expect(panel.left, greaterThan(800 - panel.width));
+    expect(panel.right, greaterThan(800));
+    expect(find.text('Timed flyout'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 274));
+    expect(find.text('Timed flyout'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 1));
+    await tester.pumpAndSettle();
+    expect(find.text('Timed flyout'), findsNothing);
+  });
 }
 
 Widget _overlayTestApp({required Widget child}) {

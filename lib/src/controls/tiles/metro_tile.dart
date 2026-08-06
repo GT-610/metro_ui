@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -108,7 +109,7 @@ class _MetroTileState extends State<MetroTile> {
         },
         semanticLabel: widget.semanticLabel ?? widget.title,
         builder: (context, states) {
-          final reduceMotion = _reduceMotion(context);
+          final reduceMotion = metroReduceMotion(context);
           final pressed = states.contains(WidgetState.pressed);
           final background = effectiveStyle.backgroundColor?.resolve(states);
           final foreground = effectiveStyle.foregroundColor?.resolve(states);
@@ -120,7 +121,7 @@ class _MetroTileState extends State<MetroTile> {
               : Matrix4.identity();
 
           return AnimatedContainer(
-            duration: reduceMotion ? Duration.zero : theme.motion.fast,
+            duration: reduceMotion ? Duration.zero : theme.motion.normal,
             curve: theme.motion.standardCurve,
             transform: transform,
             transformAlignment: Alignment.center,
@@ -170,8 +171,8 @@ class _MetroTileState extends State<MetroTile> {
       ..rotateY(x * 0.035);
     final storage = transform.storage;
     for (var index = 0; index < 4; index++) {
-      storage[index] *= 0.98;
-      storage[index + 4] *= 0.98;
+      storage[index] *= 0.975;
+      storage[index + 4] *= 0.975;
     }
     return transform;
   }
@@ -219,12 +220,6 @@ class _MetroTileState extends State<MetroTile> {
       subtitleStyle: WidgetStatePropertyAll(theme.typography.caption),
       padding: const EdgeInsets.all(MetroSpacing.sm),
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final mediaQuery = MediaQuery.maybeOf(context);
-    return mediaQuery?.disableAnimations == true ||
-        mediaQuery?.accessibleNavigation == true;
   }
 }
 
