@@ -14,6 +14,44 @@ void main() {
     );
   });
 
+  testWidgets('default slider geometry matches WinJS desktop range input', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: const Center(
+          child: SizedBox(
+            width: 280,
+            child: MetroSlider(value: 0.5, onChanged: null),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(MetroSlider)), const Size(280, 60));
+  });
+
+  testWidgets('vertical slider uses WinJS cross extent and minimum length', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: const Center(
+          child: SizedBox(
+            height: 191,
+            child: MetroSlider(
+              axis: Axis.vertical,
+              value: 0.5,
+              onChanged: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(MetroSlider)), const Size(45, 191));
+  });
+
   testWidgets('slider changes from pointer and snaps to divisions', (
     tester,
   ) async {

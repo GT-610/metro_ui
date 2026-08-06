@@ -31,6 +31,7 @@
 - NumberBox numeric entry and repeated stepping — complete
 - SearchBox query suggestions — complete
 - FlipView direct-manipulation paging — complete
+- Semantic Zoom grouped collection navigation — complete
 - live tile content model — complete
 - date and time pickers — complete
 - combo box and viewport-aware drop-down selection — complete
@@ -42,8 +43,9 @@
 ## Release criteria for 1.0
 
 - documented stable public API — release-candidate freeze and dartdoc complete
-- declared Flutter 3.32 lower bound — locally verified with analysis, all 159
-  non-Golden tests, and repository guards; first hosted result pending
+- declared Flutter 3.32 lower bound — current stable passes analysis and all
+  216 non-Golden tests; the expanded suite still needs a Flutter 3.32 and
+  hosted rerun
 - complete state and semantics coverage for every interactive control —
   complete; see the interaction audit
 - reduced-motion and high-contrast strategy — complete

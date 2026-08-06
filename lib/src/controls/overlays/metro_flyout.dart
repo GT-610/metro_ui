@@ -51,23 +51,21 @@ Future<T?> showMetroFlyout<T extends Object?>({
     barrierLabel: barrierLabel,
     requestFocus: requestFocus ?? true,
     routeSettings: routeSettings,
-    transitionDuration: reduceMotion ? Duration.zero : theme.motion.entrance,
+    transitionDuration: reduceMotion ? Duration.zero : theme.motion.panel,
     useRootNavigator: useRootNavigator,
     pageBuilder: (routeContext, animation, secondaryAnimation) {
       final curved = CurvedAnimation(
         parent: animation,
-        curve: theme.motion.navigationCurve,
+        curve: theme.motion.standardCurve,
         reverseCurve: theme.motion.standardCurve,
       );
-      final panel = FadeTransition(
-        opacity: curved,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: slideBegin,
-            end: Offset.zero,
-          ).animate(curved),
-          child: Builder(builder: builder),
-        ),
+      final panel = SlideTransition(
+        key: const ValueKey<String>('metro-flyout-slide'),
+        position: Tween<Offset>(
+          begin: slideBegin,
+          end: Offset.zero,
+        ).animate(curved),
+        child: Builder(builder: builder),
       );
       Widget child = SafeArea(
         child: Align(alignment: alignment, child: panel),
@@ -130,8 +128,8 @@ class MetroFlyout extends StatelessWidget {
       backgroundColor: theme.colors.background,
       headerColor: theme.colors.accent,
       width: 346,
-      headerPadding: const EdgeInsets.all(MetroSpacing.lg),
-      contentPadding: const EdgeInsets.all(MetroSpacing.lg),
+      headerPadding: const EdgeInsets.fromLTRB(40, 32, 40, 16),
+      contentPadding: const EdgeInsets.fromLTRB(40, 33, 40, 40),
       titleStyle: theme.typography.subheader.copyWith(
         color: theme.colors.onAccent,
       ),

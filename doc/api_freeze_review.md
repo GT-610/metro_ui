@@ -4,12 +4,12 @@ This review records the public surface approved for the `1.0.0` release
 candidate. It does not change the package version or claim that hosted release
 gates have passed.
 
-Reviewed locally on 2026-08-04.
+Reviewed locally on 2026-08-06.
 
 ## Scope
 
 - `package:metro_ui/metro_ui.dart` remains the only supported entry point.
-- `tool/public_api_declarations.txt` contains 143 exported declarations in
+- `tool/public_api_declarations.txt` contains 153 exported declarations in
   sorted order and is the freeze manifest.
 - `dart run tool/check_public_api.dart` verifies that every exported type or
   top-level function is documented and represented by the manifest.
@@ -22,8 +22,8 @@ Reviewed locally on 2026-08-04.
 ## Review decisions
 
 - Component names consistently use the `Metro` prefix and established Modern
-  UI terminology: Button, Tile, Pivot, CommandBar, FlipView, SearchBox,
-  NumberBox, picker, slider, and data-grid families.
+  UI terminology: Button, BackButton, Tile, Pivot, CommandBar, FlipView,
+  SemanticZoom, SearchBox, NumberBox, picker, slider, and data-grid families.
 - Stateful inputs use controlled application values where rejecting or
   reconciling a request matters. Internal state is limited to transient focus,
   hover, draft, animation, paging, and overlay behavior.
@@ -44,7 +44,7 @@ Reviewed locally on 2026-08-04.
 
 ## Freeze decision
 
-The current 143-declaration inventory is approved as the `1.0.0` release
+The current 153-declaration inventory is approved as the `1.0.0` release
 candidate surface. Any declaration, parameter, enum-value, nullability, or
 documented behavior change before the release must update the manifest,
 changelog, focused tests, and this review. After `1.0.0`, changes follow

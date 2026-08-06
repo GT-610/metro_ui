@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
-import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import 'metro_tooltip_theme.dart';
 
@@ -14,15 +13,20 @@ class MetroTooltip extends StatefulWidget {
   const MetroTooltip({
     required this.message,
     required this.child,
-    this.preferBelow = true,
+    this.preferBelow = false,
     this.enabled = true,
     this.backgroundColor,
+    this.borderColor,
+    this.borderWidth,
     this.textStyle,
     this.padding,
     this.maxWidth,
     this.waitDuration,
     this.showDuration,
     this.verticalOffset,
+    this.mouseOffset,
+    this.keyboardOffset,
+    this.touchOffset,
     super.key,
   });
 
@@ -31,23 +35,50 @@ class MetroTooltip extends StatefulWidget {
   final bool preferBelow;
   final bool enabled;
   final Color? backgroundColor;
+  final Color? borderColor;
+  final double? borderWidth;
   final TextStyle? textStyle;
   final EdgeInsetsGeometry? padding;
   final double? maxWidth;
   final Duration? waitDuration;
   final Duration? showDuration;
   final double? verticalOffset;
+  final double? mouseOffset;
+  final double? keyboardOffset;
+  final double? touchOffset;
 
   @override
   State<MetroTooltip> createState() => _MetroTooltipState();
 }
 
-class _MetroTooltipState extends State<MetroTooltip> {
+class _MetroTooltipState extends State<MetroTooltip>
+    with SingleTickerProviderStateMixin {
   final OverlayPortalController _controller = OverlayPortalController();
+  late final AnimationController _opacityController;
   Timer? _showTimer;
   Timer? _hideTimer;
   bool _hovered = false;
   bool _focused = false;
+  Offset? _contactPoint;
+  _MetroTooltipTrigger _trigger = _MetroTooltipTrigger.keyboard;
+  int _visibilityEpoch = 0;
+  bool _hideOnDismiss = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _opacityController = AnimationController(vsync: this)
+      ..addStatusListener(_handleOpacityStatus);
+  }
+
+  void _handleOpacityStatus(AnimationStatus status) {
+    if (status == AnimationStatus.dismissed &&
+        _hideOnDismiss &&
+        _controller.isShowing) {
+      _hideOnDismiss = false;
+      _controller.hide();
+    }
+  }
 
   @override
   void didUpdateWidget(MetroTooltip oldWidget) {
@@ -56,17 +87,22 @@ class _MetroTooltipState extends State<MetroTooltip> {
       _showTimer?.cancel();
       _hideTimer?.cancel();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _controller.isShowing) {
-          _controller.hide();
+        if (mounted) {
+          _hide(immediate: true);
         }
       });
     }
   }
 
-  void _scheduleShow({bool immediate = false, bool autoHide = false}) {
+  void _scheduleShow({
+    required _MetroTooltipTrigger trigger,
+    bool immediate = false,
+    bool autoHide = true,
+  }) {
     if (!widget.enabled) {
       return;
     }
+    _trigger = trigger;
     _showTimer?.cancel();
     _hideTimer?.cancel();
     final theme = _resolveTheme(context);
@@ -86,28 +122,65 @@ class _MetroTooltipState extends State<MetroTooltip> {
     if (!mounted || !widget.enabled) {
       return;
     }
-    _controller.show();
-    if (autoHide) {
-      _hideTimer = Timer(theme.showDuration!, () {
-        if (mounted && !_hovered) {
-          _hide();
+    final epoch = ++_visibilityEpoch;
+    final reduceMotion = _reduceMotion(context);
+    final motion = MetroTheme.of(context).motion;
+    _hideOnDismiss = false;
+    _opacityController.duration = motion.fadeIn;
+    _opacityController.reverseDuration = motion.normal;
+    if (!_controller.isShowing) {
+      _opacityController.value = 0;
+      _controller.show();
+    }
+    if (reduceMotion) {
+      _opacityController.value = 1;
+      _scheduleAutoHide(autoHide: autoHide, epoch: epoch, theme: theme);
+    } else {
+      _opacityController.forward().whenCompleteOrCancel(() {
+        if (mounted && epoch == _visibilityEpoch) {
+          _scheduleAutoHide(autoHide: autoHide, epoch: epoch, theme: theme);
         }
       });
     }
   }
 
-  void _hide() {
+  void _scheduleAutoHide({
+    required bool autoHide,
+    required int epoch,
+    required MetroTooltipThemeData theme,
+  }) {
+    if (!autoHide || !mounted || epoch != _visibilityEpoch) {
+      return;
+    }
+    _hideTimer = Timer(theme.showDuration!, () {
+      if (mounted && epoch == _visibilityEpoch) {
+        _hide();
+      }
+    });
+  }
+
+  void _hide({bool immediate = false}) {
     _showTimer?.cancel();
     _hideTimer?.cancel();
-    if (_controller.isShowing) {
-      _controller.hide();
+    _visibilityEpoch += 1;
+    if (!_controller.isShowing) {
+      return;
     }
+    if (immediate || _reduceMotion(context) || _opacityController.value == 0) {
+      _hideOnDismiss = false;
+      _opacityController.value = 0;
+      _controller.hide();
+      return;
+    }
+    _hideOnDismiss = true;
+    _opacityController.reverse();
   }
 
   void _handleFocusChanged(bool focused) {
     _focused = focused;
     if (focused) {
-      _scheduleShow();
+      _contactPoint = null;
+      _scheduleShow(trigger: _MetroTooltipTrigger.keyboard);
     } else if (!_hovered) {
       _hide();
     }
@@ -115,28 +188,39 @@ class _MetroTooltipState extends State<MetroTooltip> {
 
   MetroTooltipThemeData _resolveTheme(BuildContext context) {
     final theme = MetroTheme.of(context);
+    final highContrast = theme.colors.isHighContrast;
     final defaults = MetroTooltipThemeData(
-      backgroundColor: theme.colors.foreground,
+      backgroundColor: highContrast
+          ? theme.colors.background
+          : const Color(0xFFFFFFFF),
+      borderColor: highContrast
+          ? theme.colors.foreground
+          : const Color(0xFF808080),
+      borderWidth: 2,
       textStyle: theme.typography.caption.copyWith(
-        color: theme.colors.background,
+        color: highContrast ? theme.colors.foreground : const Color(0x99000000),
       ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: MetroSpacing.xs,
-        vertical: MetroSpacing.xxs,
-      ),
-      maxWidth: 320,
-      waitDuration: const Duration(milliseconds: 500),
-      showDuration: const Duration(milliseconds: 1500),
-      verticalOffset: MetroSpacing.xs,
+      padding: const EdgeInsets.fromLTRB(10, 6, 10, 7),
+      maxWidth: 380,
+      waitDuration: const Duration(milliseconds: 800),
+      showDuration: const Duration(milliseconds: 5000),
+      mouseOffset: 20,
+      keyboardOffset: 12,
+      touchOffset: 45,
     );
     final widgetOverrides = MetroTooltipThemeData(
       backgroundColor: widget.backgroundColor,
+      borderColor: widget.borderColor,
+      borderWidth: widget.borderWidth,
       textStyle: widget.textStyle,
       padding: widget.padding,
       maxWidth: widget.maxWidth,
       waitDuration: widget.waitDuration,
       showDuration: widget.showDuration,
       verticalOffset: widget.verticalOffset,
+      mouseOffset: widget.mouseOffset,
+      keyboardOffset: widget.keyboardOffset,
+      touchOffset: widget.touchOffset,
     );
     return defaults
         .merge(theme.tooltipTheme)
@@ -154,31 +238,45 @@ class _MetroTooltipState extends State<MetroTooltip> {
           info.childPaintTransform,
           Offset.zero & info.childSize,
         );
-        final reduceMotion = _reduceMotion(context);
-        final motion = MetroTheme.of(context).motion;
+        final effectiveTarget = switch (_trigger) {
+          _MetroTooltipTrigger.keyboard => targetRect,
+          _MetroTooltipTrigger.mouse || _MetroTooltipTrigger.touch =>
+            _contactPoint == null
+                ? targetRect
+                : Rect.fromLTWH(_contactPoint!.dx, _contactPoint!.dy, 1, 1),
+        };
+        final offset =
+            theme.verticalOffset ??
+            switch (_trigger) {
+              _MetroTooltipTrigger.mouse => theme.mouseOffset!,
+              _MetroTooltipTrigger.keyboard => theme.keyboardOffset!,
+              _MetroTooltipTrigger.touch => theme.touchOffset!,
+            };
         return SizedBox.fromSize(
           size: info.overlaySize,
           child: CustomSingleChildLayout(
             delegate: _MetroTooltipLayoutDelegate(
               maxWidth: theme.maxWidth!,
               preferBelow: widget.preferBelow,
-              targetRect: targetRect,
-              verticalOffset: theme.verticalOffset!,
+              targetRect: effectiveTarget,
+              verticalOffset: offset,
             ),
             child: IgnorePointer(
-              child: TweenAnimationBuilder<double>(
-                duration: reduceMotion ? Duration.zero : motion.fast,
-                tween: Tween<double>(begin: 0, end: 1),
-                builder: (context, opacity, child) {
-                  return Opacity(opacity: opacity, child: child);
-                },
+              child: FadeTransition(
+                opacity: _opacityController,
                 child: Semantics(
                   container: true,
                   label: widget.message,
                   liveRegion: true,
                   child: ExcludeSemantics(
                     child: DecoratedBox(
-                      decoration: BoxDecoration(color: theme.backgroundColor),
+                      decoration: BoxDecoration(
+                        color: theme.backgroundColor,
+                        border: Border.all(
+                          color: theme.borderColor!,
+                          width: theme.borderWidth!,
+                        ),
+                      ),
                       child: Padding(
                         padding: theme.padding!,
                         child: DefaultTextStyle(
@@ -201,10 +299,12 @@ class _MetroTooltipState extends State<MetroTooltip> {
           onFocusChange: _handleFocusChanged,
           skipTraversal: true,
           child: MouseRegion(
-            onEnter: (_) {
+            onEnter: (event) {
               _hovered = true;
-              _scheduleShow();
+              _contactPoint = event.position;
+              _scheduleShow(trigger: _MetroTooltipTrigger.mouse);
             },
+            onHover: (event) => _contactPoint = event.position,
             onExit: (_) {
               _hovered = false;
               if (!_focused) {
@@ -214,8 +314,14 @@ class _MetroTooltipState extends State<MetroTooltip> {
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               excludeFromSemantics: true,
-              onLongPress: widget.enabled
-                  ? () => _scheduleShow(immediate: true, autoHide: true)
+              onLongPressStart: widget.enabled
+                  ? (details) {
+                      _contactPoint = details.globalPosition;
+                      _scheduleShow(
+                        trigger: _MetroTooltipTrigger.touch,
+                        immediate: true,
+                      );
+                    }
                   : null,
               child: widget.child,
             ),
@@ -229,6 +335,7 @@ class _MetroTooltipState extends State<MetroTooltip> {
   void dispose() {
     _showTimer?.cancel();
     _hideTimer?.cancel();
+    _opacityController.dispose();
     super.dispose();
   }
 }
@@ -246,42 +353,47 @@ class _MetroTooltipLayoutDelegate extends SingleChildLayoutDelegate {
   final double verticalOffset;
   final double maxWidth;
 
-  static const double _screenMargin = MetroSpacing.xs;
+  static const double _screenMargin = 0;
+  static const double _safetyGap = 1;
 
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
-    final availableWidth = math.max(
-      0.0,
-      constraints.maxWidth - (_screenMargin * 2),
-    );
+    final availableWidth = math.max(0.0, constraints.maxWidth - _safetyGap);
     return BoxConstraints(maxWidth: math.min(maxWidth, availableWidth));
   }
 
   @override
   Offset getPositionForChild(Size size, Size childSize) {
     final centeredX = targetRect.center.dx - (childSize.width / 2);
-    final maxX = math.max(
-      _screenMargin,
-      size.width - childSize.width - _screenMargin,
-    );
+    final maxX = math.max(0.0, size.width - childSize.width - _safetyGap);
     final x = centeredX.clamp(_screenMargin, maxX).toDouble();
     final below = targetRect.bottom + verticalOffset;
     final above = targetRect.top - verticalOffset - childSize.height;
-    final fitsBelow = below + childSize.height <= size.height - _screenMargin;
-    final fitsAbove = above >= _screenMargin;
-    final preferredY = preferBelow
-        ? fitsBelow || !fitsAbove
-              ? below
-              : above
-        : fitsAbove || !fitsBelow
-        ? above
-        : below;
-    final maxY = math.max(
-      _screenMargin,
-      size.height - childSize.height - _screenMargin,
-    );
-    final y = preferredY.clamp(_screenMargin, maxY).toDouble();
-    return Offset(x, y);
+    final fitsBelow = below + childSize.height <= size.height - _safetyGap;
+    final fitsAbove = above >= 0;
+    if ((preferBelow && fitsBelow) ||
+        (!preferBelow && !fitsAbove && fitsBelow)) {
+      return Offset(x, below);
+    }
+    if ((!preferBelow && fitsAbove) ||
+        (preferBelow && !fitsBelow && fitsAbove)) {
+      return Offset(x, above);
+    }
+
+    final centeredY = targetRect.center.dy - (childSize.height / 2);
+    final maxY = math.max(0.0, size.height - childSize.height - _safetyGap);
+    final y = centeredY.clamp(0.0, maxY).toDouble();
+    final left = targetRect.left - verticalOffset - childSize.width;
+    if (left >= 0) {
+      return Offset(left, y);
+    }
+    final right = targetRect.right + verticalOffset;
+    if (right + childSize.width <= size.width - _safetyGap) {
+      return Offset(right, y);
+    }
+
+    final preferredY = preferBelow ? below : above;
+    return Offset(x, preferredY.clamp(0.0, maxY).toDouble());
   }
 
   @override
@@ -292,6 +404,8 @@ class _MetroTooltipLayoutDelegate extends SingleChildLayoutDelegate {
         maxWidth != oldDelegate.maxWidth;
   }
 }
+
+enum _MetroTooltipTrigger { mouse, keyboard, touch }
 
 bool _reduceMotion(BuildContext context) {
   final mediaQuery = MediaQuery.maybeOf(context);

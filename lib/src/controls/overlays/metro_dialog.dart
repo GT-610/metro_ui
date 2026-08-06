@@ -27,60 +27,97 @@ Future<T?> showMetroDialog<T extends Object?>({
     barrierColor: Color(0x99000000),
   ).merge(theme.dialogTheme).merge(MetroDialogTheme.maybeOf(context));
   final reduceMotion = _reduceMotion(context);
-  final slideBegin = Directionality.of(context) == TextDirection.ltr
-      ? const Offset(0.08, 0)
-      : const Offset(-0.08, 0);
 
-  return showGeneralDialog<T>(
-    context: context,
-    barrierColor:
-        barrierColor ?? dialogTheme.barrierColor ?? const Color(0x99000000),
-    barrierDismissible: barrierDismissible,
-    barrierLabel: barrierLabel,
-    requestFocus: requestFocus ?? true,
-    routeSettings: routeSettings,
-    transitionDuration: reduceMotion ? Duration.zero : theme.motion.normal,
-    useRootNavigator: useRootNavigator,
-    pageBuilder: (routeContext, animation, secondaryAnimation) {
-      Widget child = Builder(builder: builder);
-      if (dismissOnEscape) {
-        child = Shortcuts(
-          shortcuts: const <ShortcutActivator, Intent>{
-            SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
-          },
-          child: Actions(
-            actions: <Type, Action<Intent>>{
-              DismissIntent: CallbackAction<DismissIntent>(
-                onInvoke: (intent) {
-                  Navigator.of(routeContext).maybePop();
-                  return null;
-                },
-              ),
+  return navigator.push<T>(
+    _MetroDialogRoute<T>(
+      barrierColor:
+          barrierColor ?? dialogTheme.barrierColor ?? const Color(0x99000000),
+      barrierDismissible: barrierDismissible,
+      barrierLabel: barrierLabel,
+      requestFocus: requestFocus ?? true,
+      settings: routeSettings,
+      transitionDuration: reduceMotion ? Duration.zero : theme.motion.entrance,
+      reverseTransitionDuration: reduceMotion
+          ? Duration.zero
+          : theme.motion.popupFade,
+      pageBuilder: (routeContext, animation, secondaryAnimation) {
+        Widget child = Builder(builder: builder);
+        if (dismissOnEscape) {
+          child = Shortcuts(
+            shortcuts: const <ShortcutActivator, Intent>{
+              SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
             },
-            child: Focus(autofocus: true, skipTraversal: true, child: child),
-          ),
-        );
-      }
-      return themes.wrap(child);
-    },
-    transitionBuilder: (context, animation, secondaryAnimation, child) {
-      final curved = CurvedAnimation(
-        parent: animation,
-        curve: theme.motion.navigationCurve,
-        reverseCurve: theme.motion.standardCurve,
-      );
-      return FadeTransition(
-        opacity: curved,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: slideBegin,
-            end: Offset.zero,
-          ).animate(curved),
+            child: Actions(
+              actions: <Type, Action<Intent>>{
+                DismissIntent: CallbackAction<DismissIntent>(
+                  onInvoke: (intent) {
+                    Navigator.of(routeContext).maybePop();
+                    return null;
+                  },
+                ),
+              },
+              child: Focus(autofocus: true, skipTraversal: true, child: child),
+            ),
+          );
+        }
+        return themes.wrap(child);
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final durationMicros = theme.motion.entrance.inMicroseconds;
+        final fadeDelay = durationMicros == 0
+            ? 0.0
+            : theme.motion.popupFade.inMicroseconds / durationMicros;
+        final fadeLength = durationMicros == 0
+            ? 1.0
+            : theme.motion.popupFade.inMicroseconds / durationMicros;
+        return AnimatedBuilder(
+          animation: animation,
           child: child,
-        ),
-      );
-    },
+          builder: (context, child) {
+            final reversing = animation.status == AnimationStatus.reverse;
+            final movementProgress = reversing
+                ? 1.0
+                : theme.motion.standardCurve.transform(animation.value);
+            final opacity = reversing
+                ? animation.value
+                : fadeLength <= 0
+                ? 1.0
+                : ((animation.value - fadeDelay) / fadeLength).clamp(0.0, 1.0);
+            return Opacity(
+              key: const ValueKey<String>('metro-dialog-transition-opacity'),
+              opacity: opacity,
+              child: Transform.translate(
+                key: const ValueKey<String>(
+                  'metro-dialog-transition-translation',
+                ),
+                offset: Offset(0, 50 * (1 - movementProgress)),
+                child: child,
+              ),
+            );
+          },
+        );
+      },
+    ),
   );
+}
+
+class _MetroDialogRoute<T> extends RawDialogRoute<T> {
+  _MetroDialogRoute({
+    required super.pageBuilder,
+    required super.barrierDismissible,
+    required super.barrierColor,
+    required super.barrierLabel,
+    required super.transitionDuration,
+    required Duration reverseTransitionDuration,
+    required super.transitionBuilder,
+    super.settings,
+    super.requestFocus,
+  }) : _reverseTransitionDuration = reverseTransitionDuration;
+
+  final Duration _reverseTransitionDuration;
+
+  @override
+  Duration get reverseTransitionDuration => _reverseTransitionDuration;
 }
 
 /// A square, typography-led dialog surface for use with [showMetroDialog].

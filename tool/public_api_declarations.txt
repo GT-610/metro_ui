@@ -1,7 +1,11 @@
 # Exported types and top-level functions from package:metro_ui/metro_ui.dart.
 # Keep sorted. Inventory changes require intentional API review.
-# Reviewed as the 1.0.0 release-candidate freeze on 2026-08-04.
+# Reviewed after the Windows 8 interaction polish on 2026-08-06.
 AnimatedMetroTheme
+MetroBackButton
+MetroBackButtonStyle
+MetroBackButtonTheme
+MetroBackButtonThemeData
 MetroButton
 MetroButtonStyle
 MetroButtonTheme
@@ -19,6 +23,8 @@ MetroComboBoxTheme
 MetroComboBoxThemeData
 MetroCommandBar
 MetroCommandBarAlignment
+MetroCommandBarLayer
+MetroCommandBarPlacement
 MetroCommandBarTheme
 MetroCommandBarThemeData
 MetroCommandButton
@@ -102,6 +108,10 @@ MetroSearchBoxQueryChanged
 MetroSearchBoxStyle
 MetroSearchBoxTheme
 MetroSearchBoxThemeData
+MetroSemanticZoom
+MetroSemanticZoomStyle
+MetroSemanticZoomTheme
+MetroSemanticZoomThemeData
 MetroSelectableListTile
 MetroSelectionController
 MetroSelectionControlStyle

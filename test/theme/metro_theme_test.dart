@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:metro_ui/metro_ui.dart';
@@ -5,6 +6,59 @@ import 'package:metro_ui/metro_ui.dart';
 import '../test_utils.dart';
 
 void main() {
+  test('typography uses system Segoe UI on Windows', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    final typography = MetroTypography.fromColorScheme(
+      MetroColorScheme.light(),
+    );
+
+    expect(typography.body.fontFamily, 'Segoe UI');
+    expect(typography.hero.fontWeight, FontWeight.w300);
+    expect(typography.bodyStrong.fontWeight, FontWeight.w600);
+  });
+
+  test('typography uses the bundled Metro family off Windows', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    final typography = MetroTypography.fromColorScheme(
+      MetroColorScheme.light(),
+    );
+
+    expect(typography.body.fontFamily, 'packages/metro_ui/Metro UI Sans');
+    expect(typography.body.fontFamilyFallback, const <String>[
+      'Noto Sans',
+      'Arial',
+      'sans-serif',
+    ]);
+  });
+
+  test('motion defaults match the Windows 8 animation recipes', () {
+    const motion = MetroMotion();
+
+    expect(motion.fast, const Duration(milliseconds: 100));
+    expect(motion.normal, const Duration(milliseconds: 167));
+    expect(motion.fadeIn, const Duration(milliseconds: 250));
+    expect(motion.popupFade, const Duration(milliseconds: 83));
+    expect(motion.navigationFade, const Duration(milliseconds: 170));
+    expect(motion.exit, const Duration(milliseconds: 117));
+    expect(motion.content, const Duration(milliseconds: 350));
+    expect(motion.semanticZoom, const Duration(milliseconds: 333));
+    expect(motion.contentFade, const Duration(milliseconds: 170));
+    expect(motion.contentEntrance, const Duration(milliseconds: 550));
+    expect(motion.entrance, const Duration(milliseconds: 367));
+    expect(motion.panel, const Duration(milliseconds: 550));
+    expect(motion.navigation, const Duration(milliseconds: 1000));
+    expect(motion.standardCurve, const Cubic(0.1, 0.9, 0.2, 1));
+    expect(motion.contentCurve, const Cubic(0.17, 0.79, 0.215, 1.0025));
+    expect(
+      motion.contentExitCurve,
+      const Cubic(0.3825, 0.0025, 0.8775, -0.1075),
+    );
+  });
+
   test('bright accents receive a dark foreground', () {
     final scheme = MetroColorScheme.light(accent: MetroColors.yellow);
 

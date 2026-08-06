@@ -7,15 +7,18 @@ class MetroProgressBarThemeData {
     this.color,
     this.backgroundColor,
     double? height,
+    double? indeterminateHeight,
     int? indeterminateDotCount,
     double? indeterminateDotDiameter,
     double? indeterminateDotSpacing,
     Duration? duration,
   }) : assert(height == null || height > 0),
+       assert(indeterminateHeight == null || indeterminateHeight > 0),
        assert(indeterminateDotCount == null || indeterminateDotCount > 0),
        assert(indeterminateDotDiameter == null || indeterminateDotDiameter > 0),
        assert(indeterminateDotSpacing == null || indeterminateDotSpacing >= 0),
        _height = height,
+       _indeterminateHeight = indeterminateHeight,
        _indeterminateDotCount = indeterminateDotCount,
        _indeterminateDotDiameter = indeterminateDotDiameter,
        _indeterminateDotSpacing = indeterminateDotSpacing,
@@ -24,12 +27,14 @@ class MetroProgressBarThemeData {
   final Color? color;
   final Color? backgroundColor;
   final double? _height;
+  final double? _indeterminateHeight;
   final int? _indeterminateDotCount;
   final double? _indeterminateDotDiameter;
   final double? _indeterminateDotSpacing;
   final Duration? _duration;
 
-  double get height => _height ?? 4;
+  double get height => _height ?? 6;
+  double get indeterminateHeight => _indeterminateHeight ?? _height ?? 4;
   int get indeterminateDotCount => _indeterminateDotCount ?? 5;
   double get indeterminateDotDiameter => _indeterminateDotDiameter ?? 4;
   double get indeterminateDotSpacing => _indeterminateDotSpacing ?? 8;
@@ -39,6 +44,7 @@ class MetroProgressBarThemeData {
     Color? color,
     Color? backgroundColor,
     double? height,
+    double? indeterminateHeight,
     int? indeterminateDotCount,
     double? indeterminateDotDiameter,
     double? indeterminateDotSpacing,
@@ -48,6 +54,7 @@ class MetroProgressBarThemeData {
       color: color ?? this.color,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       height: height ?? _height,
+      indeterminateHeight: indeterminateHeight ?? _indeterminateHeight,
       indeterminateDotCount: indeterminateDotCount ?? _indeterminateDotCount,
       indeterminateDotDiameter:
           indeterminateDotDiameter ?? _indeterminateDotDiameter,
@@ -63,6 +70,7 @@ class MetroProgressBarThemeData {
       color: other.color ?? color,
       backgroundColor: other.backgroundColor ?? backgroundColor,
       height: other._height ?? _height,
+      indeterminateHeight: other._indeterminateHeight ?? _indeterminateHeight,
       indeterminateDotCount:
           other._indeterminateDotCount ?? _indeterminateDotCount,
       indeterminateDotDiameter:
@@ -81,6 +89,9 @@ class MetroProgressBarThemeData {
     color: Color.lerp(a.color, b.color, t),
     backgroundColor: Color.lerp(a.backgroundColor, b.backgroundColor, t),
     height: a.height + (b.height - a.height) * t,
+    indeterminateHeight:
+        a.indeterminateHeight +
+        (b.indeterminateHeight - a.indeterminateHeight) * t,
     indeterminateDotCount: t < 0.5
         ? a.indeterminateDotCount
         : b.indeterminateDotCount,

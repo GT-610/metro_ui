@@ -614,14 +614,26 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
               textDirection: Directionality.of(context),
             ),
             child: TweenAnimationBuilder<double>(
-              duration: reduceMotion ? Duration.zero : theme.motion.normal,
-              curve: theme.motion.standardCurve,
+              duration: reduceMotion ? Duration.zero : theme.motion.entrance,
               tween: Tween<double>(begin: 0, end: 1),
               builder: (context, progress, child) {
+                final durationMicros = theme.motion.entrance.inMicroseconds;
+                final fadeDelay = durationMicros == 0
+                    ? 0.0
+                    : theme.motion.popupFade.inMicroseconds / durationMicros;
+                final fadeLength = durationMicros == 0
+                    ? 1.0
+                    : theme.motion.popupFade.inMicroseconds / durationMicros;
+                final movementProgress = theme.motion.standardCurve.transform(
+                  progress,
+                );
+                final opacity = fadeLength <= 0
+                    ? 1.0
+                    : ((progress - fadeDelay) / fadeLength).clamp(0.0, 1.0);
                 return Opacity(
-                  opacity: progress,
+                  opacity: opacity,
                   child: Transform.translate(
-                    offset: Offset(0, (opensAbove ? 8 : -8) * (1 - progress)),
+                    offset: Offset(0, 50 * (1 - movementProgress)),
                     child: child,
                   ),
                 );

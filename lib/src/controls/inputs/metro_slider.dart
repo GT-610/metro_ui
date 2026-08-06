@@ -124,9 +124,12 @@ class _MetroSliderState extends State<MetroSlider> {
         .merge(widget.style);
     final textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final states = _states;
-    final thumbSize = style.horizontalThumbSize ?? const Size(10, 16);
-    final interactiveExtent = style.minimumInteractiveExtent ?? 44;
-    final minimumLength = style.minimumLength ?? 160;
+    final thumbSize = style.horizontalThumbSize ?? const Size.square(11);
+    final interactiveExtent =
+        style.minimumInteractiveExtent ??
+        (widget.axis == Axis.horizontal ? 60 : 45);
+    final minimumLength =
+        style.minimumLength ?? (widget.axis == Axis.horizontal ? 280 : 191);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -500,9 +503,12 @@ class _MetroRangeSliderState extends State<MetroRangeSlider> {
         .merge(widget.style);
     final textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final states = _states;
-    final thumbSize = style.horizontalThumbSize ?? const Size(10, 16);
-    final interactiveExtent = style.minimumInteractiveExtent ?? 44;
-    final minimumLength = style.minimumLength ?? 160;
+    final thumbSize = style.horizontalThumbSize ?? const Size.square(11);
+    final interactiveExtent =
+        style.minimumInteractiveExtent ??
+        (widget.axis == Axis.horizontal ? 60 : 45);
+    final minimumLength =
+        style.minimumLength ?? (widget.axis == Axis.horizontal ? 280 : 191);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1056,7 +1062,7 @@ class _SliderGeometry {
   Offset offsetForNormalizedValue(double value) {
     final main = mainPositionForNormalizedValue(value);
     return axis == Axis.horizontal
-        ? Offset(main, size.height / 2)
+        ? Offset(main, math.min(size.height, 17 + (thumbSize.height / 2)))
         : Offset(size.width / 2, main);
   }
 
@@ -1264,47 +1270,75 @@ MetroSliderStyle _defaultSliderStyle(MetroThemeData theme) {
   final colors = theme.colors;
   return MetroSliderStyle(
     trackColor: WidgetStateProperty.resolveWith((states) {
-      if (states.contains(WidgetState.disabled)) {
-        return colors.disabledBackground;
+      if (colors.isHighContrast) {
+        return colors.background;
+      }
+      if (colors.isDark) {
+        return states.contains(WidgetState.hovered)
+            ? const Color(0x2EFFFFFF)
+            : const Color(0x29FFFFFF);
       }
       return states.contains(WidgetState.hovered)
-          ? colors.surfaceVariant
-          : colors.border;
+          ? const Color(0x26000000)
+          : const Color(0x1A000000);
     }),
     activeTrackColor: WidgetStateProperty.resolveWith((states) {
-      if (states.contains(WidgetState.disabled)) {
-        return colors.disabledBackground;
+      if (colors.isHighContrast) {
+        return states.contains(WidgetState.disabled)
+            ? const Color(0x00000000)
+            : colors.accent;
       }
-      return states.contains(WidgetState.pressed)
-          ? colors.accentPressed
+      if (states.contains(WidgetState.disabled)) {
+        return colors.isDark
+            ? const Color(0x3BFFFFFF)
+            : const Color(0x33000000);
+      }
+      return states.contains(WidgetState.hovered)
+          ? colors.accentHover
           : colors.accent;
     }),
     thumbColor: WidgetStateProperty.resolveWith((states) {
-      if (states.contains(WidgetState.disabled)) {
-        return colors.disabledForeground;
+      if (colors.isHighContrast) {
+        if (states.contains(WidgetState.disabled)) {
+          return colors.disabledForeground;
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return colors.background;
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return colors.accent;
+        }
+        return colors.foreground;
       }
-      return states.contains(WidgetState.pressed)
-          ? colors.accentPressed
-          : colors.foreground;
+      if (states.contains(WidgetState.disabled)) {
+        return colors.isDark
+            ? const Color(0xFF7E7E7E)
+            : const Color(0xFF929292);
+      }
+      return colors.isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000);
     }),
     tickColor: WidgetStateProperty.resolveWith((states) {
-      return states.contains(WidgetState.disabled)
-          ? colors.disabledBackground
-          : colors.border;
+      if (colors.isHighContrast) {
+        return states.contains(WidgetState.disabled)
+            ? colors.disabledForeground
+            : colors.foreground;
+      }
+      return colors.isDark ? const Color(0x80FFFFFF) : const Color(0x80000000);
     }),
     activeTickColor: WidgetStateProperty.resolveWith((states) {
-      return states.contains(WidgetState.disabled)
-          ? colors.disabledBackground
-          : colors.accent;
+      if (colors.isHighContrast) {
+        return states.contains(WidgetState.disabled)
+            ? colors.disabledForeground
+            : colors.foreground;
+      }
+      return colors.isDark ? const Color(0x80FFFFFF) : const Color(0x80000000);
     }),
     focusColor: WidgetStatePropertyAll(colors.focus),
-    trackThickness: const WidgetStatePropertyAll(3),
-    activeTrackThickness: const WidgetStatePropertyAll(5),
-    focusWidth: const WidgetStatePropertyAll(2),
-    horizontalThumbSize: const Size(10, 16),
-    minimumInteractiveExtent: 44,
-    minimumLength: 160,
-    tickLength: 4,
+    trackThickness: const WidgetStatePropertyAll(11),
+    activeTrackThickness: const WidgetStatePropertyAll(11),
+    focusWidth: const WidgetStatePropertyAll(0),
+    horizontalThumbSize: const Size.square(11),
+    tickLength: 5,
     tickThickness: 1,
     tickGap: 2,
   );

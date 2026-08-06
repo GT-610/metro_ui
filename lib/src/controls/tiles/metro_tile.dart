@@ -120,7 +120,7 @@ class _MetroTileState extends State<MetroTile> {
               : Matrix4.identity();
 
           return AnimatedContainer(
-            duration: reduceMotion ? Duration.zero : theme.motion.fast,
+            duration: reduceMotion ? Duration.zero : theme.motion.normal,
             curve: theme.motion.standardCurve,
             transform: transform,
             transformAlignment: Alignment.center,
@@ -170,8 +170,8 @@ class _MetroTileState extends State<MetroTile> {
       ..rotateY(x * 0.035);
     final storage = transform.storage;
     for (var index = 0; index < 4; index++) {
-      storage[index] *= 0.98;
-      storage[index + 4] *= 0.98;
+      storage[index] *= 0.975;
+      storage[index + 4] *= 0.975;
     }
     return transform;
   }

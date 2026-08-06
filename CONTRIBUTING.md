@@ -16,7 +16,8 @@ behavior, but they are not source dependencies. Do not copy implementation
 code, proprietary Microsoft assets, Segoe UI files, screenshots, or branding.
 Express the design intent through Flutter conventions and original code.
 
-Read [design principles](doc/design_principles.md),
+Read [design principles](doc/design_principles.md), the
+[Windows 8 reference audit](doc/reference_audit.md),
 [component coverage](doc/component_coverage.md), and
 [architecture](doc/architecture.md) before proposing a new component family or
 changing a shared interaction model.

@@ -59,6 +59,34 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('standard button uses WinJS geometry and pressed inversion', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: MetroButton(onPressed: () {}, child: const Text('OPEN')),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(MetroButton)), const Size(90, 32));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(MetroButton)),
+    );
+    await tester.pump();
+    final container = tester.widget<AnimatedContainer>(
+      find.descendant(
+        of: find.byType(MetroButton),
+        matching: find.byType(AnimatedContainer),
+      ),
+    );
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.color, const Color(0xFF000000));
+    expect(container.duration, Duration.zero);
+    await gesture.up();
+  });
+
   testWidgets('widget style overrides the component theme', (tester) async {
     const customColor = Color(0xFF123456);
     const localBorderColor = Color(0xFFABCDEF);

@@ -1,9 +1,15 @@
 # Third-party notices
 
-## Roboto
+## Selawik
 
-The files in `assets/fonts/` named `roboto-*.ttf` are from the Roboto font
-family. Roboto is Copyright 2011 The Roboto Project Authors and is distributed
-under the Apache License, Version 2.0.
+The files in `assets/fonts/` named `selawik-*.ttf` are the Light, Regular, and
+Semibold faces from Microsoft Selawik 1.01. Copyright 2015, Microsoft
+Corporation, with Reserved Font Name Selawik. Selawik is distributed under the
+SIL Open Font License, Version 1.1.
+
+Source and binary release:
+
+- https://github.com/microsoft/Selawik
+- https://github.com/microsoft/Selawik/releases/tag/1.01
 
 The complete license text is included at `assets/fonts/LICENSE.txt`.

@@ -5,6 +5,23 @@ import 'package:metro_ui/metro_ui.dart';
 import '../test_utils.dart';
 
 void main() {
+  testWidgets('default ring uses the WinJS small size', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        mediaQueryData: const MediaQueryData(
+          size: Size(800, 600),
+          disableAnimations: true,
+        ),
+        child: const Center(child: MetroProgressRing()),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(MetroProgressRing)),
+      const Size.square(20),
+    );
+  });
+
   testWidgets('determinate ring exposes progress semantics', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(

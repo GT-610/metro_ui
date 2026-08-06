@@ -76,7 +76,7 @@ void main() {
       final initialRect = tester.getRect(find.byKey(const Key('destination')));
       expect(
         initialRect.left,
-        closeTo(direction == TextDirection.ltr ? 144 : -144, 0.01),
+        closeTo(direction == TextDirection.ltr ? 100 : -100, 0.01),
       );
 
       await tester.pumpAndSettle();

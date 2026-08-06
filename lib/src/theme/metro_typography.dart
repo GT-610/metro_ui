@@ -32,32 +32,49 @@ class MetroTypography {
     final resolvedFontPackage =
         fontPackage ??
         (fontFamily == null && !useSystemSegoe ? 'metro_ui' : null);
+    // TextStyle.package also prefixes every fallback family. Prefix only the
+    // packaged primary face so system CJK and generic fallbacks remain usable.
+    final packagedFontFamily = resolvedFontPackage == null
+        ? resolvedFontFamily
+        : 'packages/$resolvedFontPackage/$resolvedFontFamily';
     const fallbacks = <String>['Noto Sans', 'Arial', 'sans-serif'];
     final base = TextStyle(
       color: colors.foreground,
-      fontFamily: resolvedFontFamily,
+      fontFamily: packagedFontFamily,
       fontFamilyFallback: fallbacks,
       fontWeight: FontWeight.w400,
       height: 1.2,
-      package: resolvedFontPackage,
+      letterSpacing: 0.28,
     );
     return MetroTypography(
-      hero: base.copyWith(fontSize: 56, fontWeight: FontWeight.w300),
-      header: base.copyWith(fontSize: 40, fontWeight: FontWeight.w300),
-      subheader: base.copyWith(fontSize: 29.333, fontWeight: FontWeight.w300),
+      hero: base.copyWith(
+        fontSize: 56,
+        fontWeight: FontWeight.w300,
+        letterSpacing: 0,
+      ),
+      header: base.copyWith(
+        fontSize: 40,
+        fontWeight: FontWeight.w300,
+        letterSpacing: 0,
+      ),
+      subheader: base.copyWith(fontSize: 26.667, fontWeight: FontWeight.w300),
       title: base.copyWith(fontSize: 20, fontWeight: FontWeight.w400),
-      body: base.copyWith(fontSize: 14, height: 1.35),
+      body: base.copyWith(fontSize: 14.667, height: 1.3636),
       bodyStrong: base.copyWith(
-        fontSize: 14,
+        fontSize: 14.667,
         fontWeight: FontWeight.w600,
-        height: 1.35,
+        height: 1.3636,
       ),
       caption: base.copyWith(
         color: colors.mutedForeground,
         fontSize: 12,
-        height: 1.3,
+        height: 1.6667,
       ),
-      button: base.copyWith(fontSize: 14, fontWeight: FontWeight.w600),
+      button: base.copyWith(
+        fontSize: 14.667,
+        fontWeight: FontWeight.w600,
+        height: 1.3636,
+      ),
       tileTitle: base.copyWith(fontSize: 16, fontWeight: FontWeight.w400),
     );
   }

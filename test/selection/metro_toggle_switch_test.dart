@@ -66,6 +66,40 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('toggle uses the WinJS track, thumb, and timing', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(child: MetroToggleSwitch(value: true, onChanged: (_) {})),
+      ),
+    );
+
+    final track = tester.widget<AnimatedContainer>(
+      find.descendant(
+        of: find.byType(MetroToggleSwitch),
+        matching: find.byType(AnimatedContainer),
+      ),
+    );
+    final thumb = tester.widget<AnimatedPositionedDirectional>(
+      find.descendant(
+        of: find.byType(MetroToggleSwitch),
+        matching: find.byType(AnimatedPositionedDirectional),
+      ),
+    );
+    expect(
+      tester.getSize(
+        find.descendant(
+          of: find.byType(MetroToggleSwitch),
+          matching: find.byType(AnimatedContainer),
+        ),
+      ),
+      const Size(50, 19),
+    );
+    expect(track.duration, const Duration(milliseconds: 100));
+    expect(thumb.width, 12);
+    expect(thumb.height, 19);
+    expect(thumb.start, 38);
+  });
+
   testWidgets('local toggle theme overrides track geometry', (tester) async {
     await tester.pumpWidget(
       metroTestApp(
@@ -80,13 +114,14 @@ void main() {
       ),
     );
 
-    final track = tester.widget<AnimatedContainer>(
-      find.descendant(
-        of: find.byType(MetroToggleSwitch),
-        matching: find.byType(AnimatedContainer),
+    expect(
+      tester.getSize(
+        find.descendant(
+          of: find.byType(MetroToggleSwitch),
+          matching: find.byType(AnimatedContainer),
+        ),
       ),
+      const Size(64, 28),
     );
-    expect(track.constraints!.minWidth, 64);
-    expect(track.constraints!.minHeight, 28);
   });
 }

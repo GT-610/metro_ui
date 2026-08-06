@@ -708,6 +708,7 @@ class _MetroDataGridRowState<T extends Object>
 
   @override
   Widget build(BuildContext context) {
+    final theme = MetroTheme.of(context);
     final states = <WidgetState>{
       if (!widget.enabled) WidgetState.disabled,
       if (widget.selected) WidgetState.selected,
@@ -720,61 +721,68 @@ class _MetroDataGridRowState<T extends Object>
       background = widget.style.alternateRowBackgroundColor ?? background;
     }
     final foreground = widget.style.rowForegroundColor?.resolve(states);
-    Widget visual = Container(
-      height: widget.rowHeight,
-      decoration: BoxDecoration(
-        color: background,
-        border: Border(
-          bottom: BorderSide(
-            color: widget.style.dividerColor ?? const Color(0x00000000),
-            width: widget.style.dividerWidth ?? 1,
+    Widget visual = AnimatedScale(
+      key: ValueKey<String>('metro-data-grid-row-${widget.index}-scale'),
+      scale: _pressed ? 0.975 : 1,
+      duration: _reduceMotion(context) ? Duration.zero : theme.motion.normal,
+      curve: theme.motion.standardCurve,
+      child: Container(
+        key: ValueKey<String>('metro-data-grid-row-${widget.index}-surface'),
+        height: widget.rowHeight,
+        decoration: BoxDecoration(
+          color: background,
+          border: Border(
+            bottom: BorderSide(
+              color: widget.style.dividerColor ?? const Color(0x00000000),
+              width: widget.style.dividerWidth ?? 1,
+            ),
           ),
         ),
-      ),
-      foregroundDecoration: _focused
-          ? BoxDecoration(
-              border: Border.all(
-                color: widget.style.focusColor ?? const Color(0x00000000),
-                width: widget.style.focusWidth ?? 2,
-              ),
-            )
-          : null,
-      child: DefaultTextStyle.merge(
-        style: widget.style.cellTextStyle
-            ?.resolve(states)
-            ?.copyWith(color: foreground),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        child: Row(
-          children: [
-            for (var index = 0; index < widget.columns.length; index += 1)
-              SizedBox(
-                width: widget.widths[index],
-                child: Container(
-                  alignment: widget.columns[index].alignment,
-                  padding:
-                      widget.style.cellPadding ??
-                      const EdgeInsets.symmetric(horizontal: MetroSpacing.sm),
-                  decoration: BoxDecoration(
-                    border: index == widget.columns.length - 1
-                        ? null
-                        : BorderDirectional(
-                            end: BorderSide(
-                              color:
-                                  widget.style.dividerColor ??
-                                  const Color(0x00000000),
-                              width: widget.style.dividerWidth ?? 1,
+        foregroundDecoration: _focused
+            ? BoxDecoration(
+                border: Border.all(
+                  color: widget.style.focusColor ?? const Color(0x00000000),
+                  width: widget.style.focusWidth ?? 2,
+                ),
+              )
+            : null,
+        child: DefaultTextStyle.merge(
+          style: widget.style.cellTextStyle
+              ?.resolve(states)
+              ?.copyWith(color: foreground),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          child: Row(
+            children: [
+              for (var index = 0; index < widget.columns.length; index += 1)
+                SizedBox(
+                  width: widget.widths[index],
+                  child: Container(
+                    alignment: widget.columns[index].alignment,
+                    padding:
+                        widget.style.cellPadding ??
+                        const EdgeInsets.symmetric(horizontal: MetroSpacing.sm),
+                    decoration: BoxDecoration(
+                      border: index == widget.columns.length - 1
+                          ? null
+                          : BorderDirectional(
+                              end: BorderSide(
+                                color:
+                                    widget.style.dividerColor ??
+                                    const Color(0x00000000),
+                                width: widget.style.dividerWidth ?? 1,
+                              ),
                             ),
-                          ),
-                  ),
-                  child: widget.columns[index].cellBuilder(
-                    context,
-                    widget.row,
-                    widget.index,
+                    ),
+                    child: widget.columns[index].cellBuilder(
+                      context,
+                      widget.row,
+                      widget.index,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -849,6 +857,12 @@ class _MetroDataGridRowState<T extends Object>
         ),
       ),
     );
+  }
+
+  static bool _reduceMotion(BuildContext context) {
+    final media = MediaQuery.maybeOf(context);
+    return media?.disableAnimations == true ||
+        media?.accessibleNavigation == true;
   }
 }
 
@@ -984,9 +998,19 @@ MetroDataGridStyle _defaultDataGridStyle(MetroThemeData theme) {
       if (states.contains(WidgetState.disabled)) {
         return colors.disabledBackground;
       }
-      if (states.contains(WidgetState.selected)) return colors.accent;
-      if (states.contains(WidgetState.pressed)) return colors.accentPressed;
-      if (states.contains(WidgetState.hovered)) return colors.surfaceVariant;
+      if (states.contains(WidgetState.selected)) {
+        if (states.contains(WidgetState.hovered)) {
+          return colors.isHighContrast ? colors.accent : colors.accentHover;
+        }
+        return colors.accent;
+      }
+      if (states.contains(WidgetState.hovered)) {
+        if (colors.isHighContrast) return colors.accent;
+        return Color.alphaBlend(
+          colors.foreground.withValues(alpha: 0.3),
+          colors.background,
+        );
+      }
       return colors.background;
     }),
     alternateRowBackgroundColor: colors.surface,
@@ -995,8 +1019,10 @@ MetroDataGridStyle _defaultDataGridStyle(MetroThemeData theme) {
         return colors.disabledForeground;
       }
       if (states.contains(WidgetState.selected) ||
-          states.contains(WidgetState.pressed)) {
-        return colors.onAccent;
+          (colors.isHighContrast && states.contains(WidgetState.hovered))) {
+        return colors.isHighContrast
+            ? colors.onAccent
+            : const Color(0xFFFFFFFF);
       }
       return colors.foreground;
     }),

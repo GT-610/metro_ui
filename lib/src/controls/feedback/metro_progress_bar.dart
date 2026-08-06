@@ -81,8 +81,14 @@ class _MetroProgressBarState extends State<MetroProgressBar>
     final background =
         widget.backgroundColor ??
         barTheme.backgroundColor ??
-        theme.colors.surfaceVariant;
-    final height = widget.height ?? barTheme.height;
+        (widget.value == null
+            ? const Color(0x00000000)
+            : theme.colors.isDark
+            ? const Color(0x59FFFFFF)
+            : const Color(0x33000000));
+    final height =
+        widget.height ??
+        (widget.value == null ? barTheme.indeterminateHeight : barTheme.height);
     final textDirection = Directionality.of(context);
     return Semantics(
       label: widget.semanticLabel,

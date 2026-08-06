@@ -24,7 +24,26 @@ void main() {
 
     expect(background.color, theme.colors.background);
     expect(title.data, 'Settings');
-    expect(titleStyle.fontSize, theme.typography.header.fontSize);
+    expect(titleStyle.fontSize, theme.typography.hero.fontSize);
+  });
+
+  testWidgets('page aligns a Windows 8 back button before the title', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: MetroPage(
+          leading: MetroBackButton(onPressed: () {}),
+          title: const Text('Details'),
+          child: const Text('Content'),
+        ),
+      ),
+    );
+
+    final back = tester.getRect(find.byType(MetroBackButton));
+    final title = tester.getRect(find.text('Details'));
+    expect(title.left - back.right, closeTo(20, 0.01));
+    expect(title.top, closeTo(back.top, 0.01));
   });
 
   testWidgets('page places an optional bar below its content', (tester) async {

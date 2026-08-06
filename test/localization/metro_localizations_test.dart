@@ -126,7 +126,7 @@ void main() {
       return tester
           .getCenter(
             find.descendant(
-              of: find.byType(AnimatedAlign),
+              of: find.byType(AnimatedPositionedDirectional),
               matching: find.byType(ColoredBox),
             ),
           )

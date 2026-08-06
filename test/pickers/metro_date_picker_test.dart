@@ -74,7 +74,42 @@ void main() {
     final size = tester.getSize(find.byType(MetroDatePicker));
     expect(size.width, 320);
     expect(size.height.isFinite, isTrue);
-    expect(size.height, inInclusiveRange(44, 48));
+    expect(size.height, 32);
+  });
+
+  testWidgets('date field uses separate WinJS-sized dropdown segments', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      pickerTestApp(
+        child: SizedBox(
+          width: 360,
+          child: MetroDatePicker(
+            selected: DateTime(2024, 7, 9),
+            onChanged: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    const firstKey = ValueKey<String>('metro-picker-segment-0');
+    const secondKey = ValueKey<String>('metro-picker-segment-1');
+    const thirdKey = ValueKey<String>('metro-picker-segment-2');
+    final first = tester.getRect(find.byKey(firstKey));
+    final second = tester.getRect(find.byKey(secondKey));
+    final third = tester.getRect(find.byKey(thirdKey));
+    final decoration =
+        tester.widget<Container>(find.byKey(firstKey)).decoration!
+            as BoxDecoration;
+
+    expect(first.size, const Size(160, 32));
+    expect(second.size, const Size(80, 32));
+    expect(third.size, const Size(80, 32));
+    expect(second.left - first.right, 20);
+    expect(third.left - second.right, 20);
+    expect(decoration.color, const Color(0xCCFFFFFF));
+    expect(decoration.border!.top.width, 2);
+    expect(decoration.border!.top.color, const Color(0x45000000));
   });
 
   testWidgets('date dialog clamps the day when the month changes', (

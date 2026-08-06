@@ -35,9 +35,9 @@ flutter:
   fonts:
     - family: Metro UI Sans
       fonts:
-        - asset: assets/fonts/roboto-light.ttf
+        - asset: assets/fonts/selawik-light.ttf
           weight: 300
-        - asset: assets/fonts/roboto-regular.ttf
+        - asset: assets/fonts/selawik-regular.ttf
           weight: 400
-        - asset: assets/fonts/roboto-medium.ttf
-          weight: 500
+        - asset: assets/fonts/selawik-semibold.ttf
+          weight: 600

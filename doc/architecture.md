@@ -52,9 +52,9 @@ Small `InheritedTheme` widgets, such as `MetroTextFieldTheme`, provide local
 component overrides. They compose with the matching component data stored in
 `MetroThemeData` instead of replacing the complete color and typography
 system. Dedicated scopes cover buttons, tiles, both progress indicators, list
-tiles, check boxes, radio buttons, toggle switches, Pivot, command bars,
-number boxes, combo boxes, search boxes, FlipView, dialogs, flyouts, tooltips,
-pickers, sliders, and data grids.
+tiles, check boxes, radio buttons, toggle switches, BackButton, Pivot, command
+bars, number boxes, combo boxes, search boxes, FlipView, dialogs, flyouts,
+tooltips, pickers, sliders, and data grids.
 `MetroPickerTheme` controls both the segmented field and the popup wheels, and
 is captured when a picker crosses the Navigator boundary. `MetroSliderTheme`
 provides the shared track, thumb, tick, focus, and measurement tokens for both
@@ -67,6 +67,29 @@ call site's logical text direction so directional transitions remain correct
 in both LTR and RTL layouts. Anchored overlays use `OverlayPortal` so they
 retain the same Metro theme dependencies and cannot outlive their owning
 widget.
+
+## Motion model
+
+`MetroMotion` stores reusable Windows animation recipes rather than only
+abstract slow/medium/fast tiers. Generic 250ms fade-in, popup movement and
+delayed opacity, edge-UI movement, FlipView content entrance/fade, panel
+movement, page entrance and exit, pointer feedback, and Pivot content motion
+have separate recipes. Reduced-motion media flags replace these durations with
+zero at the component boundary without changing final state or input.
+
+`MetroPageRoute` deliberately separates the 1000ms page transform from the
+170ms entrance opacity and uses a 117ms linear reverse fade without sliding
+the old page backward. Popup routes combine a 367ms 50-pixel transform with
+the WinJS 83ms opacity delay and duration, then close with a separate 83ms
+in-place fade. Flyout panels use the same 550ms standard curve in both
+directions. `MetroCommandBarLayer` keeps the command surface out of normal
+layout, translates its complete height from the selected edge for 367ms, and
+uses secondary-click or inward-edge invocation plus click-eater, Escape, and
+outward-drag dismissal. The narrow gesture target and drag threshold are
+Flutter adaptations; the edge direction and completed transition follow the
+WinJS pattern. Pivot keeps all item subtrees mounted and gives its programmatic
+outgoing and incoming pages their separate verified 350ms curves; direct drag
+uses a pointer-controlled offset followed by a short Metro settle.
 
 ## Interaction contract
 
@@ -184,6 +207,27 @@ or stay hidden without disabling swipe and keyboard input. Reduced-motion
 media flags commit the requested page immediately. Item banners and position
 semantics update only when the displayed page is committed.
 
+## Semantic Zoom model
+
+`MetroSemanticZoom` owns two persistent focus scopes and keeps both the
+detailed and summary widget subtrees mounted. Only the effective view accepts
+pointer, focus, and semantics input. This preserves scroll and local widget
+state without duplicating application data, while the application remains
+responsible for mapping a selected summary group to its detailed item.
+
+The widget can own its state from `initiallyZoomedOut` or accept a controlled
+`zoomedOut` value. User input reports a request before a controlled transition
+can begin. The 333ms cross-scale animation uses the WinJS 0.65 default factor,
+with a supported range of 0.2 through 0.8, and aligns transforms to the direct
+manipulation focal point. Reduced-motion media flags commit immediately.
+
+Two-pointer pinch, Ctrl+wheel, Ctrl+Plus/Minus, the transient desktop minus
+button, and adjustable semantics all converge on the same request path.
+Keyboard and assistive transitions restore focus after the destination scope
+is active; each scope remembers its last focused descendant. `locked` removes
+all switching affordances without unmounting either view. RTL changes the
+button's logical edge but does not reinterpret pinch geometry.
+
 ## Slider model
 
 `MetroSlider` and `MetroRangeSlider` share one geometry and painter model so
@@ -245,6 +289,18 @@ scope. Selection controls listen to the controller directly, allowing one
 controller to be shared across subtrees while preserving Flutter's normal
 widget lifecycle. A group creates and disposes an internal controller when an
 external controller is not supplied.
+
+`MetroListTile` renders that state with the WinJS desktop filled-selection
+treatment: square light/dark item wells, full hover and focus outlines, accent
+selection with a logical top-end checkmark, and the 167ms pointer scale recipe.
+Its 52px minimum row height is a Flutter list-row composition default, not a
+claimed generic WinJS ListView measurement.
+
+`MetroDataGrid` reuses the accent, selected-hover, high-contrast, and pointer
+recipes for full rows while keeping its cell dividers and 2px focus border.
+The grid omits the list-only corner checkmark; MahApps DataGrid corroborates
+the row-wide accent treatment, while the 44px table density remains
+package-owned.
 
 ## Testing
 

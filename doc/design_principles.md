@@ -1,11 +1,20 @@
 # Design principles
 
+The visual target is the Windows 8/8.1 and Windows Phone 8 generation of
+Metro/Modern UI. Same-era phone patterns such as Pivot, Panorama, Hub, and
+semantic collection navigation may inform explicitly documented controls.
+Windows 10/11 Fluent surfaces are architectural or comparative references,
+not a source of default visual styling.
+
 ## Typography leads
 
 Page hierarchy should be readable before color or borders are considered.
 Metro's type ramp uses large, light-weight headers and restrained body text.
-The default ramp is based on the characteristic 40, 29.333, 20, 14, and 12
-logical-pixel levels found in mature Metro implementations.
+The verified WinJS desktop anchors are 42pt (56 logical pixels) for the page
+hero, 20pt (26.667 logical pixels) for a light subheader, 11pt (14.667 logical
+pixels) for body and button text, and 9pt (12 logical pixels) for captions.
+The package also supplies 40, 20, and 16-pixel intermediate roles for Flutter
+content hierarchy; those are package roles rather than claimed WinJS metrics.
 
 Controls must not uppercase user content automatically. Examples may use
 uppercase labels where the original language did, but localization and author
@@ -55,6 +64,12 @@ themes, application component themes, and finally library defaults.
 Local feedback is fast. Navigation is slower and directional. Entrance and
 exit motion should explain where content came from or went, rather than merely
 decorate the screen.
+
+Defaults use named Windows recipes instead of one generic duration: pointer
+feedback is 167ms, popup movement is 367ms, panel movement is 550ms, page
+entrance is 1000ms with a 170ms fade, and page exit is a 117ms linear fade.
+The standard curve is `cubic-bezier(0.1, 0.9, 0.2, 1)`. Exact evidence and
+Flutter adaptations are tracked in [reference audit](reference_audit.md).
 
 All motion is optional. Components must honor `MediaQuery.disableAnimations`
 and `MediaQuery.accessibleNavigation` without losing information or input.

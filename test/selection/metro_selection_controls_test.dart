@@ -6,6 +6,86 @@ import 'package:metro_ui/metro_ui.dart';
 import '../test_utils.dart';
 
 void main() {
+  testWidgets('selection controls use WinJS desktop geometry and neutrals', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MetroCheckBox(value: true, onChanged: (_) {}),
+              const SizedBox(width: 16),
+              MetroRadioButton<int>(value: 1, groupValue: 1, onChanged: (_) {}),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final checkFinder = find.byType(MetroCheckBox);
+    final radioFinder = find.byType(MetroRadioButton<int>);
+    final checkDecoration =
+        tester
+                .widget<DecoratedBox>(
+                  find.descendant(
+                    of: checkFinder,
+                    matching: find.byType(DecoratedBox),
+                  ),
+                )
+                .decoration
+            as BoxDecoration;
+    final radioDecoration =
+        tester
+                .widgetList<DecoratedBox>(
+                  find.descendant(
+                    of: radioFinder,
+                    matching: find.byType(DecoratedBox),
+                  ),
+                )
+                .first
+                .decoration
+            as BoxDecoration;
+
+    expect(tester.getSize(checkFinder), const Size(21, 21));
+    expect(tester.getSize(radioFinder), const Size(23, 23));
+    expect(checkDecoration.color, const Color(0xCCFFFFFF));
+    expect(checkDecoration.border!.top.color, const Color(0x45000000));
+    expect(radioDecoration.color, const Color(0xCCFFFFFF));
+    expect(radioDecoration.border!.top.color, const Color(0x45000000));
+  });
+
+  testWidgets('light selection controls invert immediately while pressed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(child: MetroCheckBox(value: true, onChanged: (_) {})),
+      ),
+    );
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(MetroCheckBox)),
+    );
+    await tester.pump();
+
+    final decoration =
+        tester
+                .widget<DecoratedBox>(
+                  find.descendant(
+                    of: find.byType(MetroCheckBox),
+                    matching: find.byType(DecoratedBox),
+                  ),
+                )
+                .decoration
+            as BoxDecoration;
+    expect(decoration.color, const Color(0xFF000000));
+    expect(decoration.border!.top.color, const Color(0x00000000));
+
+    await gesture.up();
+  });
+
   testWidgets('checkbox cycles by pointer and keyboard', (tester) async {
     bool? value = false;
     await tester.pumpWidget(

@@ -33,7 +33,7 @@ class MetroProgressRingThemeData {
   final double? _largeSizeThreshold;
   final Duration? _duration;
 
-  double get size => _size ?? 32;
+  double get size => _size ?? 20;
   double get strokeWidth => _strokeWidth ?? 2.5;
   int get smallDotCount => _smallDotCount ?? 5;
   int get largeDotCount => _largeDotCount ?? 6;

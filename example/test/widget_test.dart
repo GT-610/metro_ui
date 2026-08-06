@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,24 +39,28 @@ void main() {
 
     expect(find.bySemanticsLabel('Use light theme'), findsOneWidget);
 
+    await tester.tapAt(const Offset(400, 300), buttons: kSecondaryMouseButton);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 367));
+
     await tester.tap(find.bySemanticsLabel('About Metro UI'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Metro UI for Flutter'), findsOneWidget);
 
     await tester.tap(find.text('CLOSE'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Metro UI for Flutter'), findsNothing);
 
     await tester.tap(find.bySemanticsLabel('Open settings flyout'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('Experience'), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('Close settings'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('Experience'), findsNothing);
   });
 
@@ -124,6 +129,36 @@ void main() {
     await tester.tapAt(tester.getCenter(find.bySemanticsLabel('Volume')));
     await tester.pump();
     expect(find.text('Last action: Volume 50'), findsOneWidget);
+
+    await Scrollable.ensureVisible(
+      tester.element(find.text('Semantic zoom')),
+      alignment: 0.35,
+    );
+    await tester.pump();
+    await Scrollable.ensureVisible(
+      tester.element(find.text('TILE')),
+      alignment: 0.6,
+    );
+    await tester.pump();
+    await tester.tap(find.text('TILE'));
+    await tester.pump();
+    expect(find.text('Last action: Semantic zoom item Tile'), findsOneWidget);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.minus);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 334));
+    await tester.pump();
+    expect(
+      find.bySemanticsLabel('NAVIGATION, 3 component examples').hitTestable(),
+      findsOneWidget,
+    );
+    await tester.tap(find.bySemanticsLabel('NAVIGATION, 3 component examples'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 334));
+    await tester.pump();
+    expect(find.text('Last action: Semantic zoom NAVIGATION'), findsOneWidget);
+    expect(find.text('PIVOT').hitTestable(), findsOneWidget);
 
     await Scrollable.ensureVisible(
       tester.element(find.text('Data grid')),
