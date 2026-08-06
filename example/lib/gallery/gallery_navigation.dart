@@ -25,7 +25,8 @@ bool _filterGalleryComponent(
   String query,
   MetroSearchBoxItem<GalleryComponent> item,
 ) {
-  return _gallerySearchIndex[item.value]!.contains(query.trim().toLowerCase());
+  final searchText = _gallerySearchIndex[item.value] ?? item.value.searchText;
+  return searchText.contains(query.trim().toLowerCase());
 }
 
 class GalleryNavigation extends StatelessWidget {

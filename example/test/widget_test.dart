@@ -30,6 +30,7 @@ void main() {
     expect(find.text('SEARCH RESULT'), findsOneWidget);
     await tester.tap(find.text('JUMP TO DEMO'));
     await tester.pump();
+    await tester.pump();
     expect(find.text('Date and time').hitTestable(), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('Use Chinese locale'));
@@ -231,6 +232,7 @@ void main() {
     await tester.pumpWidget(const MetroGalleryApp());
 
     expect(find.byType(GalleryNavigation), findsOneWidget);
+    expect(find.byType(CompactGalleryNavigation), findsNothing);
     expect(find.text('METRO GALLERY'), findsOneWidget);
 
     await tester.tap(find.text('Data display'));

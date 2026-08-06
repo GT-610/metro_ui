@@ -40,12 +40,12 @@ class GalleryAccentPicker extends StatelessWidget {
   final Color selected;
   final ValueChanged<Color> onSelected;
 
-  static const _colors = <Color>[
-    MetroColors.cobalt,
-    MetroColors.teal,
-    MetroColors.magenta,
-    MetroColors.orange,
-    MetroColors.yellow,
+  static const _accents = <({String name, Color color})>[
+    (name: 'Cobalt', color: MetroColors.cobalt),
+    (name: 'Teal', color: MetroColors.teal),
+    (name: 'Magenta', color: MetroColors.magenta),
+    (name: 'Orange', color: MetroColors.orange),
+    (name: 'Yellow', color: MetroColors.yellow),
   ];
 
   @override
@@ -55,22 +55,23 @@ class GalleryAccentPicker extends StatelessWidget {
       spacing: MetroSpacing.xs,
       runSpacing: MetroSpacing.xs,
       children: [
-        for (final color in _colors)
-          Semantics(
-            button: true,
-            selected: color == selected,
-            label: 'Select accent ${color.toARGB32().toRadixString(16)}',
-            child: GestureDetector(
-              onTap: () => onSelected(color),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: color,
-                  border: Border.all(
-                    color: color == selected
+        for (final accent in _accents)
+          MergeSemantics(
+            child: Semantics(
+              selected: accent.color == selected,
+              child: MetroButton(
+                semanticLabel: 'Select ${accent.name} accent',
+                onPressed: () => onSelected(accent.color),
+                style: MetroButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(accent.color),
+                  borderColor: WidgetStatePropertyAll(
+                    accent.color == selected
                         ? focusColor
                         : const Color(0x00000000),
-                    width: 3,
                   ),
+                  borderWidth: const WidgetStatePropertyAll(3),
+                  minimumSize: const Size.square(36),
+                  padding: EdgeInsets.zero,
                 ),
                 child: const SizedBox.square(dimension: 36),
               ),
@@ -164,8 +165,8 @@ class GallerySemanticZoomOverview extends StatelessWidget {
       padding: const EdgeInsets.all(MetroSpacing.md),
       child: GridView.builder(
         itemCount: groups.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 320,
           crossAxisSpacing: MetroSpacing.sm,
           mainAxisSpacing: MetroSpacing.sm,
           childAspectRatio: 1.45,
