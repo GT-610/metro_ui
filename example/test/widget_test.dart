@@ -3,15 +3,34 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:metro_ui/metro_ui.dart';
+import 'package:metro_ui_example/gallery/gallery_navigation.dart';
 import 'package:metro_ui_example/main.dart';
 
 void main() {
-  testWidgets('gallery renders and changes theme', (tester) async {
+  testWidgets('gallery searches the catalog and changes appearance', (
+    tester,
+  ) async {
     await tester.pumpWidget(const MetroGalleryApp());
 
-    expect(find.text('Metro UI'), findsOneWidget);
-    expect(find.text('Tiles'), findsOneWidget);
+    expect(find.text('Metro UI'), findsWidgets);
+    expect(find.text('Modern UI for Flutter'), findsOneWidget);
+    expect(find.text('BROWSE BY CATEGORY'), findsOneWidget);
+    final catalogSearch = find.byType(EditableText);
+    expect(catalogSearch, findsOneWidget);
     expect(find.bySemanticsLabel('Use dark theme'), findsOneWidget);
+
+    await tester.enterText(catalogSearch, 'MetroDatePicker');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Inputs & pickers'), findsWidgets);
+    expect(find.text('MetroNumberBox'), findsOneWidget);
+    expect(find.text('SEARCH RESULT'), findsOneWidget);
+    await tester.tap(find.text('JUMP TO DEMO'));
+    await tester.pump();
+    expect(find.text('Date and time').hitTestable(), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('Use Chinese locale'));
     await tester.pump();
@@ -68,6 +87,15 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(const MetroGalleryApp());
+
+    await Scrollable.ensureVisible(
+      tester.element(find.text('OPEN THE COMPLETE PLAYGROUND')),
+      alignment: 0.5,
+    );
+    await tester.pump();
+    await tester.tap(find.text('OPEN THE COMPLETE PLAYGROUND'));
+    await tester.pump();
+    expect(find.text('All controls'), findsWidgets);
 
     await Scrollable.ensureVisible(
       tester.element(find.text('Mail')),
@@ -190,5 +218,26 @@ void main() {
     await tester.pump(const Duration(milliseconds: 650));
     await tester.pump();
     expect(find.text('Directional motion'), findsNothing);
+  });
+
+  testWidgets('wide gallery keeps persistent catalog navigation', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MetroGalleryApp());
+
+    expect(find.byType(GalleryNavigation), findsOneWidget);
+    expect(find.text('METRO GALLERY'), findsOneWidget);
+
+    await tester.tap(find.text('Data display'));
+    await tester.pump();
+
+    expect(find.text('Data display'), findsWidgets);
+    expect(find.text('Data grid'), findsOneWidget);
+    expect(find.text('MetroDataGrid'), findsOneWidget);
   });
 }
