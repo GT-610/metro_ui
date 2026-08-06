@@ -155,15 +155,16 @@ class _ProgressBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = background;
-    canvas.drawRect(Offset.zero & size, paint);
+    canvas.drawRect(Offset.zero & size, Paint()..color = background);
     if (value != null) {
       final width = size.width * value!;
       final left = textDirection == TextDirection.ltr
           ? 0.0
           : size.width - width;
-      paint.color = color;
-      canvas.drawRect(Rect.fromLTWH(left, 0, width, size.height), paint);
+      canvas.drawRect(
+        Rect.fromLTWH(left, 0, width, size.height),
+        Paint()..color = color,
+      );
       return;
     }
     if (!active || size.isEmpty) {
