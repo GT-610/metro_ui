@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -90,7 +91,7 @@ class MetroSlider extends StatefulWidget {
 }
 
 class _MetroSliderState extends State<MetroSlider> {
-  late final FocusNode _internalFocusNode;
+  FocusNode? _internalFocusNode;
   double? _interactionValue;
   bool _dragging = false;
   bool _focused = false;
@@ -98,20 +99,25 @@ class _MetroSliderState extends State<MetroSlider> {
   bool _pressed = false;
 
   bool get _enabled => widget.onChanged != null;
-  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode;
+  FocusNode get _focusNode =>
+      widget.focusNode ??
+      (_internalFocusNode ??= FocusNode(debugLabel: 'MetroSlider'));
   double get _value => _interactionValue ?? _clampedWidgetValue;
   double get _clampedWidgetValue =>
       _clamp(widget.value, widget.min, widget.max);
 
   @override
-  void initState() {
-    super.initState();
-    _internalFocusNode = FocusNode(debugLabel: 'MetroSlider');
+  void didUpdateWidget(MetroSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode == null && widget.focusNode != null) {
+      _internalFocusNode?.dispose();
+      _internalFocusNode = null;
+    }
   }
 
   @override
   void dispose() {
-    _internalFocusNode.dispose();
+    _internalFocusNode?.dispose();
     super.dispose();
   }
 
@@ -449,8 +455,8 @@ class MetroRangeSlider extends StatefulWidget {
 }
 
 class _MetroRangeSliderState extends State<MetroRangeSlider> {
-  late final FocusNode _internalStartFocusNode;
-  late final FocusNode _internalEndFocusNode;
+  FocusNode? _internalStartFocusNode;
+  FocusNode? _internalEndFocusNode;
   MetroRangeValues? _interactionValues;
   MetroRangeValues? _dragOriginValues;
   double? _dragOriginValue;
@@ -463,8 +469,13 @@ class _MetroRangeSliderState extends State<MetroRangeSlider> {
 
   bool get _enabled => widget.onChanged != null;
   FocusNode get _startFocusNode =>
-      widget.startFocusNode ?? _internalStartFocusNode;
-  FocusNode get _endFocusNode => widget.endFocusNode ?? _internalEndFocusNode;
+      widget.startFocusNode ??
+      (_internalStartFocusNode ??= FocusNode(
+        debugLabel: 'MetroRangeSlider start',
+      ));
+  FocusNode get _endFocusNode =>
+      widget.endFocusNode ??
+      (_internalEndFocusNode ??= FocusNode(debugLabel: 'MetroRangeSlider end'));
   MetroRangeValues get _values => _interactionValues ?? _clampedWidgetValues;
 
   MetroRangeValues get _clampedWidgetValues {
@@ -478,16 +489,22 @@ class _MetroRangeSliderState extends State<MetroRangeSlider> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _internalStartFocusNode = FocusNode(debugLabel: 'MetroRangeSlider start');
-    _internalEndFocusNode = FocusNode(debugLabel: 'MetroRangeSlider end');
+  void didUpdateWidget(MetroRangeSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.startFocusNode == null && widget.startFocusNode != null) {
+      _internalStartFocusNode?.dispose();
+      _internalStartFocusNode = null;
+    }
+    if (oldWidget.endFocusNode == null && widget.endFocusNode != null) {
+      _internalEndFocusNode?.dispose();
+      _internalEndFocusNode = null;
+    }
   }
 
   @override
   void dispose() {
-    _internalStartFocusNode.dispose();
-    _internalEndFocusNode.dispose();
+    _internalStartFocusNode?.dispose();
+    _internalEndFocusNode?.dispose();
     super.dispose();
   }
 
@@ -1140,6 +1157,7 @@ class _MetroSliderPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final paint = Paint();
     final geometry = _SliderGeometry(
       axis: axis,
       size: size,
@@ -1149,15 +1167,16 @@ class _MetroSliderPainter extends CustomPainter {
     );
     final start = geometry.offsetForNormalizedValue(0);
     final end = geometry.offsetForNormalizedValue(1);
-    _drawSegment(canvas, start, end, trackThickness, trackColor);
+    _drawSegment(canvas, paint, start, end, trackThickness, trackColor);
     _drawSegment(
       canvas,
+      paint,
       geometry.offsetForNormalizedValue(activeStart),
       geometry.offsetForNormalizedValue(activeEnd),
       activeTrackThickness,
       activeTrackColor,
     );
-    _drawTicks(canvas, geometry);
+    _drawTicks(canvas, paint, geometry);
 
     final order = <int>[
       for (var index = 0; index < thumbValues.length; index += 1)
@@ -1171,21 +1190,23 @@ class _MetroSliderPainter extends CustomPainter {
         width: geometry.thumbSize.width,
         height: geometry.thumbSize.height,
       );
-      canvas.drawRect(rect, Paint()..color = thumbColor);
+      paint
+        ..color = thumbColor
+        ..style = PaintingStyle.fill;
+      canvas.drawRect(rect, paint);
       if (index == focusedThumb && focusWidth > 0) {
-        canvas.drawRect(
-          rect.inflate(3),
-          Paint()
-            ..color = focusColor
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = focusWidth,
-        );
+        paint
+          ..color = focusColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = focusWidth;
+        canvas.drawRect(rect.inflate(3), paint);
       }
     }
   }
 
   void _drawSegment(
     Canvas canvas,
+    Paint paint,
     Offset first,
     Offset second,
     double thickness,
@@ -1207,10 +1228,13 @@ class _MetroSliderPainter extends CustomPainter {
             first.dx + thickness / 2,
             math.max(first.dy, second.dy),
           );
-    canvas.drawRect(rect, Paint()..color = color);
+    paint
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(rect, paint);
   }
 
-  void _drawTicks(Canvas canvas, _SliderGeometry geometry) {
+  void _drawTicks(Canvas canvas, Paint paint, _SliderGeometry geometry) {
     final count = divisions;
     if (count == null ||
         tickPlacement == MetroSliderTickPlacement.none ||
@@ -1225,17 +1249,18 @@ class _MetroSliderPainter extends CustomPainter {
       final center = geometry.offsetForNormalizedValue(value);
       if (tickPlacement == MetroSliderTickPlacement.before ||
           tickPlacement == MetroSliderTickPlacement.both) {
-        _drawTick(canvas, geometry, center, before: true, color: color);
+        _drawTick(canvas, paint, geometry, center, before: true, color: color);
       }
       if (tickPlacement == MetroSliderTickPlacement.after ||
           tickPlacement == MetroSliderTickPlacement.both) {
-        _drawTick(canvas, geometry, center, before: false, color: color);
+        _drawTick(canvas, paint, geometry, center, before: false, color: color);
       }
     }
   }
 
   void _drawTick(
     Canvas canvas,
+    Paint paint,
     _SliderGeometry geometry,
     Offset center, {
     required bool before,
@@ -1259,11 +1284,37 @@ class _MetroSliderPainter extends CustomPainter {
             tickLength,
             tickThickness,
           );
-    canvas.drawRect(rect, Paint()..color = color);
+    paint
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(rect, paint);
   }
 
   @override
-  bool shouldRepaint(_MetroSliderPainter oldDelegate) => true;
+  bool shouldRepaint(_MetroSliderPainter oldDelegate) {
+    return axis != oldDelegate.axis ||
+        textDirection != oldDelegate.textDirection ||
+        reversed != oldDelegate.reversed ||
+        horizontalThumbSize != oldDelegate.horizontalThumbSize ||
+        trackColor != oldDelegate.trackColor ||
+        activeTrackColor != oldDelegate.activeTrackColor ||
+        thumbColor != oldDelegate.thumbColor ||
+        tickColor != oldDelegate.tickColor ||
+        activeTickColor != oldDelegate.activeTickColor ||
+        focusColor != oldDelegate.focusColor ||
+        trackThickness != oldDelegate.trackThickness ||
+        activeTrackThickness != oldDelegate.activeTrackThickness ||
+        focusWidth != oldDelegate.focusWidth ||
+        tickLength != oldDelegate.tickLength ||
+        tickThickness != oldDelegate.tickThickness ||
+        tickGap != oldDelegate.tickGap ||
+        tickPlacement != oldDelegate.tickPlacement ||
+        divisions != oldDelegate.divisions ||
+        activeStart != oldDelegate.activeStart ||
+        activeEnd != oldDelegate.activeEnd ||
+        !listEquals(thumbValues, oldDelegate.thumbValues) ||
+        focusedThumb != oldDelegate.focusedThumb;
+  }
 }
 
 MetroSliderStyle _defaultSliderStyle(MetroThemeData theme) {

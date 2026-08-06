@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_spacing.dart';
@@ -227,7 +228,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
     if (notify) {
       widget.onChanged?.call(target);
     }
-    if (_reduceMotion(context) || _viewportExtent <= 0) {
+    if (metroReduceMotion(context) || _viewportExtent <= 0) {
       setState(() => _displayedIndex = target);
       _scheduleControlledReconciliation();
       return;
@@ -428,7 +429,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
       }
       return;
     }
-    if (_reduceMotion(context)) {
+    if (metroReduceMotion(context)) {
       final target = _incomingIndex;
       setState(() {
         if (commit && target != null) {
@@ -457,7 +458,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
   Widget build(BuildContext context) {
     final style = _resolveStyle(context);
     final localizations = MetroLocalizations.of(context);
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     final textDirection = Directionality.of(context);
     final surfaceStates = <WidgetState>{
       if (!_inputEnabled) WidgetState.disabled,
@@ -796,7 +797,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
               dimension: math.max(32, style.indicatorSize! + 12),
               child: Center(
                 child: AnimatedContainer(
-                  duration: _reduceMotion(context)
+                  duration: metroReduceMotion(context)
                       ? Duration.zero
                       : MetroTheme.of(context).motion.fast,
                   width: style.indicatorSize,
@@ -1062,12 +1063,6 @@ class _MetroFlipViewChevronPainter extends CustomPainter {
         forward != oldDelegate.forward ||
         textDirection != oldDelegate.textDirection;
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final media = MediaQuery.maybeOf(context);
-  return media?.disableAnimations == true ||
-      media?.accessibleNavigation == true;
 }
 
 class _PreviousFlipViewIntent extends Intent {

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../theme/metro_theme.dart';
 
@@ -165,6 +166,15 @@ class _MetroPivotState extends State<MetroPivot>
   @override
   void didUpdateWidget(MetroPivot oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final lastIndex = widget.items.length - 1;
+    if (_index > lastIndex ||
+        _displayedIndex > lastIndex ||
+        (_incomingIndex != null && _incomingIndex! > lastIndex)) {
+      _cancelAnimation(resetController: false);
+      final target = widget.index ?? (_index > lastIndex ? lastIndex : _index);
+      _index = target;
+      _displayedIndex = target;
+    }
     if (widget.index != null && widget.index != oldWidget.index) {
       _schedulePageChange(widget.index!);
     }
@@ -202,7 +212,7 @@ class _MetroPivotState extends State<MetroPivot>
       }
       return;
     }
-    if (_reduceMotion(context)) {
+    if (metroReduceMotion(context)) {
       _cancelAnimation();
       setState(() => _displayedIndex = index);
       return;
@@ -286,13 +296,15 @@ class _MetroPivotState extends State<MetroPivot>
     });
   }
 
-  void _cancelAnimation() {
+  void _cancelAnimation({bool resetController = true}) {
     _contentController.stop();
     _outgoingOffsetAnimation = null;
     _incomingOffsetAnimation = null;
     _dragOffsetAnimation = null;
     _programmaticTransition = false;
-    _contentController.reset();
+    if (resetController) {
+      _contentController.reset();
+    }
     _incomingIndex = null;
     _dragOffset = 0;
     _commitAnimation = false;
@@ -364,7 +376,7 @@ class _MetroPivotState extends State<MetroPivot>
   void _settleDrag({required bool commit}) {
     final target = _incomingIndex;
     if (_dragOffset == 0) return;
-    if (_reduceMotion(context)) {
+    if (metroReduceMotion(context)) {
       setState(() {
         if (commit && target != null) {
           _displayedIndex = target;
@@ -463,7 +475,7 @@ class _MetroPivotState extends State<MetroPivot>
                         builder: (context, states) {
                           final selected = index == _effectiveIndex;
                           return AnimatedDefaultTextStyle(
-                            duration: _reduceMotion(context)
+                            duration: metroReduceMotion(context)
                                 ? Duration.zero
                                 : theme.motion.normal,
                             style: selected ? selectedHeaderStyle : headerStyle,
@@ -573,12 +585,6 @@ class _MetroPivotState extends State<MetroPivot>
         ),
       ),
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final mediaQuery = MediaQuery.maybeOf(context);
-    return mediaQuery?.disableAnimations == true ||
-        mediaQuery?.accessibleNavigation == true;
   }
 }
 

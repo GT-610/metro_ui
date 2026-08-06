@@ -188,6 +188,39 @@ void main() {
     },
   );
 
+  testWidgets('autofocus scans enabled rows once per table build', (
+    tester,
+  ) async {
+    final rows = List<_Album>.generate(
+      10,
+      (index) => _Album('Album $index', 'Artist', 2000 + index),
+    );
+    final controller = MetroSelectionController<_Album>();
+    var enabledChecks = 0;
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 420,
+            child: MetroDataGrid<_Album>(
+              autofocus: true,
+              columns: _columns(),
+              rowEnabledBuilder: (row) {
+                enabledChecks += 1;
+                return identical(row, rows.last);
+              },
+              rows: rows,
+              selectionController: controller,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(enabledChecks, rows.length * 2);
+    controller.dispose();
+  });
+
   testWidgets('End navigates through a lazy viewport to the final row', (
     tester,
   ) async {

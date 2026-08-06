@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -64,7 +65,7 @@ class MetroListTile extends StatelessWidget {
             const Color(0x00000000);
         final borderWidth =
             effective.borderWidth?.resolve(effectiveStates) ?? 0;
-        final reduceMotion = _reduceMotion(context);
+        final reduceMotion = metroReduceMotion(context);
         return AnimatedScale(
           key: const ValueKey<String>('metro-list-tile-scale'),
           scale: states.contains(WidgetState.pressed) ? 0.975 : 1,
@@ -239,12 +240,6 @@ class MetroListTile extends StatelessWidget {
       ),
       minimumHeight: 52,
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final media = MediaQuery.maybeOf(context);
-    return media?.disableAnimations == true ||
-        media?.accessibleNavigation == true;
   }
 }
 

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -108,7 +109,7 @@ class _MetroTileState extends State<MetroTile> {
         },
         semanticLabel: widget.semanticLabel ?? widget.title,
         builder: (context, states) {
-          final reduceMotion = _reduceMotion(context);
+          final reduceMotion = metroReduceMotion(context);
           final pressed = states.contains(WidgetState.pressed);
           final background = effectiveStyle.backgroundColor?.resolve(states);
           final foreground = effectiveStyle.foregroundColor?.resolve(states);
@@ -219,12 +220,6 @@ class _MetroTileState extends State<MetroTile> {
       subtitleStyle: WidgetStatePropertyAll(theme.typography.caption),
       padding: const EdgeInsets.all(MetroSpacing.sm),
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final mediaQuery = MediaQuery.maybeOf(context);
-    return mediaQuery?.disableAnimations == true ||
-        mediaQuery?.accessibleNavigation == true;
   }
 }
 

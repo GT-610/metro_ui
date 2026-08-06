@@ -95,28 +95,14 @@ class MetroTooltipThemeData {
       textStyle: TextStyle.lerp(a.textStyle, b.textStyle, t),
       padding: EdgeInsetsGeometry.lerp(a.padding, b.padding, t),
       maxWidth: lerpDouble(a.maxWidth, b.maxWidth, t),
-      waitDuration: _lerpDuration(a.waitDuration, b.waitDuration, t),
-      showDuration: _lerpDuration(a.showDuration, b.showDuration, t),
+      waitDuration: lerpDuration(a.waitDuration, b.waitDuration, t),
+      showDuration: lerpDuration(a.showDuration, b.showDuration, t),
       verticalOffset: lerpDouble(a.verticalOffset, b.verticalOffset, t),
       mouseOffset: lerpDouble(a.mouseOffset, b.mouseOffset, t),
       keyboardOffset: lerpDouble(a.keyboardOffset, b.keyboardOffset, t),
       touchOffset: lerpDouble(a.touchOffset, b.touchOffset, t),
     );
   }
-}
-
-Duration? _lerpDuration(Duration? a, Duration? b, double t) {
-  if (a == null && b == null) {
-    return null;
-  }
-  final first = a ?? b!;
-  final second = b ?? a!;
-  return Duration(
-    microseconds:
-        (first.inMicroseconds +
-                (second.inMicroseconds - first.inMicroseconds) * t)
-            .round(),
-  );
 }
 
 /// Overrides Metro tooltip styling for a subtree.

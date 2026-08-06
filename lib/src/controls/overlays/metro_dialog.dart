@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import 'metro_dialog_theme.dart';
@@ -26,7 +27,7 @@ Future<T?> showMetroDialog<T extends Object?>({
   final dialogTheme = const MetroDialogThemeData(
     barrierColor: Color(0x99000000),
   ).merge(theme.dialogTheme).merge(MetroDialogTheme.maybeOf(context));
-  final reduceMotion = _reduceMotion(context);
+  final reduceMotion = metroReduceMotion(context);
 
   return navigator.push<T>(
     _MetroDialogRoute<T>(
@@ -229,10 +230,4 @@ class MetroDialog extends StatelessWidget {
       child: dialog,
     );
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final mediaQuery = MediaQuery.maybeOf(context);
-  return mediaQuery?.disableAnimations == true ||
-      mediaQuery?.accessibleNavigation == true;
 }

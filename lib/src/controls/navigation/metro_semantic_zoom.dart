@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
@@ -96,9 +97,7 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
     vsync: this,
     value: _targetZoomedOut ? 1 : 0,
   );
-  late final FocusNode _internalFocusNode = FocusNode(
-    debugLabel: 'MetroSemanticZoom',
-  );
+  FocusNode? _internalFocusNode;
   final FocusScopeNode _zoomedInFocusScope = FocusScopeNode(
     debugLabel: 'MetroSemanticZoom zoomed-in view',
   );
@@ -120,7 +119,9 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
 
   bool get _effectiveZoomedOut => widget.zoomedOut ?? _internalZoomedOut;
 
-  FocusNode get _effectiveFocusNode => widget.focusNode ?? _internalFocusNode;
+  FocusNode get _effectiveFocusNode =>
+      widget.focusNode ??
+      (_internalFocusNode ??= FocusNode(debugLabel: 'MetroSemanticZoom'));
 
   @override
   void didChangeDependencies() {
@@ -131,6 +132,10 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
   @override
   void didUpdateWidget(MetroSemanticZoom oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode == null && widget.focusNode != null) {
+      _internalFocusNode?.dispose();
+      _internalFocusNode = null;
+    }
     _syncMotion();
     final next = _effectiveZoomedOut;
     if (next != _targetZoomedOut) {
@@ -154,7 +159,7 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
       _zoomedOutFocusScope.hasFocus;
 
   void _syncMotion({bool commitReducedMotion = false}) {
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     _controller.duration = reduceMotion
         ? Duration.zero
         : MetroTheme.of(context).motion.semanticZoom;
@@ -190,7 +195,7 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
     Offset? focalPoint,
   }) {
     _pinchCenter = focalPoint;
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     if (reduceMotion) {
       _controller.value = zoomedOut ? 1 : 0;
       if (restoreFocus) {
@@ -525,7 +530,7 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
       bottom: style.buttonBottomInset ?? 21,
       child: AnimatedOpacity(
         opacity: visible ? 1 : 0,
-        duration: _reduceMotion(context)
+        duration: metroReduceMotion(context)
             ? Duration.zero
             : visible
             ? theme.motion.fadeIn
@@ -632,7 +637,7 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
   void dispose() {
     _buttonTimer?.cancel();
     _controller.dispose();
-    _internalFocusNode.dispose();
+    _internalFocusNode?.dispose();
     _zoomedInFocusScope.dispose();
     _zoomedOutFocusScope.dispose();
     super.dispose();
@@ -659,10 +664,4 @@ class _MinusPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MinusPainter oldDelegate) => oldDelegate.color != color;
-}
-
-bool _reduceMotion(BuildContext context) {
-  final media = MediaQuery.maybeOf(context);
-  return media?.disableAnimations == true ||
-      media?.accessibleNavigation == true;
 }

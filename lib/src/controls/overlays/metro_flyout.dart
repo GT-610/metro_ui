@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../theme/metro_color_scheme.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -31,7 +32,7 @@ Future<T?> showMetroFlyout<T extends Object?>({
   final flyoutTheme = const MetroFlyoutThemeData(
     barrierColor: Color(0x66000000),
   ).merge(theme.flyoutTheme).merge(MetroFlyoutTheme.maybeOf(context));
-  final reduceMotion = _reduceMotion(context);
+  final reduceMotion = metroReduceMotion(context);
   final textDirection = Directionality.of(context);
   final fromRight = switch ((side, textDirection)) {
     (MetroFlyoutSide.end, TextDirection.ltr) ||
@@ -211,10 +212,4 @@ class MetroFlyout extends StatelessWidget {
     );
     return panel;
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final mediaQuery = MediaQuery.maybeOf(context);
-  return mediaQuery?.disableAnimations == true ||
-      mediaQuery?.accessibleNavigation == true;
 }

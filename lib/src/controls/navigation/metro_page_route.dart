@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../theme/metro_theme.dart';
 
 /// Motion recipe used by [MetroPageRoute].
@@ -27,7 +28,7 @@ class MetroPageRoute<T> extends PageRouteBuilder<T> {
     final navigator = Navigator.of(context);
     final themes = InheritedTheme.capture(from: context, to: navigator.context);
     final theme = MetroTheme.of(context);
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     final noMotion = reduceMotion || transition == MetroPageTransition.none;
     final duration = noMotion
         ? Duration.zero
@@ -138,10 +139,4 @@ class MetroPageRoute<T> extends PageRouteBuilder<T> {
       },
     );
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final mediaQuery = MediaQuery.maybeOf(context);
-  return mediaQuery?.disableAnimations == true ||
-      mediaQuery?.accessibleNavigation == true;
 }

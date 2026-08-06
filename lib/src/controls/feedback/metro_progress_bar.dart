@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_theme.dart';
 import 'metro_progress_bar_theme.dart';
@@ -58,8 +59,8 @@ class _MetroProgressBarState extends State<MetroProgressBar>
     final animate =
         widget.value == null &&
         widget.active &&
-        _tickerModeEnabled(context) &&
-        !_reduceMotion(context);
+        metroTickerModeEnabled(context) &&
+        !metroReduceMotion(context);
     if (animate && !_controller.isAnimating) {
       _controller.repeat();
     } else if (!animate && _controller.isAnimating) {
@@ -120,18 +121,6 @@ class _MetroProgressBarState extends State<MetroProgressBar>
     );
   }
 
-  static bool _reduceMotion(BuildContext context) {
-    final media = MediaQuery.maybeOf(context);
-    return media?.disableAnimations == true ||
-        media?.accessibleNavigation == true;
-  }
-
-  static bool _tickerModeEnabled(BuildContext context) {
-    // TickerMode.valuesOf is unavailable on the minimum Flutter version.
-    // ignore: deprecated_member_use
-    return TickerMode.of(context);
-  }
-
   MetroProgressBarThemeData _progressTheme(BuildContext context) {
     return MetroTheme.of(
       context,
@@ -166,16 +155,15 @@ class _ProgressBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = background);
+    final paint = Paint()..color = background;
+    canvas.drawRect(Offset.zero & size, paint);
     if (value != null) {
       final width = size.width * value!;
       final left = textDirection == TextDirection.ltr
           ? 0.0
           : size.width - width;
-      canvas.drawRect(
-        Rect.fromLTWH(left, 0, width, size.height),
-        Paint()..color = color,
-      );
+      paint.color = color;
+      canvas.drawRect(Rect.fromLTWH(left, 0, width, size.height), paint);
       return;
     }
     if (!active || size.isEmpty) {

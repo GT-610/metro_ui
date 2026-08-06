@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../theme/metro_color_scheme.dart';
 import '../../theme/metro_spacing.dart';
@@ -104,7 +105,7 @@ class _MetroCommandBarLayerState extends State<MetroCommandBarLayer>
   }
 
   void _syncMotion({bool commitReducedMotion = false}) {
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     _controller.duration = reduceMotion
         ? Duration.zero
         : MetroTheme.of(context).motion.entrance;
@@ -277,12 +278,6 @@ class _MetroCommandBarLayerState extends State<MetroCommandBarLayer>
         ),
       ),
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final media = MediaQuery.maybeOf(context);
-    return media?.disableAnimations == true ||
-        media?.accessibleNavigation == true;
   }
 
   @override

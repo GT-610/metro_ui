@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../foundation/state_property.dart';
 import '../../theme/metro_theme.dart';
@@ -215,7 +216,7 @@ class MetroToggleSwitch extends StatelessWidget {
         );
         final borderWidth =
             effectiveStyle.borderWidth?.resolve(effectiveStates) ?? 2;
-        final reduceMotion = _reduceMotion(context);
+        final reduceMotion = metroReduceMotion(context);
 
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -322,11 +323,5 @@ class MetroToggleSwitch extends StatelessWidget {
       trackSize: const Size(50, 19),
       thumbSize: 12,
     );
-  }
-
-  static bool _reduceMotion(BuildContext context) {
-    final mediaQuery = MediaQuery.maybeOf(context);
-    return mediaQuery?.disableAnimations == true ||
-        mediaQuery?.accessibleNavigation == true;
   }
 }

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_theme.dart';
 import 'metro_progress_ring_theme.dart';
@@ -68,8 +69,8 @@ class _MetroProgressRingState extends State<MetroProgressRing>
     final shouldAnimate =
         widget.value == null &&
         widget.active &&
-        _tickerModeEnabled(context) &&
-        !_reduceMotion(context);
+        metroTickerModeEnabled(context) &&
+        !metroReduceMotion(context);
     if (shouldAnimate && !_controller.isAnimating) {
       _controller.repeat();
     } else if (!shouldAnimate && _controller.isAnimating) {
@@ -129,18 +130,6 @@ class _MetroProgressRingState extends State<MetroProgressRing>
     );
   }
 
-  static bool _reduceMotion(BuildContext context) {
-    final mediaQuery = MediaQuery.maybeOf(context);
-    return mediaQuery?.disableAnimations == true ||
-        mediaQuery?.accessibleNavigation == true;
-  }
-
-  static bool _tickerModeEnabled(BuildContext context) {
-    // TickerMode.valuesOf is unavailable on the minimum Flutter version.
-    // ignore: deprecated_member_use
-    return TickerMode.of(context);
-  }
-
   MetroProgressRingThemeData _progressTheme(BuildContext context) {
     return MetroTheme.of(
       context,
@@ -173,30 +162,18 @@ class _MetroProgressRingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final radius = math.max(0, size.shortestSide / 2 - strokeWidth).toDouble();
+    final paint = Paint();
     if (value != null) {
       final rect = Rect.fromCircle(center: center, radius: radius);
-      canvas
-        ..drawArc(
-          rect,
-          -math.pi / 2,
-          math.pi * 2,
-          false,
-          Paint()
-            ..color = trackColor
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = strokeWidth,
-        )
-        ..drawArc(
-          rect,
-          -math.pi / 2,
-          math.pi * 2 * value!,
-          false,
-          Paint()
-            ..color = color
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.square
-            ..strokeWidth = strokeWidth,
-        );
+      paint
+        ..color = trackColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth;
+      canvas.drawArc(rect, -math.pi / 2, math.pi * 2, false, paint);
+      paint
+        ..color = color
+        ..strokeCap = StrokeCap.square;
+      canvas.drawArc(rect, -math.pi / 2, math.pi * 2 * value!, false, paint);
       return;
     }
     if (!active) {
@@ -217,11 +194,8 @@ class _MetroProgressRingPainter extends CustomPainter {
           : 1.0;
       final position =
           center + Offset(math.cos(angle), math.sin(angle)) * radius;
-      canvas.drawCircle(
-        position,
-        dotRadius,
-        Paint()..color = color.withValues(alpha: opacity),
-      );
+      paint.color = color.withValues(alpha: opacity);
+      canvas.drawCircle(position, dotRadius, paint);
     }
   }
 

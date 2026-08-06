@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -673,7 +674,7 @@ class _MetroNumberSpinButtonState extends State<_MetroNumberSpinButton> {
     final background = widget.backgroundColor.resolve(states);
     final foreground = widget.foregroundColor.resolve(states);
     Widget child = AnimatedContainer(
-      duration: _reduceMotion(context)
+      duration: metroReduceMotion(context)
           ? Duration.zero
           : MetroTheme.of(context).motion.fast,
       width: widget.extent,
@@ -754,10 +755,4 @@ class _MetroNumberGlyphPainter extends CustomPainter {
         iconSize != oldDelegate.iconSize ||
         increment != oldDelegate.increment;
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final media = MediaQuery.maybeOf(context);
-  return media?.disableAnimations == true ||
-      media?.accessibleNavigation == true;
 }

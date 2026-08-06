@@ -124,7 +124,7 @@ class MetroSemanticZoomStyle {
         second.buttonBottomInset,
         t,
       ),
-      buttonShowDuration: _lerpDuration(
+      buttonShowDuration: lerpDuration(
         first.buttonShowDuration,
         second.buttonShowDuration,
         t,
@@ -136,18 +136,6 @@ class MetroSemanticZoomStyle {
       ),
     );
   }
-}
-
-Duration? _lerpDuration(Duration? a, Duration? b, double t) {
-  if (a == null && b == null) return null;
-  final first = a ?? b!;
-  final second = b ?? a!;
-  return Duration(
-    microseconds:
-        (first.inMicroseconds +
-                (second.inMicroseconds - first.inMicroseconds) * t)
-            .round(),
-  );
 }
 
 /// Application-level styling for Metro semantic zoom controls.

@@ -279,6 +279,43 @@ void main() {
     expect(find.text('Count 1'), findsOneWidget);
   });
 
+  testWidgets('uncontrolled Pivot clamps selection when items shrink', (
+    tester,
+  ) async {
+    var itemCount = 3;
+    late StateSetter setOwnerState;
+    const items = <MetroPivotItem>[
+      MetroPivotItem(header: Text('FIRST'), child: Text('First content')),
+      MetroPivotItem(header: Text('SECOND'), child: Text('Second content')),
+      MetroPivotItem(header: Text('THIRD'), child: Text('Third content')),
+    ];
+    await tester.pumpWidget(
+      metroTestApp(
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            setOwnerState = setState;
+            return SizedBox(
+              width: 500,
+              height: 300,
+              child: MetroPivot(
+                initialIndex: itemCount > 2 ? 2 : 0,
+                items: items.take(itemCount).toList(growable: false),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    expect(find.text('Third content'), findsOneWidget);
+
+    setOwnerState(() => itemCount = 1);
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('First content'), findsOneWidget);
+  });
+
   testWidgets('pivot headers expose button and selected semantics', (
     tester,
   ) async {

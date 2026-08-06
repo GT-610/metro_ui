@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../theme/metro_theme.dart';
 import 'metro_tooltip_theme.dart';
 
@@ -123,7 +124,7 @@ class _MetroTooltipState extends State<MetroTooltip>
       return;
     }
     final epoch = ++_visibilityEpoch;
-    final reduceMotion = _reduceMotion(context);
+    final reduceMotion = metroReduceMotion(context);
     final motion = MetroTheme.of(context).motion;
     _hideOnDismiss = false;
     _opacityController.duration = motion.fadeIn;
@@ -166,7 +167,9 @@ class _MetroTooltipState extends State<MetroTooltip>
     if (!_controller.isShowing) {
       return;
     }
-    if (immediate || _reduceMotion(context) || _opacityController.value == 0) {
+    if (immediate ||
+        metroReduceMotion(context) ||
+        _opacityController.value == 0) {
       _hideOnDismiss = false;
       _opacityController.value = 0;
       _controller.hide();
@@ -406,9 +409,3 @@ class _MetroTooltipLayoutDelegate extends SingleChildLayoutDelegate {
 }
 
 enum _MetroTooltipTrigger { mouse, keyboard, touch }
-
-bool _reduceMotion(BuildContext context) {
-  final mediaQuery = MediaQuery.maybeOf(context);
-  return mediaQuery?.disableAnimations == true ||
-      mediaQuery?.accessibleNavigation == true;
-}
