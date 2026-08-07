@@ -132,10 +132,10 @@ class MetroListTile extends StatelessWidget {
               ),
               if (borderWidth > 0 && borderColor.a > 0)
                 Positioned(
-                  top: -borderWidth,
-                  right: -borderWidth,
-                  bottom: -borderWidth,
-                  left: -borderWidth,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
                   child: IgnorePointer(
                     child: DecoratedBox(
                       key: const ValueKey<String>('metro-list-tile-outline'),

@@ -136,7 +136,7 @@ void main() {
     expect(index, 1);
   });
 
-  testWidgets('programmatic content uses distinct WinJS in and out curves', (
+  testWidgets('programmatic content exits before its symmetric entrance', (
     tester,
   ) async {
     const motion = MetroMotion();
@@ -148,24 +148,43 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 175));
 
-    final outgoing = tester.widget<Transform>(
+    Transform outgoing() => tester.widget<Transform>(
       find.byKey(const ValueKey<String>('metro-pivot-page-0-transform')),
     );
-    final incoming = tester.widget<Transform>(
+    Transform incoming() => tester.widget<Transform>(
       find.byKey(const ValueKey<String>('metro-pivot-page-1-transform')),
     );
-    expect(
-      outgoing.transform.getTranslation().x,
-      closeTo(-500 * motion.contentExitCurve.transform(0.5), 0.5),
+    Opacity outgoingFade() => tester.widget<Opacity>(
+      find.byKey(const ValueKey<String>('metro-pivot-page-0-opacity')),
     );
-    expect(
-      incoming.transform.getTranslation().x,
-      closeTo(500 * (1 - motion.contentCurve.transform(0.5)), 0.5),
+    Opacity incomingFade() => tester.widget<Opacity>(
+      find.byKey(const ValueKey<String>('metro-pivot-page-1-opacity')),
     );
+    final exitMidpoint = motion.contentExitCurve.transform(0.5);
+    final entranceMidpoint = 1 - exitMidpoint;
+
     expect(
-      outgoing.transform.getTranslation().x.abs(),
-      lessThan(500 - incoming.transform.getTranslation().x),
+      outgoing().transform.getTranslation().x,
+      closeTo(-500 * exitMidpoint, 0.5),
     );
+    expect(incoming().transform.getTranslation().x, 500);
+    expect(outgoingFade().opacity, closeTo(entranceMidpoint, 0.001));
+    expect(incomingFade().opacity, 0);
+
+    await tester.pump(const Duration(milliseconds: 175));
+    expect(outgoing().transform.getTranslation().x, closeTo(-500, 0.01));
+    expect(incoming().transform.getTranslation().x, 500);
+    expect(outgoingFade().opacity, 0);
+    expect(incomingFade().opacity, 0);
+
+    await tester.pump(const Duration(milliseconds: 175));
+    expect(outgoing().transform.getTranslation().x, closeTo(-500, 0.01));
+    expect(
+      incoming().transform.getTranslation().x,
+      closeTo(500 * exitMidpoint, 0.5),
+    );
+    expect(outgoingFade().opacity, 0);
+    expect(incomingFade().opacity, closeTo(entranceMidpoint, 0.001));
 
     await tester.pumpAndSettle();
     expect(find.text('Favorite content'), findsOneWidget);
@@ -208,10 +227,7 @@ void main() {
       outgoing.transform.getTranslation().x,
       closeTo(500 * motion.contentExitCurve.transform(0.5), 0.5),
     );
-    expect(
-      incoming.transform.getTranslation().x,
-      closeTo(-500 * (1 - motion.contentCurve.transform(0.5)), 0.5),
-    );
+    expect(incoming.transform.getTranslation().x, -500);
   });
 
   testWidgets('Pivot honors reduced motion', (tester) async {

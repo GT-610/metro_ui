@@ -611,7 +611,7 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
             item: item,
             highlighted: index == _highlightedIndex,
             style: style,
-            motionDuration: reduceMotion ? Duration.zero : theme.motion.fast,
+            motionDuration: Duration.zero,
             motionCurve: theme.motion.standardCurve,
             onHighlighted: item.enabled
                 ? () => _setHighlightedIndex(index)

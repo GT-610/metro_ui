@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -325,6 +326,83 @@ void main() {
       ),
     );
     expect(popupAnimation.duration, Duration.zero);
+    controller.dispose();
+  });
+
+  testWidgets('suggestion hover moves immediately above the popup surface', (
+    tester,
+  ) async {
+    const hoverColor = Color(0xFFABCDEF);
+    final controller = TextEditingController();
+    await tester.pumpWidget(
+      _searchTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 280,
+            child: MetroSearchBox<String>(
+              controller: controller,
+              style: MetroSearchBoxStyle(
+                itemBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                  return states.contains(WidgetState.hovered)
+                      ? hoverColor
+                      : const Color(0xFFFFFFFF);
+                }),
+              ),
+              items: _cityItems,
+              filter: (_, _) => true,
+              onChanged: (_, _) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(EditableText), 'a');
+    await tester.pumpAndSettle();
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer();
+    await mouse.moveTo(
+      tester.getCenter(find.byKey(const ValueKey<String>('london'))),
+    );
+    await tester.pumpAndSettle();
+
+    final hoveredItem = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey<String>('london')),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    expect((hoveredItem.decoration! as BoxDecoration).color, hoverColor);
+    expect(hoveredItem.duration, Duration.zero);
+
+    await mouse.moveTo(
+      tester.getCenter(find.byKey(const ValueKey<String>('seattle'))),
+    );
+    await tester.pump();
+    final previousItem = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey<String>('london')),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    final nextItem = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey<String>('seattle')),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    expect(
+      (previousItem.decoration! as BoxDecoration).color,
+      const Color(0xFFFFFFFF),
+    );
+    expect((nextItem.decoration! as BoxDecoration).color, hoverColor);
+    expect(nextItem.duration, Duration.zero);
     controller.dispose();
   });
 
