@@ -638,7 +638,11 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
                 return Opacity(
                   opacity: opacity,
                   child: Transform.translate(
-                    offset: Offset(0, 50 * (1 - movementProgress)),
+                    key: const ValueKey<String>('metro-combo-box-menu-motion'),
+                    offset: Offset(
+                      0,
+                      (opensAbove ? 50 : -50) * (1 - movementProgress),
+                    ),
                     child: child,
                   ),
                 );
@@ -646,9 +650,10 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
               child: Semantics(
                 container: true,
                 explicitChildNodes: true,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: style.menuBackgroundColor,
+                child: Container(
+                  key: const ValueKey<String>('metro-combo-box-menu-surface'),
+                  color: style.menuBackgroundColor,
+                  foregroundDecoration: BoxDecoration(
                     border: Border.all(
                       color: style.menuBorderColor ?? const Color(0x00000000),
                       width: borderWidth,
@@ -668,9 +673,7 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
                         selected: index == selectedIndex,
                         highlighted: index == _highlightedIndex,
                         style: style,
-                        motionDuration: reduceMotion
-                            ? Duration.zero
-                            : theme.motion.fast,
+                        motionDuration: Duration.zero,
                         motionCurve: theme.motion.standardCurve,
                         onHighlighted: item.enabled
                             ? () {

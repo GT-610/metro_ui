@@ -141,6 +141,8 @@ class _MetroPivotState extends State<MetroPivot>
   late int _index = widget.index ?? widget.initialIndex;
   late int _displayedIndex = _index;
   late final AnimationController _contentController;
+  Animation<double>? _outgoingProgressAnimation;
+  Animation<double>? _incomingProgressAnimation;
   Animation<double>? _outgoingOffsetAnimation;
   Animation<double>? _incomingOffsetAnimation;
   Animation<double>? _dragOffsetAnimation;
@@ -226,27 +228,23 @@ class _MetroPivotState extends State<MetroPivot>
     _commitAnimation = true;
     _dragOffset = 0;
     _incomingIndex = index;
-    _contentController.duration = motion.content;
-    _outgoingOffsetAnimation =
-        Tween<double>(
-          begin: 0,
-          end: -_physicalForwardSign * _transitionDirection * _viewportWidth,
-        ).animate(
-          CurvedAnimation(
-            parent: _contentController,
-            curve: motion.contentExitCurve,
-          ),
-        );
-    _incomingOffsetAnimation =
-        Tween<double>(
-          begin: _physicalForwardSign * _transitionDirection * _viewportWidth,
-          end: 0,
-        ).animate(
-          CurvedAnimation(
-            parent: _contentController,
-            curve: motion.contentCurve,
-          ),
-        );
+    _contentController.duration = motion.content * 2;
+    _outgoingProgressAnimation = CurvedAnimation(
+      parent: _contentController,
+      curve: Interval(0, 0.5, curve: motion.contentExitCurve),
+    );
+    _incomingProgressAnimation = CurvedAnimation(
+      parent: _contentController,
+      curve: Interval(0.5, 1, curve: motion.contentExitCurve.flipped),
+    );
+    _outgoingOffsetAnimation = Tween<double>(
+      begin: 0,
+      end: -_physicalForwardSign * _transitionDirection * _viewportWidth,
+    ).animate(_outgoingProgressAnimation!);
+    _incomingOffsetAnimation = Tween<double>(
+      begin: _physicalForwardSign * _transitionDirection * _viewportWidth,
+      end: 0,
+    ).animate(_incomingProgressAnimation!);
     _dragOffsetAnimation = null;
     setState(() {});
     _contentController.forward(from: 0);
@@ -266,6 +264,8 @@ class _MetroPivotState extends State<MetroPivot>
     if (status != AnimationStatus.completed || !mounted) return;
     final target = _incomingIndex;
     final commit = _commitAnimation && target != null;
+    _outgoingProgressAnimation = null;
+    _incomingProgressAnimation = null;
     _outgoingOffsetAnimation = null;
     _incomingOffsetAnimation = null;
     _dragOffsetAnimation = null;
@@ -298,6 +298,8 @@ class _MetroPivotState extends State<MetroPivot>
 
   void _cancelAnimation({bool resetController = true}) {
     _contentController.stop();
+    _outgoingProgressAnimation = null;
+    _incomingProgressAnimation = null;
     _outgoingOffsetAnimation = null;
     _incomingOffsetAnimation = null;
     _dragOffsetAnimation = null;
@@ -394,6 +396,8 @@ class _MetroPivotState extends State<MetroPivot>
     _programmaticTransition = false;
     _commitAnimation = commit;
     _contentController.duration = motion.normal;
+    _outgoingProgressAnimation = null;
+    _incomingProgressAnimation = null;
     _outgoingOffsetAnimation = null;
     _incomingOffsetAnimation = null;
     _dragOffsetAnimation = Tween<double>(begin: _dragOffset, end: end).animate(
@@ -516,6 +520,16 @@ class _MetroPivotState extends State<MetroPivot>
                                 _transitionDirection *
                                 _viewportWidth +
                             _dragOffset;
+                  final outgoingOpacity = _programmaticTransition
+                      ? (1 - (_outgoingProgressAnimation?.value ?? 0))
+                            .clamp(0.0, 1.0)
+                            .toDouble()
+                      : 1.0;
+                  final incomingOpacity = _programmaticTransition
+                      ? (_incomingProgressAnimation?.value ?? 0)
+                            .clamp(0.0, 1.0)
+                            .toDouble()
+                      : 1.0;
                   final hidden = <int>[
                     for (var index = 0; index < widget.items.length; index += 1)
                       if (index != _displayedIndex && index != incomingIndex)
@@ -545,19 +559,27 @@ class _MetroPivotState extends State<MetroPivot>
                                   ignoring:
                                       _incomingIndex != null ||
                                       index != _displayedIndex,
-                                  child: Transform.translate(
+                                  child: Opacity(
                                     key: ValueKey<String>(
-                                      'metro-pivot-page-$index-transform',
+                                      'metro-pivot-page-$index-opacity',
                                     ),
-                                    offset: Offset(
-                                      index == _displayedIndex
-                                          ? outgoingOffset
-                                          : incomingOffset,
-                                      0,
-                                    ),
-                                    child: Padding(
-                                      padding: contentPadding,
-                                      child: widget.items[index].child,
+                                    opacity: index == _displayedIndex
+                                        ? outgoingOpacity
+                                        : incomingOpacity,
+                                    child: Transform.translate(
+                                      key: ValueKey<String>(
+                                        'metro-pivot-page-$index-transform',
+                                      ),
+                                      offset: Offset(
+                                        index == _displayedIndex
+                                            ? outgoingOffset
+                                            : incomingOffset,
+                                        0,
+                                      ),
+                                      child: Padding(
+                                        padding: contentPadding,
+                                        child: widget.items[index].child,
+                                      ),
                                     ),
                                   ),
                                 ),

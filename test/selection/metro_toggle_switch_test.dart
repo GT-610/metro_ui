@@ -95,6 +95,7 @@ void main() {
       const Size(50, 19),
     );
     expect(track.duration, const Duration(milliseconds: 100));
+    expect(thumb.curve, MetroThemeData.light().motion.standardCurve);
     expect(thumb.width, 12);
     expect(thumb.height, 19);
     expect(thumb.start, 38);

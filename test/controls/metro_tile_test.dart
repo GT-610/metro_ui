@@ -120,6 +120,8 @@ void main() {
       find.descendant(of: tile, matching: find.byType(AnimatedContainer)),
     );
     expect(container.transform, isNot(Matrix4.identity()));
+    expect(container.transform!.storage[2], lessThan(0));
+    expect(container.transform!.storage[6], lessThan(0));
 
     await gesture.up();
     await tester.pump(const Duration(milliseconds: 120));

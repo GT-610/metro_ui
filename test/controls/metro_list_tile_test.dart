@@ -211,6 +211,43 @@ void main() {
     expect(border.top, border.left);
   });
 
+  testWidgets('outline stays visible between adjacent list tiles', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 320,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                MetroListTile(
+                  key: const ValueKey<String>('first-list-tile'),
+                  style: const MetroListTileStyle(
+                    borderColor: WidgetStatePropertyAll(Color(0xFF000000)),
+                    borderWidth: WidgetStatePropertyAll(2),
+                  ),
+                  title: const Text('Documents'),
+                  onPressed: () {},
+                ),
+                MetroListTile(title: const Text('Pictures'), onPressed: () {}),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final firstTile = find.byKey(const ValueKey<String>('first-list-tile'));
+    final firstSurface = find.descendant(of: firstTile, matching: surface);
+    final firstOutline = find.descendant(of: firstTile, matching: outline);
+    expect(firstSurface, findsOneWidget);
+    expect(firstOutline, findsOneWidget);
+    expect(tester.getRect(firstOutline), tester.getRect(firstSurface));
+  });
+
   testWidgets(
     'filled selection uses accent, white content, and a top-end mark',
     (tester) async {

@@ -244,6 +244,7 @@ class MetroToggleSwitch extends StatelessWidget {
                   ),
                   AnimatedPositionedDirectional(
                     duration: reduceMotion ? Duration.zero : theme.motion.fast,
+                    curve: theme.motion.standardCurve,
                     start: value ? trackSize.width - thumbSize : 0,
                     top: 0,
                     width: thumbSize,

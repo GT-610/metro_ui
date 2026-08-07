@@ -124,9 +124,10 @@ void main() {
     expect(backgrounds.first.color, customColor);
   });
 
-  testWidgets('flyout exits along its edge for the full 550ms recipe', (
+  testWidgets('flyout entrance and exit share the same ease-out progress', (
     tester,
   ) async {
+    const motion = MetroMotion();
     await tester.pumpWidget(
       _overlayTestApp(
         child: Builder(
@@ -154,13 +155,27 @@ void main() {
     );
 
     await tester.tap(find.text('OPEN'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 275));
+    final entrancePanel = tester.getRect(find.byType(MetroFlyout));
+    final entranceDistance = 800 - entrancePanel.left;
+    expect(
+      entranceDistance,
+      closeTo(346 * motion.standardCurve.transform(0.5), 0.5),
+    );
+
     await tester.pumpAndSettle();
     await tester.tap(find.text('CLOSE'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 275));
 
     final panel = tester.getRect(find.byType(MetroFlyout));
-    expect(panel.left, greaterThan(800 - panel.width));
+    final exitDistance = panel.left - (800 - panel.width);
+    expect(
+      exitDistance,
+      closeTo(346 * motion.standardCurve.transform(0.5), 0.5),
+    );
+    expect(exitDistance, closeTo(entranceDistance, 0.01));
     expect(panel.right, greaterThan(800));
     expect(find.text('Timed flyout'), findsOneWidget);
 

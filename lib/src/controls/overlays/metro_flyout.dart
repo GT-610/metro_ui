@@ -58,7 +58,7 @@ Future<T?> showMetroFlyout<T extends Object?>({
       final curved = CurvedAnimation(
         parent: animation,
         curve: theme.motion.standardCurve,
-        reverseCurve: theme.motion.standardCurve,
+        reverseCurve: theme.motion.standardCurve.flipped,
       );
       final panel = SlideTransition(
         key: const ValueKey<String>('metro-flyout-slide'),

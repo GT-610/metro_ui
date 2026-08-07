@@ -167,8 +167,8 @@ class _MetroTileState extends State<MetroTile> {
     final y = ((_pressPosition.dy / height) - 0.5).clamp(-0.5, 0.5) * 2;
     final transform = Matrix4.identity()
       ..setEntry(3, 2, 0.0015)
-      ..rotateX(-y * 0.035)
-      ..rotateY(x * 0.035);
+      ..rotateX(y * 0.035)
+      ..rotateY(-x * 0.035);
     final storage = transform.storage;
     for (var index = 0; index < 4; index++) {
       storage[index] *= 0.975;

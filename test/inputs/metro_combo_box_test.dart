@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -192,11 +193,129 @@ void main() {
 
     final target = tester.getRect(find.byType(MetroComboBox<int>));
     await tester.tap(find.byType(MetroComboBox<int>));
+    await tester.pump();
+
+    final initialMotion = tester.widget<Transform>(
+      find.byKey(const ValueKey<String>('metro-combo-box-menu-motion')),
+    );
+    expect(initialMotion.transform.getTranslation().y, greaterThan(0));
     await tester.pumpAndSettle();
 
     final popup = tester.getRect(find.byType(Scrollable));
     expect(popup.height, lessThanOrEqualTo(110));
     expect(popup.bottom, lessThan(target.top));
+  });
+
+  testWidgets('popup below enters downward from the combo box', (tester) async {
+    await tester.pumpWidget(
+      _comboTestApp(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: 180,
+            child: MetroComboBox<String>(
+              items: _stringItems,
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(MetroComboBox<String>));
+    await tester.pump();
+
+    final initialMotion = tester.widget<Transform>(
+      find.byKey(const ValueKey<String>('metro-combo-box-menu-motion')),
+    );
+    expect(initialMotion.transform.getTranslation().y, lessThan(0));
+  });
+
+  testWidgets('menu hover moves immediately above the persistent border', (
+    tester,
+  ) async {
+    const borderColor = Color(0xFF123456);
+    const hoverColor = Color(0xFFABCDEF);
+    await tester.pumpWidget(
+      _comboTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 220,
+            child: MetroComboBox<String>(
+              style: MetroComboBoxStyle(
+                menuBorderColor: borderColor,
+                menuBorderWidth: 3,
+                itemBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                  return states.contains(WidgetState.hovered)
+                      ? hoverColor
+                      : const Color(0xFFFFFFFF);
+                }),
+              ),
+              items: _stringItems,
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(MetroComboBox<String>));
+    await tester.pumpAndSettle();
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer();
+    await mouse.moveTo(
+      tester.getCenter(find.byKey(const ValueKey<String>('london'))),
+    );
+    await tester.pumpAndSettle();
+
+    final hoveredItem = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey<String>('london')),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    expect((hoveredItem.decoration! as BoxDecoration).color, hoverColor);
+    expect(hoveredItem.duration, Duration.zero);
+
+    await mouse.moveTo(
+      tester.getCenter(find.byKey(const ValueKey<String>('seattle'))),
+    );
+    await tester.pump();
+    final previousItem = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey<String>('london')),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    final nextItem = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey<String>('seattle')),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    expect(
+      (previousItem.decoration! as BoxDecoration).color,
+      const Color(0xFFFFFFFF),
+    );
+    expect((nextItem.decoration! as BoxDecoration).color, hoverColor);
+    expect(nextItem.duration, Duration.zero);
+
+    final menuSurface = tester.widget<Container>(
+      find.byKey(const ValueKey<String>('metro-combo-box-menu-surface')),
+    );
+    final foreground = menuSurface.foregroundDecoration! as BoxDecoration;
+    final border = foreground.border! as Border;
+    expect(border.left.color, borderColor);
+    expect(border.left.width, 3);
+    expect(border.left, border.top);
+    expect(border.left, border.right);
+    expect(border.left, border.bottom);
   });
 
   testWidgets('wider popup aligns to the logical start edge in RTL', (
