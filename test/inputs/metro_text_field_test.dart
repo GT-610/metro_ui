@@ -91,10 +91,10 @@ void main() {
       ),
     );
 
-    final container = tester.widget<AnimatedContainer>(
+    final container = tester.widget<Container>(
       find.descendant(
         of: find.byType(MetroTextField),
-        matching: find.byType(AnimatedContainer),
+        matching: find.byType(Container),
       ),
     );
     final editable = tester.widget<EditableText>(find.byType(EditableText));
@@ -102,7 +102,6 @@ void main() {
     expect(decoration.color, const Color(0xCCFFFFFF));
     expect(decoration.border!.top.color, const Color(0x00000000));
     expect(editable.style.color, const Color(0xFF000000));
-    expect(container.duration, Duration.zero);
   });
 
   testWidgets('validation feedback colors the field and updates semantics', (
@@ -126,10 +125,10 @@ void main() {
       ),
     );
 
-    final container = tester.widget<AnimatedContainer>(
+    final container = tester.widget<Container>(
       find.descendant(
         of: find.byType(MetroTextField),
-        matching: find.byType(AnimatedContainer),
+        matching: find.byType(Container),
       ),
     );
     final decoration = container.decoration! as BoxDecoration;
@@ -181,19 +180,19 @@ void main() {
       ),
     );
 
-    final localContainer = tester.widget<AnimatedContainer>(
+    final localContainer = tester.widget<Container>(
       find.descendant(
         of: find.byKey(const Key('local')),
-        matching: find.byType(AnimatedContainer),
+        matching: find.byType(Container),
       ),
     );
     final localDecoration = localContainer.decoration! as BoxDecoration;
     expect(localDecoration.border!.top.color, localColor);
 
-    final widgetContainer = tester.widget<AnimatedContainer>(
+    final widgetContainer = tester.widget<Container>(
       find.descendant(
         of: find.byKey(const Key('widget')),
-        matching: find.byType(AnimatedContainer),
+        matching: find.byType(Container),
       ),
     );
     final widgetDecoration = widgetContainer.decoration! as BoxDecoration;

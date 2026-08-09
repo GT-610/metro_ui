@@ -270,9 +270,7 @@ class _MetroTextFieldState extends State<MetroTextField> {
       cursor: widget.enabled && !widget.readOnly
           ? SystemMouseCursors.text
           : SystemMouseCursors.basic,
-      child: AnimatedContainer(
-        duration: Duration.zero,
-        curve: theme.motion.standardCurve,
+      child: Container(
         padding:
             effectiveStyle.padding ??
             const EdgeInsets.symmetric(

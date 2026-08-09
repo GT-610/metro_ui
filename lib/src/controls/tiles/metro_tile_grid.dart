@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../../theme/metro_theme.dart';
@@ -14,7 +16,14 @@ class MetroTileGrid extends StatelessWidget {
     this.padding = EdgeInsets.zero,
     this.alignment = WrapAlignment.start,
     super.key,
-  });
+  }) : assert(
+         tileExtent == null || (tileExtent > 0 && tileExtent < double.infinity),
+       ),
+       assert(spacing == null || (spacing >= 0 && spacing < double.infinity)),
+       assert(
+         runSpacing == null ||
+             (runSpacing >= 0 && runSpacing < double.infinity),
+       );
 
   final List<Widget> children;
   final double? tileExtent;
@@ -34,7 +43,7 @@ class MetroTileGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = constraints.hasBoundedWidth
-            ? constraints.maxWidth - padding.horizontal
+            ? math.max(0.0, constraints.maxWidth - padding.horizontal)
             : null;
         return Padding(
           padding: padding,

@@ -18,7 +18,11 @@ class MetroTooltipThemeData {
     this.mouseOffset,
     this.keyboardOffset,
     this.touchOffset,
-  });
+  }) : assert(
+         borderWidth == null ||
+             (borderWidth >= 0 && borderWidth < double.infinity),
+       ),
+       assert(maxWidth == null || (maxWidth > 0 && maxWidth < double.infinity));
 
   final Color? backgroundColor;
   final Color? borderColor;

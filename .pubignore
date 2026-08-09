@@ -7,5 +7,6 @@ dart_test.yaml
 build/
 coverage/
 doc/api/
+test/goldens/failures/
 example/.dart_tool/
 example/build/

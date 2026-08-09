@@ -75,15 +75,14 @@ void main() {
       tester.getCenter(find.byType(MetroButton)),
     );
     await tester.pump();
-    final container = tester.widget<AnimatedContainer>(
+    final container = tester.widget<Container>(
       find.descendant(
         of: find.byType(MetroButton),
-        matching: find.byType(AnimatedContainer),
+        matching: find.byType(Container),
       ),
     );
     final decoration = container.decoration! as BoxDecoration;
     expect(decoration.color, const Color(0xFF000000));
-    expect(container.duration, Duration.zero);
     await gesture.up();
   });
 
@@ -119,10 +118,10 @@ void main() {
       ),
     );
 
-    final container = tester.widget<AnimatedContainer>(
+    final container = tester.widget<Container>(
       find.descendant(
         of: find.byType(MetroButton),
-        matching: find.byType(AnimatedContainer),
+        matching: find.byType(Container),
       ),
     );
     final decoration = container.decoration! as BoxDecoration;

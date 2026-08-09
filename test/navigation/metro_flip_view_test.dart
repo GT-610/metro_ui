@@ -243,7 +243,7 @@ void main() {
     expect(decoration.border!.top.width, 2);
   });
 
-  testWidgets('automatic navigation visibility fades linearly over 167ms', (
+  testWidgets('automatic navigation visibility uses standard easing', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -277,7 +277,10 @@ void main() {
     expect(opacity(), 0);
 
     await tester.pump(const Duration(milliseconds: 83));
-    expect(opacity(), closeTo(83 / 167, 0.01));
+    expect(
+      opacity(),
+      closeTo(const MetroMotion().standardCurve.transform(83 / 167), 0.01),
+    );
     await tester.pump(const Duration(milliseconds: 84));
     expect(opacity(), 1);
   });
@@ -307,7 +310,12 @@ void main() {
     expect(opacityOf(currentTransform()), 1);
     expect(opacityOf(incomingTransform()), 0);
 
-    await tester.pump(const Duration(milliseconds: 167));
+    await tester.pump(const Duration(milliseconds: 83));
+    expect(
+      opacityOf(currentTransform()),
+      closeTo(1 - const MetroMotion().standardCurve.transform(83 / 167), 0.01),
+    );
+    await tester.pump(const Duration(milliseconds: 84));
     expect(currentTransform().transform.getTranslation().x, 0);
     expect(opacityOf(currentTransform()), closeTo(0, 0.001));
     expect(

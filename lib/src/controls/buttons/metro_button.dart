@@ -86,13 +86,11 @@ class MetroButton extends StatelessWidget {
         final textStyle = effectiveStyle.textStyle?.resolve(states);
         final focused = states.contains(WidgetState.focused);
 
-        Widget button = AnimatedContainer(
+        Widget button = Container(
           constraints: BoxConstraints(
             minWidth: effectiveStyle.minimumSize?.width ?? 0,
             minHeight: effectiveStyle.minimumSize?.height ?? 0,
           ),
-          duration: Duration.zero,
-          curve: theme.motion.standardCurve,
           padding: effectiveStyle.padding,
           decoration: BoxDecoration(
             color: background,

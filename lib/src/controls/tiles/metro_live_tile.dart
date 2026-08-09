@@ -191,7 +191,7 @@ class _MetroLiveTileState extends State<MetroLiveTile> {
           duration: duration,
           reverseDuration: duration,
           switchInCurve: theme.motion.standardCurve,
-          switchOutCurve: theme.motion.standardCurve,
+          switchOutCurve: theme.motion.standardCurve.flipped,
           transitionBuilder: (child, animation) => _buildTransition(
             animation: animation,
             child: child,

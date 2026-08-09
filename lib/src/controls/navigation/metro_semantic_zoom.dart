@@ -208,7 +208,10 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
       return;
     }
     _controller
-        .animateTo(zoomedOut ? 1 : 0, curve: Curves.easeInOut)
+        .animateTo(
+          zoomedOut ? 1 : 0,
+          curve: MetroTheme.of(context).motion.standardCurve,
+        )
         .whenCompleteOrCancel(() {
           if (restoreFocus && mounted && zoomedOut == _effectiveZoomedOut) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -535,6 +538,7 @@ class _MetroSemanticZoomState extends State<MetroSemanticZoom>
             : visible
             ? theme.motion.fadeIn
             : theme.motion.normal,
+        curve: theme.motion.standardCurve,
         child: IgnorePointer(
           ignoring: !visible,
           child: ExcludeSemantics(

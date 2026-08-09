@@ -114,6 +114,9 @@ unlinked_spec.ds
 # Coverage
 coverage/
 
+# Golden test failure artifacts
+test/goldens/failures/
+
 # Symbols
 app.*.symbols
 

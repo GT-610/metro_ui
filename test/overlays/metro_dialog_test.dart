@@ -118,7 +118,7 @@ void main() {
     expect((box.decoration as BoxDecoration).color, customColor);
   });
 
-  testWidgets('dialog exits with the WinJS 83ms popup fade in place', (
+  testWidgets('dialog exits with an 83ms ease-out fade in place', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -159,7 +159,10 @@ void main() {
     final translation = tester.widget<Transform>(
       find.byKey(const ValueKey<String>('metro-dialog-transition-translation')),
     );
-    expect(opacity.opacity, closeTo(41 / 83, 0.02));
+    expect(
+      opacity.opacity,
+      closeTo(1 - const MetroMotion().standardCurve.transform(42 / 83), 0.02),
+    );
     expect(translation.transform.getTranslation().y, closeTo(0, 0.01));
     expect(find.text('Timed dismissal'), findsOneWidget);
 

@@ -66,6 +66,60 @@ void main() {
     );
   });
 
+  testWidgets('grid clamps tile width when padding exceeds its width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 40,
+            child: MetroTileGrid(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              children: [
+                MetroTile(
+                  style: const MetroTileStyle(padding: EdgeInsets.zero),
+                  onPressed: () {},
+                  child: const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(tester.getSize(find.byType(MetroTile)).width, 0);
+  });
+
+  test('tile and grid reject invalid geometry', () {
+    expect(
+      () => MetroTile(title: 'Invalid', width: 0, onPressed: () {}),
+      throwsAssertionError,
+    );
+    expect(
+      () => MetroTile(
+        title: 'Invalid',
+        height: double.infinity,
+        onPressed: () {},
+      ),
+      throwsAssertionError,
+    );
+    expect(
+      () => MetroTileGrid(tileExtent: double.nan, children: const []),
+      throwsAssertionError,
+    );
+    expect(
+      () => MetroTileGrid(spacing: -1, children: const []),
+      throwsAssertionError,
+    );
+    expect(
+      () => MetroTileGrid(runSpacing: double.infinity, children: const []),
+      throwsAssertionError,
+    );
+  });
+
   testWidgets('local tile theme supplies grid metrics and tile style', (
     tester,
   ) async {

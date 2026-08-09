@@ -151,6 +151,7 @@ class _MetroPickerWheelState extends State<MetroPickerWheel> {
                         duration: metroReduceMotion(context)
                             ? Duration.zero
                             : theme.motion.fast,
+                        curve: theme.motion.standardCurve,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Text(
                           widget.items[index],

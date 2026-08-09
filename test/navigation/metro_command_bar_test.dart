@@ -137,11 +137,8 @@ void main() {
       ),
     );
 
-    final containers = tester.widgetList<AnimatedContainer>(
-      find.descendant(
-        of: find.byType(MetroCommandBar),
-        matching: find.byType(AnimatedContainer),
-      ),
+    final containers = tester.widgetList<Container>(
+      find.byKey(const ValueKey<String>('metro-command-button-circle')),
     );
     final decorations = containers
         .map((container) => container.decoration! as BoxDecoration)
@@ -184,7 +181,10 @@ void main() {
 
     expect(changes, [true]);
     await tester.pump(const Duration(milliseconds: 183));
-    expect(_barTranslation(tester).dy, inExclusiveRange(0, 1));
+    expect(
+      _barTranslation(tester).dy,
+      closeTo(1 - const MetroMotion().standardCurve.transform(183 / 367), 0.01),
+    );
     await tester.pump(const Duration(milliseconds: 184));
     expect(_barTranslation(tester), Offset.zero);
     expect(find.byKey(const Key('bar')).hitTestable(), findsOneWidget);
@@ -193,7 +193,12 @@ void main() {
     await tester.pump();
     expect(changes, [true, false]);
     expect(contentTaps, 0);
-    await tester.pump(const Duration(milliseconds: 367));
+    await tester.pump(const Duration(milliseconds: 183));
+    expect(
+      _barTranslation(tester).dy,
+      closeTo(const MetroMotion().standardCurve.transform(183 / 367), 0.01),
+    );
+    await tester.pump(const Duration(milliseconds: 184));
     expect(_barTranslation(tester).dy, 1);
   });
 
