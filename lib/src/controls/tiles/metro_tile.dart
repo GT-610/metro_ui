@@ -37,7 +37,9 @@ class MetroTile extends StatefulWidget {
   }) : assert(
          icon != null || title != null || child != null,
          'A MetroTile needs an icon, title, or child.',
-       );
+       ),
+       assert(width == null || (width > 0 && width < double.infinity)),
+       assert(height == null || (height > 0 && height < double.infinity));
 
   final VoidCallback? onPressed;
   final MetroTileSize size;
@@ -163,6 +165,9 @@ class _MetroTileState extends State<MetroTile> {
   }
 
   Matrix4 _pressedTransform(double width, double height) {
+    if (!width.isFinite || !height.isFinite || width <= 0 || height <= 0) {
+      return Matrix4.identity();
+    }
     final x = ((_pressPosition.dx / width) - 0.5).clamp(-0.5, 0.5) * 2;
     final y = ((_pressPosition.dy / height) - 0.5).clamp(-0.5, 0.5) * 2;
     final transform = Matrix4.identity()

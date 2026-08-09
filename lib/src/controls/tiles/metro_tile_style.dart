@@ -118,8 +118,8 @@ class MetroTileStyle {
 @immutable
 class MetroTileThemeData {
   const MetroTileThemeData({this.style, double? extent, double? spacing})
-    : assert(extent == null || extent > 0),
-      assert(spacing == null || spacing >= 0),
+    : assert(extent == null || (extent > 0 && extent < double.infinity)),
+      assert(spacing == null || (spacing >= 0 && spacing < double.infinity)),
       _extent = extent,
       _spacing = spacing;
 
