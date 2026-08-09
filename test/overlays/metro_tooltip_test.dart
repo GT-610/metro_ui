@@ -22,6 +22,7 @@ void main() {
       throwsAssertionError,
     );
     expect(() => MetroTooltipThemeData(maxWidth: -1), throwsAssertionError);
+    expect(() => MetroTooltipThemeData(maxWidth: 0), throwsAssertionError);
   });
 
   testWidgets('default hover delay is 800ms', (tester) async {

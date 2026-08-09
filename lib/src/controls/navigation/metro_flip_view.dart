@@ -157,7 +157,10 @@ class _MetroFlipViewState extends State<MetroFlipView>
         controlledIndex != _displayedIndex &&
         controlledIndex != _incomingIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && widget.index == controlledIndex) {
+        if (mounted &&
+            widget.index == controlledIndex &&
+            controlledIndex != _displayedIndex &&
+            controlledIndex != _incomingIndex) {
           _startTransition(controlledIndex, notify: false);
         }
       });

@@ -22,9 +22,7 @@ class MetroTooltipThemeData {
          borderWidth == null ||
              (borderWidth >= 0 && borderWidth < double.infinity),
        ),
-       assert(
-         maxWidth == null || (maxWidth >= 0 && maxWidth < double.infinity),
-       );
+       assert(maxWidth == null || (maxWidth > 0 && maxWidth < double.infinity));
 
   final Color? backgroundColor;
   final Color? borderColor;
