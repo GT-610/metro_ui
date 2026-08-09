@@ -677,6 +677,7 @@ class _MetroNumberSpinButtonState extends State<_MetroNumberSpinButton> {
       duration: metroReduceMotion(context)
           ? Duration.zero
           : MetroTheme.of(context).motion.fast,
+      curve: MetroTheme.of(context).motion.standardCurve,
       width: widget.extent,
       height: widget.extent,
       color: background,

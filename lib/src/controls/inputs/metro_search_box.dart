@@ -611,8 +611,6 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
             item: item,
             highlighted: index == _highlightedIndex,
             style: style,
-            motionDuration: Duration.zero,
-            motionCurve: theme.motion.standardCurve,
             onHighlighted: item.enabled
                 ? () => _setHighlightedIndex(index)
                 : null,
@@ -652,10 +650,15 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
                 );
                 final opacity = fadeLength <= 0
                     ? 1.0
-                    : ((progress - fadeDelay) / fadeLength).clamp(0.0, 1.0);
+                    : theme.motion.standardCurve.transform(
+                        ((progress - fadeDelay) / fadeLength).clamp(0.0, 1.0),
+                      );
                 return Opacity(
                   opacity: opacity,
                   child: Transform.translate(
+                    key: const ValueKey<String>(
+                      'metro-search-box-popup-motion',
+                    ),
                     offset: Offset(0, 50 * (1 - movementProgress)),
                     child: child,
                   ),
@@ -862,6 +865,7 @@ class _MetroSearchActionButton extends StatelessWidget {
           duration: metroReduceMotion(context)
               ? Duration.zero
               : MetroTheme.of(context).motion.fast,
+          curve: MetroTheme.of(context).motion.standardCurve,
           width: extent,
           height: extent,
           color: backgroundColor.resolve(states),
@@ -939,8 +943,6 @@ class _MetroSearchSuggestionRow<T extends Object> extends StatefulWidget {
     required this.item,
     required this.highlighted,
     required this.style,
-    required this.motionDuration,
-    required this.motionCurve,
     required this.onHighlighted,
     required this.onSelected,
   });
@@ -948,8 +950,6 @@ class _MetroSearchSuggestionRow<T extends Object> extends StatefulWidget {
   final MetroSearchBoxItem<T> item;
   final bool highlighted;
   final MetroSearchBoxStyle style;
-  final Duration motionDuration;
-  final Curve motionCurve;
   final VoidCallback? onHighlighted;
   final VoidCallback? onSelected;
 
@@ -978,9 +978,7 @@ class _MetroSearchSuggestionRowState<T extends Object>
         .resolve(states)!
         .copyWith(color: foreground);
 
-    Widget child = AnimatedContainer(
-      duration: widget.motionDuration,
-      curve: widget.motionCurve,
+    Widget child = Container(
       color: background,
       padding: widget.style.itemPadding,
       alignment: AlignmentDirectional.centerStart,

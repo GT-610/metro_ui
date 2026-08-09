@@ -4,6 +4,26 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:metro_ui/metro_ui.dart';
 
 void main() {
+  test('tooltip values reject invalid geometry and timing', () {
+    expect(
+      () => MetroTooltip(
+        message: 'Invalid',
+        borderWidth: -1,
+        child: const SizedBox.shrink(),
+      ),
+      throwsAssertionError,
+    );
+    expect(
+      () => MetroTooltip(
+        message: 'Invalid',
+        maxWidth: double.infinity,
+        child: const SizedBox.shrink(),
+      ),
+      throwsAssertionError,
+    );
+    expect(() => MetroTooltipThemeData(maxWidth: -1), throwsAssertionError);
+  });
+
   testWidgets('default hover delay is 800ms', (tester) async {
     await tester.pumpWidget(
       _overlayTestApp(
@@ -117,7 +137,7 @@ void main() {
     expect(tooltipRect.bottom, closeTo(pointer.dy - 20, 0.01));
   });
 
-  testWidgets('tooltip fades in for 250ms and out for 167ms', (tester) async {
+  testWidgets('tooltip fades with the standard ease-out curve', (tester) async {
     await tester.pumpWidget(
       _overlayTestApp(
         child: const Center(
@@ -144,7 +164,10 @@ void main() {
 
     expect(opacity(), 0);
     await tester.pump(const Duration(milliseconds: 125));
-    expect(opacity(), closeTo(0.5, 0.01));
+    expect(
+      opacity(),
+      closeTo(const MetroMotion().standardCurve.transform(0.5), 0.01),
+    );
     await tester.pump(const Duration(milliseconds: 125));
     expect(opacity(), 1);
 
@@ -152,7 +175,10 @@ void main() {
     await tester.pump();
     expect(opacity(), 1);
     await tester.pump(const Duration(milliseconds: 83));
-    expect(opacity(), closeTo(84 / 167, 0.01));
+    expect(
+      opacity(),
+      closeTo(1 - const MetroMotion().standardCurve.transform(83 / 167), 0.01),
+    );
     await tester.pump(const Duration(milliseconds: 84));
     expect(opacity(), 0);
     await tester.pump(const Duration(milliseconds: 1));

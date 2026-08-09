@@ -83,3 +83,9 @@
 - Use system Segoe UI on Windows and bundle an Apache-licensed fallback font
   for reliable Web and non-Windows rendering.
 - Add a Windows/Web gallery, widget tests, documentation, and CI workflows.
+- Standardize non-Pivot fades and local state transitions on the shared Metro
+  ease-out curve, including interruption-safe CommandBar and Tooltip motion.
+- Prevent stale overlay and controlled-navigation callbacks from committing
+  superseded state, and harden tile and tooltip geometry at narrow boundaries.
+- Replace fixed zero-duration implicit animations with ordinary containers to
+  avoid unnecessary animation state and rebuild overhead.

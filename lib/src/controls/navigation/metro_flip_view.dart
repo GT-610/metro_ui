@@ -157,7 +157,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
         controlledIndex != _displayedIndex &&
         controlledIndex != _incomingIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
+        if (mounted && widget.index == controlledIndex) {
           _startTransition(controlledIndex, notify: false);
         }
       });
@@ -269,7 +269,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
         curve: _phaseCurve(
           motion.normal,
           motion.contentEntrance,
-          Curves.linear,
+          motion.standardCurve,
         ),
       ),
     );
@@ -746,15 +746,16 @@ class _MetroFlipViewState extends State<MetroFlipView>
 
   Widget _buildBanner(MetroFlipViewStyle style, bool reduceMotion) {
     final banner = widget.items[_displayedIndex].banner;
+    final motion = MetroTheme.of(context).motion;
     return PositionedDirectional(
       start: 0,
       end: 0,
       bottom: 0,
       child: IgnorePointer(
         child: AnimatedSwitcher(
-          duration: reduceMotion
-              ? Duration.zero
-              : MetroTheme.of(context).motion.normal,
+          duration: reduceMotion ? Duration.zero : motion.normal,
+          switchInCurve: motion.standardCurve,
+          switchOutCurve: motion.standardCurve.flipped,
           child: banner == null
               ? const SizedBox.shrink(key: ValueKey<String>('empty-banner'))
               : SizedBox(
@@ -800,6 +801,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
                   duration: metroReduceMotion(context)
                       ? Duration.zero
                       : MetroTheme.of(context).motion.fast,
+                  curve: MetroTheme.of(context).motion.standardCurve,
                   width: style.indicatorSize,
                   height: style.indicatorSize,
                   color: selected
@@ -845,6 +847,7 @@ class _MetroFlipViewState extends State<MetroFlipView>
           duration: reduceMotion
               ? Duration.zero
               : MetroTheme.of(context).motion.normal,
+          curve: MetroTheme.of(context).motion.standardCurve,
           opacity: show ? 1 : 0,
           child: _MetroFlipViewNavigationButton(
             key: ValueKey<String>(

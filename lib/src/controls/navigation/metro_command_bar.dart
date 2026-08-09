@@ -86,6 +86,7 @@ class _MetroCommandBarLayerState extends State<MetroCommandBarLayer>
     vsync: this,
     value: _effectiveOpen ? 1 : 0,
   );
+  Curve _motionCurve = Curves.linear;
 
   bool get _effectiveOpen => widget.open ?? _internalOpen;
 
@@ -106,20 +107,16 @@ class _MetroCommandBarLayerState extends State<MetroCommandBarLayer>
 
   void _syncMotion({bool commitReducedMotion = false}) {
     final reduceMotion = metroReduceMotion(context);
-    _controller.duration = reduceMotion
-        ? Duration.zero
-        : MetroTheme.of(context).motion.entrance;
+    final motion = MetroTheme.of(context).motion;
+    _controller.duration = reduceMotion ? Duration.zero : motion.entrance;
+    _motionCurve = motion.standardCurve;
     if (commitReducedMotion && reduceMotion) {
       _controller.value = _effectiveOpen ? 1 : 0;
     }
   }
 
   void _animateToEffectiveState() {
-    if (_effectiveOpen) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
+    _controller.animateTo(_effectiveOpen ? 1 : 0, curve: _motionCurve);
   }
 
   void _requestOpen(bool value) {
@@ -187,7 +184,6 @@ class _MetroCommandBarLayerState extends State<MetroCommandBarLayer>
 
   @override
   Widget build(BuildContext context) {
-    final theme = MetroTheme.of(context);
     final shortcuts = <ShortcutActivator, VoidCallback>{
       if (_effectiveOpen && widget.dismissible)
         const SingleActivator(LogicalKeyboardKey.escape): _dismiss,
@@ -243,9 +239,7 @@ class _MetroCommandBarLayerState extends State<MetroCommandBarLayer>
                 animation: _controller,
                 child: widget.commandBar,
                 builder: (context, child) {
-                  final progress = theme.motion.standardCurve.transform(
-                    _controller.value,
-                  );
+                  final progress = _controller.value;
                   final direction =
                       widget.placement == MetroCommandBarPlacement.top ? -1 : 1;
                   final dismissed = _controller.isDismissed;
@@ -477,11 +471,10 @@ class MetroCommandButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedContainer(
+              Container(
+                key: const ValueKey<String>('metro-command-button-circle'),
                 width: 40,
                 height: 40,
-                duration: Duration.zero,
-                curve: theme.motion.standardCurve,
                 decoration: BoxDecoration(
                   color: circleColor,
                   shape: BoxShape.circle,

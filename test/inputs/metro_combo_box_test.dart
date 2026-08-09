@@ -268,43 +268,38 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final hoveredItem = tester.widget<AnimatedContainer>(
+    final hoveredItem = tester.widget<Container>(
       find
           .ancestor(
             of: find.byKey(const ValueKey<String>('london')),
-            matching: find.byType(AnimatedContainer),
+            matching: find.byType(Container),
           )
           .first,
     );
-    expect((hoveredItem.decoration! as BoxDecoration).color, hoverColor);
-    expect(hoveredItem.duration, Duration.zero);
+    expect(hoveredItem.color, hoverColor);
 
     await mouse.moveTo(
       tester.getCenter(find.byKey(const ValueKey<String>('seattle'))),
     );
     await tester.pump();
-    final previousItem = tester.widget<AnimatedContainer>(
+    final previousItem = tester.widget<Container>(
       find
           .ancestor(
             of: find.byKey(const ValueKey<String>('london')),
-            matching: find.byType(AnimatedContainer),
+            matching: find.byType(Container),
           )
           .first,
     );
-    final nextItem = tester.widget<AnimatedContainer>(
+    final nextItem = tester.widget<Container>(
       find
           .ancestor(
             of: find.byKey(const ValueKey<String>('seattle')),
-            matching: find.byType(AnimatedContainer),
+            matching: find.byType(Container),
           )
           .first,
     );
-    expect(
-      (previousItem.decoration! as BoxDecoration).color,
-      const Color(0xFFFFFFFF),
-    );
-    expect((nextItem.decoration! as BoxDecoration).color, hoverColor);
-    expect(nextItem.duration, Duration.zero);
+    expect(previousItem.color, const Color(0xFFFFFFFF));
+    expect(nextItem.color, hoverColor);
 
     final menuSurface = tester.widget<Container>(
       find.byKey(const ValueKey<String>('metro-combo-box-menu-surface')),
@@ -466,6 +461,41 @@ void main() {
       ),
     );
     expect(popupAnimation.duration, Duration.zero);
+  });
+
+  testWidgets('popup fade-in uses the standard ease-out curve', (tester) async {
+    await tester.pumpWidget(
+      _comboTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 220,
+            child: MetroComboBox<String>(
+              items: _stringItems,
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(MetroComboBox<String>));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 125));
+
+    final opacity = tester.widget<Opacity>(
+      find
+          .ancestor(
+            of: find.byKey(
+              const ValueKey<String>('metro-combo-box-menu-motion'),
+            ),
+            matching: find.byType(Opacity),
+          )
+          .first,
+    );
+    expect(
+      opacity.opacity,
+      closeTo(const MetroMotion().standardCurve.transform(42 / 83), 0.02),
+    );
   });
 
   testWidgets('popup rows grow with the ambient text scaler', (tester) async {

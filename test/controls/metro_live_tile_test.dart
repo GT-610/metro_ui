@@ -55,7 +55,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(frameIndex, 1);
     expect(find.text('RAIN'), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 220));
+    await tester.pump(const Duration(milliseconds: 100));
+    final midpoint = const MetroMotion().standardCurve.transform(0.5);
+    expect(_opacityFor(tester, 'RAIN'), closeTo(midpoint, 0.01));
+    expect(_opacityFor(tester, 'SUNNY'), closeTo(1 - midpoint, 0.01));
+    await tester.pump(const Duration(milliseconds: 120));
     expect(find.text('SUNNY'), findsNothing);
     expect(
       tester.getSemantics(find.bySemanticsLabel('Rain expected')),
@@ -150,4 +154,16 @@ void main() {
     expect(find.text('TWO'), findsOneWidget);
     expect(find.text('ONE'), findsNothing);
   });
+}
+
+double _opacityFor(WidgetTester tester, String text) {
+  return tester
+      .widget<FadeTransition>(
+        find.ancestor(
+          of: find.text(text),
+          matching: find.byType(FadeTransition),
+        ),
+      )
+      .opacity
+      .value;
 }

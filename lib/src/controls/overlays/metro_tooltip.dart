@@ -29,7 +29,11 @@ class MetroTooltip extends StatefulWidget {
     this.keyboardOffset,
     this.touchOffset,
     super.key,
-  });
+  }) : assert(
+         borderWidth == null ||
+             (borderWidth >= 0 && borderWidth < double.infinity),
+       ),
+       assert(maxWidth == null || (maxWidth > 0 && maxWidth < double.infinity));
 
   final String message;
   final Widget child;
@@ -63,22 +67,11 @@ class _MetroTooltipState extends State<MetroTooltip>
   Offset? _contactPoint;
   _MetroTooltipTrigger _trigger = _MetroTooltipTrigger.keyboard;
   int _visibilityEpoch = 0;
-  bool _hideOnDismiss = false;
 
   @override
   void initState() {
     super.initState();
-    _opacityController = AnimationController(vsync: this)
-      ..addStatusListener(_handleOpacityStatus);
-  }
-
-  void _handleOpacityStatus(AnimationStatus status) {
-    if (status == AnimationStatus.dismissed &&
-        _hideOnDismiss &&
-        _controller.isShowing) {
-      _hideOnDismiss = false;
-      _controller.hide();
-    }
+    _opacityController = AnimationController(vsync: this);
   }
 
   @override
@@ -88,7 +81,7 @@ class _MetroTooltipState extends State<MetroTooltip>
       _showTimer?.cancel();
       _hideTimer?.cancel();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
+        if (mounted && !widget.enabled) {
           _hide(immediate: true);
         }
       });
@@ -126,9 +119,7 @@ class _MetroTooltipState extends State<MetroTooltip>
     final epoch = ++_visibilityEpoch;
     final reduceMotion = metroReduceMotion(context);
     final motion = MetroTheme.of(context).motion;
-    _hideOnDismiss = false;
     _opacityController.duration = motion.fadeIn;
-    _opacityController.reverseDuration = motion.normal;
     if (!_controller.isShowing) {
       _opacityController.value = 0;
       _controller.show();
@@ -137,11 +128,13 @@ class _MetroTooltipState extends State<MetroTooltip>
       _opacityController.value = 1;
       _scheduleAutoHide(autoHide: autoHide, epoch: epoch, theme: theme);
     } else {
-      _opacityController.forward().whenCompleteOrCancel(() {
-        if (mounted && epoch == _visibilityEpoch) {
-          _scheduleAutoHide(autoHide: autoHide, epoch: epoch, theme: theme);
-        }
-      });
+      _opacityController
+          .animateTo(1, curve: motion.standardCurve)
+          .whenCompleteOrCancel(() {
+            if (mounted && epoch == _visibilityEpoch) {
+              _scheduleAutoHide(autoHide: autoHide, epoch: epoch, theme: theme);
+            }
+          });
     }
   }
 
@@ -170,13 +163,23 @@ class _MetroTooltipState extends State<MetroTooltip>
     if (immediate ||
         metroReduceMotion(context) ||
         _opacityController.value == 0) {
-      _hideOnDismiss = false;
       _opacityController.value = 0;
       _controller.hide();
       return;
     }
-    _hideOnDismiss = true;
-    _opacityController.reverse();
+    final epoch = _visibilityEpoch;
+    final motion = MetroTheme.of(context).motion;
+    _opacityController.duration = motion.normal;
+    _opacityController
+        .animateTo(0, curve: motion.standardCurve)
+        .whenCompleteOrCancel(() {
+          if (mounted &&
+              epoch == _visibilityEpoch &&
+              _opacityController.value == 0 &&
+              _controller.isShowing) {
+            _controller.hide();
+          }
+        });
   }
 
   void _handleFocusChanged(bool focused) {

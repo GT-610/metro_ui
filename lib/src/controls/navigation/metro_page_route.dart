@@ -112,7 +112,7 @@ class MetroPageRoute<T> extends PageRouteBuilder<T> {
             ? 1.0
             : curve.transform(animation.value);
         final opacityProgress = reversing
-            ? animation.value
+            ? 1 - curve.transform(1 - animation.value)
             : fadeFraction <= 0
             ? 1.0
             : curve.transform((animation.value / fadeFraction).clamp(0.0, 1.0));

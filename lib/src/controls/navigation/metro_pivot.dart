@@ -201,7 +201,10 @@ class _MetroPivotState extends State<MetroPivot>
 
   void _schedulePageChange(int index) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && index != _displayedIndex && index != _incomingIndex) {
+      if (mounted &&
+          widget.index == index &&
+          index != _displayedIndex &&
+          index != _incomingIndex) {
         _startProgrammaticTransition(index);
       }
     });
@@ -210,7 +213,8 @@ class _MetroPivotState extends State<MetroPivot>
   void _startProgrammaticTransition(int index) {
     if (index == _displayedIndex || _viewportWidth <= 0) {
       if (_viewportWidth <= 0) {
-        _schedulePageChange(index);
+        _cancelAnimation();
+        setState(() => _displayedIndex = index);
       }
       return;
     }

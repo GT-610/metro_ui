@@ -46,8 +46,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 166));
 
     expect(changes, [true]);
-    expect(_opacity(tester, _zoomedInKey), inExclusiveRange(0, 1));
-    expect(_opacity(tester, _zoomedOutKey), inExclusiveRange(0, 1));
+    final midpoint = const MetroMotion().standardCurve.transform(166 / 333);
+    expect(_opacity(tester, _zoomedInKey), closeTo(1 - midpoint, 0.01));
+    expect(_opacity(tester, _zoomedOutKey), closeTo(midpoint, 0.01));
     expect(_scale(tester, _zoomedInKey), inExclusiveRange(0.65, 1));
     expect(_scale(tester, _zoomedOutKey), greaterThan(1));
 

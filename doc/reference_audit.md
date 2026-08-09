@@ -39,16 +39,16 @@ Windows 8 release, nor that its DOM structure should be reproduced in Flutter.
 | Pointer down/up | `pointerDown` and `pointerUp`: 167ms; down scales to 0.975 | `MetroMotion.normal`; tile press scale 0.975 |
 | Show/hide edge UI | `showEdgeUI` and `hideEdgeUI`: translate the complete visible edge distance over 367ms with the standard curve | `MetroCommandBarLayer` top/bottom entrance and exit; the bar overlays content rather than reserving page layout |
 | Show popup | `showPopup`: translate from 50px over 367ms; opacity waits 83ms and fades for 83ms | dialogs, ComboBox, and SearchBox popup entrances |
-| Hide popup | `hidePopup`: opacity fades from 1 to 0 over 83ms linear with no exit translation | dialog reverse route uses `popupFade` |
+| Hide popup | `hidePopup`: opacity fades from 1 to 0 over 83ms linear with no exit translation | dialog reverse route keeps `popupFade` and no translation, but time-mirrors the standard curve to follow the package-wide ease-out fade rule |
 | Show/hide panel | `showPanel` and `hidePanel`: 364px logical-edge offset over 550ms | flyout panel duration; actual distance follows the Flutter panel width, and the reverse curve is time-mirrored so entrance and exit both appear ease-out |
 | Enter page | `enterPage`: 100px logical offset over 1000ms; opacity reaches 1 in 170ms | `MetroPageRoute` forward transition |
-| Exit page | `exitPage`: 117ms linear fade; transform is optional and defaults to zero offset | `MetroPageRoute` reverse transition |
+| Exit page | `exitPage`: 117ms linear fade; transform is optional and defaults to zero offset | `MetroPageRoute` keeps the duration and stationary transform while adapting opacity to the package-wide ease-out fade rule |
 | Pivot content in | Pivot calls `slideLeftIn`/`slideRightIn`; the page travels one viewport over 350ms with `cubic-bezier(0.17,0.79,0.215,1.0025)` | `MetroMotion.content` and `contentCurve` |
 | Pivot content out | Pivot calls `slideLeftOut`/`slideRightOut`; 350ms with `cubic-bezier(0.3825,0.0025,0.8775,-0.1075)` and keeps opacity until the end step | `MetroMotion.contentExitCurve`; programmatic Pivot changes complete the outgoing slide/fade before starting an equal-duration incoming slide/fade with the time-mirrored curve, while direct drag remains under pointer control |
-| FlipView programmatic page change | outgoing page fades in place for 167ms linear; incoming page starts 40px along the logical navigation direction, moves for 550ms, and fades in for 170ms with the standard curve | separate programmatic content transition using `contentEntrance` and `contentFade`; direct drag remains full-page manipulation |
-| FlipView navigation visibility | navigation button opacity changes over 167ms linear | `MetroMotion.normal` button fade |
-| Tooltip visibility | ordinary tooltip hover delay is 800ms; the tooltip remains for 5s after its 250ms linear fade-in and closes with a 167ms linear fade-out | tooltip defaults and `MetroMotion.fadeIn` / `normal` |
-| Semantic Zoom switch | detailed and summary views scale and cross-fade for 333ms with `ease-in-out`; the default scale factor is 0.65 | `MetroMotion.semanticZoom`; `MetroSemanticZoom` cross-scale transition and focal-point alignment |
+| FlipView programmatic page change | outgoing page fades in place for 167ms linear; incoming page starts 40px along the logical navigation direction, moves for 550ms, and fades in for 170ms with the standard curve | separate programmatic content transition using `contentEntrance` and `contentFade`; both opacity directions follow the standard ease-out curve, while direct drag remains full-page manipulation |
+| FlipView navigation visibility | navigation button opacity changes over 167ms linear | `MetroMotion.normal` button fade adapted to the package-wide standard ease-out curve |
+| Tooltip visibility | ordinary tooltip hover delay is 800ms; the tooltip remains for 5s after its 250ms linear fade-in and closes with a 167ms linear fade-out | tooltip timing defaults are preserved while both directions use the standard ease-out curve |
+| Semantic Zoom switch | detailed and summary views scale and cross-fade for 333ms with `ease-in-out`; the default scale factor is 0.65 | `MetroMotion.semanticZoom`; the scale and cross-fade use the package-wide standard ease-out curve with focal-point alignment |
 
 Primary paths:
 
@@ -57,6 +57,11 @@ Primary paths:
 - [`src/less/animation-library.less`](https://github.com/winjs/winjs/blob/bf76e0911e8955725536ba87504827609ca77b45/src/less/animation-library.less)
 - [`src/js/WinJS/Controls/Pivot.js`](https://github.com/winjs/winjs/blob/bf76e0911e8955725536ba87504827609ca77b45/src/js/WinJS/Controls/Pivot.js)
 - [`src/js/WinJS/Controls/SemanticZoom.js`](https://github.com/winjs/winjs/blob/bf76e0911e8955725536ba87504827609ca77b45/src/js/WinJS/Controls/SemanticZoom.js)
+
+The package keeps source durations and geometry while applying one opacity
+policy: outside Pivot's dedicated content transition, fades use the standard
+ease-out curve, and reverse fades time-mirror it so both directions start fast
+and finish slowly.
 
 The package tokens name reusable recipes, not vague speed tiers. `fast` is
 100ms because ToggleSwitch uses 0.1s; `normal` is 167ms because pointer and

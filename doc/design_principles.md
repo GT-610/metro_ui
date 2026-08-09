@@ -67,9 +67,12 @@ decorate the screen.
 
 Defaults use named Windows recipes instead of one generic duration: pointer
 feedback is 167ms, popup movement is 367ms, panel movement is 550ms, page
-entrance is 1000ms with a 170ms fade, and page exit is a 117ms linear fade.
-The standard curve is `cubic-bezier(0.1, 0.9, 0.2, 1)`. Exact evidence and
-Flutter adaptations are tracked in [reference audit](reference_audit.md).
+entrance is 1000ms with a 170ms fade, and page exit is a 117ms fade. Except
+for Pivot's dedicated directional content recipe, opacity transitions use the
+standard `cubic-bezier(0.1, 0.9, 0.2, 1)` ease-out curve. Reverse fades use its
+time mirror so entering and leaving both begin quickly and settle smoothly.
+Exact evidence and Flutter adaptations are tracked in
+[reference audit](reference_audit.md).
 
 All motion is optional. Components must honor `MediaQuery.disableAnimations`
 and `MediaQuery.accessibleNavigation` without losing information or input.

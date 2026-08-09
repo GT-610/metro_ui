@@ -634,7 +634,9 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
                 );
                 final opacity = fadeLength <= 0
                     ? 1.0
-                    : ((progress - fadeDelay) / fadeLength).clamp(0.0, 1.0);
+                    : theme.motion.standardCurve.transform(
+                        ((progress - fadeDelay) / fadeLength).clamp(0.0, 1.0),
+                      );
                 return Opacity(
                   opacity: opacity,
                   child: Transform.translate(
@@ -673,8 +675,6 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
                         selected: index == selectedIndex,
                         highlighted: index == _highlightedIndex,
                         style: style,
-                        motionDuration: Duration.zero,
-                        motionCurve: theme.motion.standardCurve,
                         onHighlighted: item.enabled
                             ? () {
                                 if (_highlightedIndex != index) {
@@ -802,8 +802,6 @@ class _MetroComboBoxMenuItem<T extends Object> extends StatefulWidget {
     required this.selected,
     required this.highlighted,
     required this.style,
-    required this.motionDuration,
-    required this.motionCurve,
     required this.onHighlighted,
     required this.onSelected,
   });
@@ -812,8 +810,6 @@ class _MetroComboBoxMenuItem<T extends Object> extends StatefulWidget {
   final bool selected;
   final bool highlighted;
   final MetroComboBoxStyle style;
-  final Duration motionDuration;
-  final Curve motionCurve;
   final VoidCallback? onHighlighted;
   final VoidCallback? onSelected;
 
@@ -843,9 +839,7 @@ class _MetroComboBoxMenuItemState<T extends Object>
         .resolve(states)!
         .copyWith(color: foreground);
 
-    Widget child = AnimatedContainer(
-      duration: widget.motionDuration,
-      curve: widget.motionCurve,
+    Widget child = Container(
       color: background,
       padding: widget.style.itemPadding,
       alignment: AlignmentDirectional.centerStart,

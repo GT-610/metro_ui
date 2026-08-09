@@ -121,6 +121,63 @@ void main() {
       closeTo(0, 0.01),
     );
   });
+
+  testWidgets('reverse page fade uses the standard ease-out curve', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _routeTestApp(
+        child: Builder(
+          builder: (context) {
+            return MetroButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MetroPageRoute<void>(
+                    context: context,
+                    transition: MetroPageTransition.fade,
+                    builder: (routeContext) => Stack(
+                      children: [
+                        const ColoredBox(
+                          key: Key('eased-destination'),
+                          color: MetroColors.cobalt,
+                        ),
+                        Center(
+                          child: MetroButton(
+                            onPressed: () => Navigator.of(routeContext).pop(),
+                            child: const Text('CLOSE'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              child: const Text('OPEN'),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('OPEN'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('CLOSE'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 58));
+
+    final opacity = tester.widget<Opacity>(
+      find
+          .ancestor(
+            of: find.byKey(const Key('eased-destination')),
+            matching: find.byType(Opacity),
+          )
+          .first,
+    );
+    expect(
+      opacity.opacity,
+      closeTo(1 - const MetroMotion().standardCurve.transform(58 / 117), 0.01),
+    );
+  });
 }
 
 Widget _routeTestApp({

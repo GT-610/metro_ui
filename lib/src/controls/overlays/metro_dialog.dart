@@ -80,10 +80,15 @@ Future<T?> showMetroDialog<T extends Object?>({
                 ? 1.0
                 : theme.motion.standardCurve.transform(animation.value);
             final opacity = reversing
-                ? animation.value
+                ? 1 - theme.motion.standardCurve.transform(1 - animation.value)
                 : fadeLength <= 0
                 ? 1.0
-                : ((animation.value - fadeDelay) / fadeLength).clamp(0.0, 1.0);
+                : theme.motion.standardCurve.transform(
+                    ((animation.value - fadeDelay) / fadeLength).clamp(
+                      0.0,
+                      1.0,
+                    ),
+                  );
             return Opacity(
               key: const ValueKey<String>('metro-dialog-transition-opacity'),
               opacity: opacity,
