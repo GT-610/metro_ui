@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0-dev.1
+## 0.1.0
 
 - Establish the package architecture and single `metro_ui.dart` entry point.
 - Add semantic colors, typography, spacing, motion, and light/dark themes.
