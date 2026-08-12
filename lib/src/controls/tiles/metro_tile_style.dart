@@ -13,6 +13,8 @@ class MetroTileStyle {
     this.borderWidth,
     this.titleStyle,
     this.subtitleStyle,
+    this.badgeBackgroundColor,
+    this.badgeTextStyle,
     this.padding,
   });
 
@@ -23,6 +25,8 @@ class MetroTileStyle {
   final WidgetStateProperty<double?>? borderWidth;
   final WidgetStateProperty<TextStyle?>? titleStyle;
   final WidgetStateProperty<TextStyle?>? subtitleStyle;
+  final WidgetStateProperty<Color?>? badgeBackgroundColor;
+  final WidgetStateProperty<TextStyle?>? badgeTextStyle;
   final EdgeInsetsGeometry? padding;
 
   MetroTileStyle copyWith({
@@ -33,6 +37,8 @@ class MetroTileStyle {
     WidgetStateProperty<double?>? borderWidth,
     WidgetStateProperty<TextStyle?>? titleStyle,
     WidgetStateProperty<TextStyle?>? subtitleStyle,
+    WidgetStateProperty<Color?>? badgeBackgroundColor,
+    WidgetStateProperty<TextStyle?>? badgeTextStyle,
     EdgeInsetsGeometry? padding,
   }) {
     return MetroTileStyle(
@@ -43,6 +49,8 @@ class MetroTileStyle {
       borderWidth: borderWidth ?? this.borderWidth,
       titleStyle: titleStyle ?? this.titleStyle,
       subtitleStyle: subtitleStyle ?? this.subtitleStyle,
+      badgeBackgroundColor: badgeBackgroundColor ?? this.badgeBackgroundColor,
+      badgeTextStyle: badgeTextStyle ?? this.badgeTextStyle,
       padding: padding ?? this.padding,
     );
   }
@@ -59,6 +67,8 @@ class MetroTileStyle {
       borderWidth: other.borderWidth,
       titleStyle: other.titleStyle,
       subtitleStyle: other.subtitleStyle,
+      badgeBackgroundColor: other.badgeBackgroundColor,
+      badgeTextStyle: other.badgeTextStyle,
       padding: other.padding,
     );
   }
@@ -106,6 +116,18 @@ class MetroTileStyle {
       subtitleStyle: lerpStateProperty(
         first.subtitleStyle,
         second.subtitleStyle,
+        t,
+        TextStyle.lerp,
+      ),
+      badgeBackgroundColor: lerpStateProperty(
+        first.badgeBackgroundColor,
+        second.badgeBackgroundColor,
+        t,
+        Color.lerp,
+      ),
+      badgeTextStyle: lerpStateProperty(
+        first.badgeTextStyle,
+        second.badgeTextStyle,
         t,
         TextStyle.lerp,
       ),

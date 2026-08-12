@@ -7,7 +7,15 @@ import '../../theme/metro_theme.dart';
 import 'metro_tile.dart';
 
 /// Face-change recipe used by a [MetroLiveTile].
-enum MetroLiveTileTransition { slideUp, slideDown, fade, none }
+enum MetroLiveTileTransition {
+  slideUp,
+  slideDown,
+  slideLeft,
+  slideRight,
+  fade,
+  zoom,
+  none,
+}
 
 /// One notification-like content frame shown by a [MetroLiveTile].
 @immutable
@@ -36,6 +44,9 @@ class MetroLiveTile extends StatefulWidget {
     this.size = MetroTileSize.square,
     this.title,
     this.subtitle,
+    this.badge,
+    this.badgePosition = MetroTileBadgePosition.bottomEnd,
+    this.badgeBackgroundColor,
     this.backgroundColor,
     this.foregroundColor,
     this.style,
@@ -60,6 +71,9 @@ class MetroLiveTile extends StatefulWidget {
   final MetroTileSize size;
   final String? title;
   final String? subtitle;
+  final Widget? badge;
+  final MetroTileBadgePosition badgePosition;
+  final Color? badgeBackgroundColor;
   final Color? backgroundColor;
   final Color? foregroundColor;
   final MetroTileStyle? style;
@@ -174,6 +188,9 @@ class _MetroLiveTileState extends State<MetroLiveTile> {
     return MetroTile(
       autofocus: widget.autofocus,
       backgroundColor: widget.backgroundColor,
+      badge: widget.badge,
+      badgeBackgroundColor: widget.badgeBackgroundColor,
+      badgePosition: widget.badgePosition,
       enablePressTilt: widget.enablePressTilt,
       focusNode: widget.focusNode,
       foregroundColor: widget.foregroundColor,
@@ -224,7 +241,25 @@ class _MetroLiveTileState extends State<MetroLiveTile> {
         ).animate(animation),
         child: fade,
       ),
+      MetroLiveTileTransition.slideLeft => SlideTransition(
+        position: Tween<Offset>(
+          begin: incoming ? const Offset(1, 0) : const Offset(-1, 0),
+          end: Offset.zero,
+        ).animate(animation),
+        child: fade,
+      ),
+      MetroLiveTileTransition.slideRight => SlideTransition(
+        position: Tween<Offset>(
+          begin: incoming ? const Offset(-1, 0) : const Offset(1, 0),
+          end: Offset.zero,
+        ).animate(animation),
+        child: fade,
+      ),
       MetroLiveTileTransition.fade => fade,
+      MetroLiveTileTransition.zoom => ScaleTransition(
+        scale: Tween<double>(begin: 3, end: 1).animate(animation),
+        child: fade,
+      ),
       MetroLiveTileTransition.none => child,
     };
   }

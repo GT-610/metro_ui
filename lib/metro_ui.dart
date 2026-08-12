@@ -33,6 +33,7 @@ export 'src/controls/selection/metro_toggle_switch.dart';
 export 'src/controls/tiles/metro_live_tile.dart';
 export 'src/controls/tiles/metro_tile.dart';
 export 'src/controls/tiles/metro_tile_grid.dart';
+export 'src/foundation/metro_entrance.dart';
 export 'src/foundation/metro_focus_traversal.dart';
 export 'src/layout/metro_page.dart';
 export 'src/localization/metro_localizations.dart';

@@ -48,6 +48,8 @@ MetroDayPeriodFormatter
 MetroDialog
 MetroDialogTheme
 MetroDialogThemeData
+MetroEntrance
+MetroEntranceDirection
 MetroFlipView
 MetroFlipViewItem
 MetroFlipViewNavigationVisibility
@@ -132,6 +134,7 @@ MetroTextFormField
 MetroTheme
 MetroThemeData
 MetroTile
+MetroTileBadgePosition
 MetroTileGrid
 MetroTileSize
 MetroTileStyle
