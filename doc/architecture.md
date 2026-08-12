@@ -109,6 +109,11 @@ and face transitions. Automatic timers are cancelled when the widget is
 inactive, outside `TickerMode`, reduced-motion constrained, updated, or
 disposed.
 
+`MetroEntrance` is a foundation-level composition primitive rather than a
+route or page subclass. It consumes the active motion tokens, mirrors logical
+horizontal direction, and turns both its delay and transform into an immediate
+static presentation when accessibility settings request reduced motion.
+
 ## Picker model
 
 `MetroDatePicker` and `MetroTimePicker` share a segmented field and a focused
