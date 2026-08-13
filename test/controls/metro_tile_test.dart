@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:metro_ui/metro_ui.dart';
@@ -237,5 +238,92 @@ void main() {
       ),
     );
     semantics.dispose();
+  });
+
+  testWidgets('tile badge uses Metro notification geometry', (tester) async {
+    const badgeColor = Color(0xFF123456);
+    await tester.pumpWidget(
+      metroTestApp(
+        child: MetroTileTheme(
+          data: const MetroTileThemeData(
+            style: MetroTileStyle(
+              badgeBackgroundColor: WidgetStatePropertyAll(badgeColor),
+            ),
+          ),
+          child: Center(
+            child: MetroTile(
+              title: 'Mail',
+              badge: const Text('3'),
+              badgePosition: MetroTileBadgePosition.topEnd,
+              onPressed: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final tile = tester.getRect(find.byType(MetroTile));
+    final badge = tester.getRect(
+      find.byKey(const ValueKey<String>('metro-tile-badge')),
+    );
+    expect(badge.top - tile.top, 10);
+    expect(tile.right - badge.right, 10);
+    final decoration =
+        tester
+                .widget<DecoratedBox>(
+                  find.byKey(const ValueKey<String>('metro-tile-badge')),
+                )
+                .decoration
+            as BoxDecoration;
+    expect(decoration.color, badgeColor);
+  });
+
+  testWidgets('default tile badge uses the bottom-end inset', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: MetroTile(
+            title: 'Mail',
+            badge: const Text('3'),
+            onPressed: () {},
+          ),
+        ),
+      ),
+    );
+
+    final tile = tester.getRect(find.byType(MetroTile));
+    final badge = tester.getRect(
+      find.byKey(const ValueKey<String>('metro-tile-badge')),
+    );
+    expect(tile.bottom - badge.bottom, 10);
+    expect(tile.right - badge.right, 10);
+  });
+
+  testWidgets('hover uses the Metro 4 four-pixel tile outline', (tester) async {
+    final previousStrategy = FocusManager.instance.highlightStrategy;
+    addTearDown(() {
+      FocusManager.instance.highlightStrategy = previousStrategy;
+    });
+    FocusManager.instance.highlightStrategy =
+        FocusHighlightStrategy.alwaysTraditional;
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: MetroTile(title: 'Hover', onPressed: () {}),
+        ),
+      ),
+    );
+
+    final pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(pointer.removePointer);
+    await pointer.addPointer(location: const Offset(1, 1));
+    await pointer.moveTo(tester.getCenter(find.byType(MetroTile)));
+    await tester.pump();
+
+    final outline = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey<String>('metro-tile-outline')),
+    );
+    final decoration = outline.decoration as BoxDecoration;
+    expect(decoration.border!.top.width, 4);
   });
 }

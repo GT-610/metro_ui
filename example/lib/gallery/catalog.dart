@@ -132,6 +132,12 @@ const galleryComponents = <GalleryComponent>[
     keywords: ['layout', 'page'],
   ),
   GalleryComponent(
+    name: 'MetroEntrance',
+    destination: GalleryDestinationId.tiles,
+    description: 'Directional and staggered page-content entrance motion.',
+    keywords: ['animation', 'motion', 'transition'],
+  ),
+  GalleryComponent(
     name: 'MetroButton',
     destination: GalleryDestinationId.buttonsAndFeedback,
     description: 'Standard, accent, themed, and disabled actions.',

@@ -154,6 +154,83 @@ void main() {
     expect(find.text('TWO'), findsOneWidget);
     expect(find.text('ONE'), findsNothing);
   });
+
+  testWidgets('horizontal recipe follows Metro 4 live faces', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: MetroLiveTile(
+            key: const ValueKey<String>('slide-live-tile'),
+            interval: const Duration(seconds: 1),
+            transition: MetroLiveTileTransition.slideLeft,
+            transitionDuration: const Duration(milliseconds: 200),
+            onPressed: () {},
+            frames: const [
+              MetroLiveTileFrame(
+                displayDuration: Duration(milliseconds: 100),
+                child: Text('ONE'),
+              ),
+              MetroLiveTileFrame(child: Text('TWO')),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    final incomingSlide = tester.widget<SlideTransition>(
+      find.ancestor(
+        of: find.text('TWO'),
+        matching: find.byType(SlideTransition),
+      ),
+    );
+    final outgoingSlide = tester.widget<SlideTransition>(
+      find.ancestor(
+        of: find.text('ONE'),
+        matching: find.byType(SlideTransition),
+      ),
+    );
+    expect(incomingSlide.position.value.dx, greaterThan(0));
+    expect(outgoingSlide.position.value.dx, lessThan(0));
+  });
+
+  testWidgets('zoom recipe expands the outgoing Metro 4 live face', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: MetroLiveTile(
+            key: const ValueKey<String>('zoom-live-tile'),
+            interval: const Duration(seconds: 1),
+            transition: MetroLiveTileTransition.zoom,
+            transitionDuration: const Duration(milliseconds: 200),
+            onPressed: () {},
+            frames: const [
+              MetroLiveTileFrame(
+                displayDuration: Duration(milliseconds: 100),
+                child: Text('A'),
+              ),
+              MetroLiveTileFrame(child: Text('B')),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    final incomingScale = tester.widget<ScaleTransition>(
+      find.ancestor(of: find.text('B'), matching: find.byType(ScaleTransition)),
+    );
+    final outgoingScale = tester.widget<ScaleTransition>(
+      find.ancestor(of: find.text('A'), matching: find.byType(ScaleTransition)),
+    );
+    expect(incomingScale.scale.value, greaterThan(1));
+    expect(outgoingScale.scale.value, greaterThan(1));
+  });
 }
 
 double _opacityFor(WidgetTester tester, String text) {

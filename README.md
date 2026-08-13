@@ -29,6 +29,7 @@ endorsed by Microsoft.
 - `MetroButton` and `MetroIconButton`
 - `MetroTile` and responsive `MetroTileGrid`
 - `MetroLiveTile` and keyed, semantic live-content frames
+- `MetroEntrance` for directional, staggered page-content motion
 - `MetroProgressRing`
 - `MetroTextField`, `MetroTextFormField`, `MetroNumberBox`, `MetroComboBox`,
   `MetroSearchBox`, `MetroToggleSwitch`, and `MetroPivot`
@@ -513,6 +514,8 @@ layouts automatically.
 cycling notification-like content frames. Each `MetroLiveTileFrame` can carry
 a stable id, an accessible label, and its own display duration. Stable ids keep
 the visible frame selected when an application refreshes or reorders data.
+Tiles and live tiles can also place a compact notification badge at the logical
+top-end or bottom-end corner without changing the frame's semantics.
 
 ```dart
 MetroLiveTile(
@@ -535,9 +538,29 @@ MetroLiveTile(
 ```
 
 The default transition moves the complete face upward without adding carousel
-chrome. `slideDown`, `fade`, and `none` recipes are also available. Automatic
-updates pause when `active` is false, the subtree's `TickerMode` is disabled,
-or the platform requests reduced motion.
+chrome. `slideDown`, `slideLeft`, `slideRight`, `fade`, `zoom`, and `none`
+recipes are also available. Automatic updates pause when `active` is false,
+the subtree's `TickerMode` is disabled, or the platform requests reduced
+motion.
+
+## Content entrances
+
+`MetroEntrance` applies the Windows 8 page recipe to content inside a route:
+100 logical pixels of directional travel over the navigation duration, with
+the faster navigation fade. Give related siblings increasing `index` values
+to stagger them while keeping layout and focus order unchanged.
+
+```dart
+Column(
+  children: [
+    for (var index = 0; index < sections.length; index++)
+      MetroEntrance(index: index, child: sections[index]),
+  ],
+)
+```
+
+Direction is logical for `forward` and `backward`, so RTL layouts mirror the
+motion. Reduced-motion preferences skip both movement and delay.
 
 ## Bottom commands
 
@@ -686,6 +709,7 @@ final typography = MetroTypography.fromColorScheme(
 See the [contribution guide](https://github.com/GT-610/metro_ui/blob/main/CONTRIBUTING.md),
 [design principles](https://github.com/GT-610/metro_ui/blob/main/doc/design_principles.md),
 [Windows 8 reference audit](https://github.com/GT-610/metro_ui/blob/main/doc/reference_audit.md),
+[Metro 4 reference audit](https://github.com/GT-610/metro_ui/blob/main/doc/metro4_reference_audit.md),
 [component coverage](https://github.com/GT-610/metro_ui/blob/main/doc/component_coverage.md),
 [architecture](https://github.com/GT-610/metro_ui/blob/main/doc/architecture.md),
 [roadmap](https://github.com/GT-610/metro_ui/blob/main/doc/roadmap.md),

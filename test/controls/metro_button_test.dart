@@ -83,6 +83,46 @@ void main() {
     );
     final decoration = container.decoration! as BoxDecoration;
     expect(decoration.color, const Color(0xFF000000));
+    final scale = tester.widget<AnimatedScale>(
+      find.descendant(
+        of: find.byType(MetroButton),
+        matching: find.byKey(const ValueKey<String>('metro-button-scale')),
+      ),
+    );
+    expect(scale.scale, 0.975);
+    expect(scale.duration, const Duration(milliseconds: 167));
+    await gesture.up();
+  });
+
+  testWidgets('button press motion can be styled and respects reduced motion', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        mediaQueryData: const MediaQueryData(
+          size: Size(800, 600),
+          disableAnimations: true,
+        ),
+        child: Center(
+          child: MetroButton(
+            onPressed: () {},
+            style: const MetroButtonStyle(pressScale: 0.9),
+            child: const Text('PRESS'),
+          ),
+        ),
+      ),
+    );
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(MetroButton)),
+    );
+    await tester.pump();
+
+    final scale = tester.widget<AnimatedScale>(
+      find.byKey(const ValueKey<String>('metro-button-scale')),
+    );
+    expect(scale.scale, 0.9);
+    expect(scale.duration, Duration.zero);
     await gesture.up();
   });
 

@@ -99,7 +99,8 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
       'MetroTile' ||
       'MetroLiveTile' ||
       'MetroTileGrid' ||
-      'MetroPage' => _tilesKey,
+      'MetroPage' ||
+      'MetroEntrance' => _tilesKey,
       'MetroButton' ||
       'MetroIconButton' ||
       'MetroBackButton' ||
@@ -221,22 +222,31 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                               onComponentSelected: _selectComponent,
                             ),
                           if (_selectedDestination == GalleryDestinationId.home)
-                            GalleryHome(
-                              onSelected: _selectDestination,
-                              accentPicker: GalleryAccentPicker(
-                                selected: _accent,
-                                onSelected: (color) =>
-                                    setState(() => _accent = color),
+                            MetroEntrance(
+                              key: const ValueKey<String>('gallery-home'),
+                              child: GalleryHome(
+                                onSelected: _selectDestination,
+                                accentPicker: GalleryAccentPicker(
+                                  selected: _accent,
+                                  onSelected: (color) =>
+                                      setState(() => _accent = color),
+                                ),
                               ),
                             ),
                           if (_selectedDestination != GalleryDestinationId.home)
-                            GalleryPageIntroduction(
-                              destination: _destination,
-                              selectedComponent: _selectedComponent,
-                              onRevealSelectedComponent:
-                                  _selectedComponent == null
-                                  ? null
-                                  : _revealSelectedComponent,
+                            MetroEntrance(
+                              key: ValueKey<String>(
+                                'gallery-intro-${_selectedDestination.name}-'
+                                '${_selectedComponent?.name}',
+                              ),
+                              child: GalleryPageIntroduction(
+                                destination: _destination,
+                                selectedComponent: _selectedComponent,
+                                onRevealSelectedComponent:
+                                    _selectedComponent == null
+                                    ? null
+                                    : _revealSelectedComponent,
+                              ),
                             ),
                           if (_selectedDestination !=
                               GalleryDestinationId.home) ...[
@@ -268,13 +278,17 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       icon: const Icon(Icons.mail_outline),
                                       title: 'Mail',
                                       subtitle: '3 unread',
+                                      badge: const Text('3'),
                                       onPressed: () => _record('Mail tile'),
                                     ),
                                     MetroLiveTile(
                                       size: MetroTileSize.wide,
                                       title: 'Photos',
                                       subtitle: 'Live tile',
+                                      badge: const Text('12'),
                                       backgroundColor: MetroColors.magenta,
+                                      transition:
+                                          MetroLiveTileTransition.slideLeft,
                                       onPressed: () => _record('Photos tile'),
                                       frames: const [
                                         MetroLiveTileFrame(
@@ -303,6 +317,9 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       icon: const Icon(Icons.cloud_outlined),
                                       title: 'Weather',
                                       backgroundColor: MetroColors.teal,
+                                      badge: const Text('24°'),
+                                      badgePosition:
+                                          MetroTileBadgePosition.topEnd,
                                       onPressed: () => _record('Weather tile'),
                                     ),
                                     MetroTile(

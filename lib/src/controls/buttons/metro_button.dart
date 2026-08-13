@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -85,6 +86,8 @@ class MetroButton extends StatelessWidget {
         final borderWidth = effectiveStyle.borderWidth?.resolve(states) ?? 0;
         final textStyle = effectiveStyle.textStyle?.resolve(states);
         final focused = states.contains(WidgetState.focused);
+        final pressed = states.contains(WidgetState.pressed);
+        final reduceMotion = metroReduceMotion(context);
 
         Widget button = Container(
           constraints: BoxConstraints(
@@ -117,7 +120,13 @@ class MetroButton extends StatelessWidget {
             child: button,
           );
         }
-        return button;
+        return AnimatedScale(
+          key: const ValueKey<String>('metro-button-scale'),
+          scale: pressed ? effectiveStyle.pressScale ?? 1 : 1,
+          duration: reduceMotion ? Duration.zero : theme.motion.normal,
+          curve: theme.motion.standardCurve,
+          child: button,
+        );
       },
     );
   }
@@ -198,6 +207,7 @@ class MetroButton extends StatelessWidget {
         vertical: MetroSpacing.xxs,
       ),
       minimumSize: const Size(90, 32),
+      pressScale: 0.975,
     );
   }
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Add Metro 4-informed logical tile badges and left/right/zoom live-face
+  transitions while preserving WinJS motion curves and reduced-motion rules.
+- Add `MetroEntrance` for directional and staggered Windows 8 page-content
+  entrance motion.
+- Apply the 0.975 Windows pointer feedback recipe to Metro buttons, with a
+  themeable press scale and reduced-motion support.
+
 ## 0.1.0
 
 - Establish the package architecture and single `metro_ui.dart` entry point.

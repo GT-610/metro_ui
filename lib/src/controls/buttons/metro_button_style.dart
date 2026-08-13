@@ -14,7 +14,8 @@ class MetroButtonStyle {
     this.padding,
     this.minimumSize,
     this.mouseCursor,
-  });
+    this.pressScale,
+  }) : assert(pressScale == null || (pressScale > 0 && pressScale <= 1));
 
   final WidgetStateProperty<Color?>? backgroundColor;
   final WidgetStateProperty<Color?>? foregroundColor;
@@ -25,6 +26,12 @@ class MetroButtonStyle {
   final Size? minimumSize;
   final MouseCursor? mouseCursor;
 
+  /// Scale applied while the button is pressed.
+  ///
+  /// Set this to `1` to keep a button stationary while retaining its color
+  /// inversion and other pressed-state styling.
+  final double? pressScale;
+
   MetroButtonStyle copyWith({
     WidgetStateProperty<Color?>? backgroundColor,
     WidgetStateProperty<Color?>? foregroundColor,
@@ -34,6 +41,7 @@ class MetroButtonStyle {
     EdgeInsetsGeometry? padding,
     Size? minimumSize,
     MouseCursor? mouseCursor,
+    double? pressScale,
   }) {
     return MetroButtonStyle(
       backgroundColor: backgroundColor ?? this.backgroundColor,
@@ -44,6 +52,7 @@ class MetroButtonStyle {
       padding: padding ?? this.padding,
       minimumSize: minimumSize ?? this.minimumSize,
       mouseCursor: mouseCursor ?? this.mouseCursor,
+      pressScale: pressScale ?? this.pressScale,
     );
   }
 
@@ -60,6 +69,7 @@ class MetroButtonStyle {
       padding: other.padding,
       minimumSize: other.minimumSize,
       mouseCursor: other.mouseCursor,
+      pressScale: other.pressScale,
     );
   }
 
@@ -104,6 +114,7 @@ class MetroButtonStyle {
       padding: EdgeInsetsGeometry.lerp(first.padding, second.padding, t),
       minimumSize: Size.lerp(first.minimumSize, second.minimumSize, t),
       mouseCursor: lerpDiscrete(first.mouseCursor, second.mouseCursor, t),
+      pressScale: lerpDouble(first.pressScale, second.pressScale, t),
     );
   }
 }

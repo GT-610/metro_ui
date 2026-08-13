@@ -15,6 +15,9 @@ export 'metro_tile_style.dart';
 /// Standard square or double-width Metro tile geometry.
 enum MetroTileSize { square, wide }
 
+/// Corner used for a [MetroTile] notification badge.
+enum MetroTileBadgePosition { topEnd, bottomEnd }
+
 /// A signature Modern UI tile with optional location-aware press tilt.
 class MetroTile extends StatefulWidget {
   const MetroTile({
@@ -23,6 +26,9 @@ class MetroTile extends StatefulWidget {
     this.icon,
     this.title,
     this.subtitle,
+    this.badge,
+    this.badgePosition = MetroTileBadgePosition.bottomEnd,
+    this.badgeBackgroundColor,
     this.child,
     this.backgroundColor,
     this.foregroundColor,
@@ -46,6 +52,9 @@ class MetroTile extends StatefulWidget {
   final Widget? icon;
   final String? title;
   final String? subtitle;
+  final Widget? badge;
+  final MetroTileBadgePosition badgePosition;
+  final Color? badgeBackgroundColor;
   final Widget? child;
   final Color? backgroundColor;
   final Color? foregroundColor;
@@ -98,6 +107,15 @@ class _MetroTileState extends State<MetroTile> {
         ),
       );
     }
+    if (widget.badgeBackgroundColor != null) {
+      effectiveStyle = effectiveStyle.merge(
+        MetroTileStyle(
+          badgeBackgroundColor: WidgetStatePropertyAll(
+            widget.badgeBackgroundColor,
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
       width: width,
@@ -118,6 +136,7 @@ class _MetroTileState extends State<MetroTile> {
           final overlay = effectiveStyle.overlayColor?.resolve(states);
           final borderColor = effectiveStyle.borderColor?.resolve(states);
           final borderWidth = effectiveStyle.borderWidth?.resolve(states) ?? 0;
+          final badgeTextStyle = effectiveStyle.badgeTextStyle?.resolve(states);
           final transform = pressed && widget.enablePressTilt && !reduceMotion
               ? _pressedTransform(width, height)
               : Matrix4.identity();
@@ -127,17 +146,10 @@ class _MetroTileState extends State<MetroTile> {
             curve: theme.motion.standardCurve,
             transform: transform,
             transformAlignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: background,
-              border: borderWidth == 0
-                  ? null
-                  : Border.all(
-                      color: borderColor ?? const Color(0x00000000),
-                      width: borderWidth,
-                    ),
-            ),
+            decoration: BoxDecoration(color: background),
             child: Stack(
               fit: StackFit.expand,
+              clipBehavior: Clip.none,
               children: [
                 Padding(
                   padding:
@@ -155,7 +167,56 @@ class _MetroTileState extends State<MetroTile> {
                     child: widget.child,
                   ),
                 ),
+                if (widget.badge != null)
+                  PositionedDirectional(
+                    top: widget.badgePosition == MetroTileBadgePosition.topEnd
+                        ? 10
+                        : null,
+                    end: 10,
+                    bottom:
+                        widget.badgePosition == MetroTileBadgePosition.bottomEnd
+                        ? 10
+                        : null,
+                    child: DecoratedBox(
+                      key: const ValueKey<String>('metro-tile-badge'),
+                      decoration: BoxDecoration(
+                        color: effectiveStyle.badgeBackgroundColor?.resolve(
+                          states,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: MetroSpacing.xs,
+                          vertical: MetroSpacing.xxs,
+                        ),
+                        child: DefaultTextStyle.merge(
+                          style: badgeTextStyle?.copyWith(
+                            color: badgeTextStyle.color ?? foreground,
+                          ),
+                          child: widget.badge!,
+                        ),
+                      ),
+                    ),
+                  ),
                 if (overlay != null) ColoredBox(color: overlay),
+                if (borderWidth > 0)
+                  Positioned(
+                    top: -borderWidth,
+                    right: -borderWidth,
+                    bottom: -borderWidth,
+                    left: -borderWidth,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        key: const ValueKey<String>('metro-tile-outline'),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: borderColor ?? const Color(0x00000000),
+                            width: borderWidth,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
@@ -216,13 +277,14 @@ class _MetroTileState extends State<MetroTile> {
         return const Color(0x00000000);
       }),
       borderWidth: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.focused) ||
-                states.contains(WidgetState.hovered)
-            ? 2
-            : 0;
+        if (states.contains(WidgetState.focused)) return 2;
+        if (states.contains(WidgetState.hovered)) return 4;
+        return 0;
       }),
       titleStyle: WidgetStatePropertyAll(theme.typography.tileTitle),
       subtitleStyle: WidgetStatePropertyAll(theme.typography.caption),
+      badgeBackgroundColor: const WidgetStatePropertyAll(Color(0x66000000)),
+      badgeTextStyle: WidgetStatePropertyAll(theme.typography.caption),
       padding: const EdgeInsets.all(MetroSpacing.sm),
     );
   }

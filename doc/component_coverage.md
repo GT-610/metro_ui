@@ -19,6 +19,10 @@ every control exposed by Windows, WPF, MahApps.Metro, or later Fluent UI.
   Flutter package, component themes, localization, tests, and a Gallery. Its
   Acrylic, Mica, NavigationView, TeachingTip, rounded surfaces, and other later
   Fluent patterns are not evidence that they belong in Metro defaults.
+- **Metro 4.5.12** is a mature Metro-style Web component reference. It
+  corroborates tile press direction, live-face effects, badges, and short
+  control-state transitions. Its Material variants, ripple effects, rounded
+  options, and generic framework tokens do not override WinJS evidence.
 - **flutter_metro_ui** is an application experiment rather than a component
   library. Its tile press/tilt experiment is useful visual corroboration, but
   its application state, Material coupling, and widget APIs are not used as
@@ -31,9 +35,9 @@ All implementation in `metro_ui` remains original and Flutter-native.
 | Design area | metro_ui surface | Reference correspondence | 1.0 decision |
 | --- | --- | --- | --- |
 | Theme, type, color, spacing, and motion | `MetroTheme`, semantic schemes, typography, spacing, and motion tokens | Shared design vocabulary across both mature references | **Covered.** These tokens define the system before individual widgets. |
-| Page surface and navigation motion | `MetroPage`, `MetroPageRoute` | MahApps `MetroContentControl`/navigation window; fluent_ui page and route organization | **Covered by Flutter composition.** Native window chrome remains application/platform-owned. |
+| Page surface and navigation motion | `MetroPage`, `MetroPageRoute`, `MetroEntrance` | WinJS page entrance; MahApps `MetroContentControl`/navigation window; fluent_ui page and route organization; Metro 4 directional animation composition | **Covered by Flutter composition.** Routes and page-content entrances share directional Metro recipes; native window chrome remains application/platform-owned. |
 | Buttons and compact actions | `MetroButton`, `MetroIconButton`, `MetroBackButton` | WinJS intrinsic button and BackButton rules; styled buttons in both mature references | **Covered.** BackButton preserves the Windows 8 circular exception, RTL arrow, pressed inversion, and hidden disabled state. The circular command glyph is isolated to BackButton and CommandBar rather than becoming general rounded geometry. |
-| Tiles and live content | `MetroTile`, `MetroTileGrid`, `MetroLiveTile` | MahApps `Tile`; tile experiment in flutter_metro_ui | **Covered.** Includes direct press feedback, layout sizes, live frames, semantics, and reduced motion. |
+| Tiles and live content | `MetroTile`, `MetroTileGrid`, `MetroLiveTile` | Metro 4 tile badges, press sectors, and live-face effects; MahApps `Tile`; tile experiment in flutter_metro_ui | **Covered.** Includes direct press feedback, logical corner badges, multi-direction and zoom live frames, semantics, and reduced motion. |
 | Text, password, and form input | `MetroTextField`, password conveniences, `MetroTextFormField` | MahApps text/password helpers; fluent_ui TextBox and PasswordBox | **Covered.** Uses Flutter controllers and `Form` instead of attached properties. |
 | Numeric, choice, and suggestion input | `MetroNumberBox`, `MetroComboBox`, `MetroSearchBox` | MahApps `NumericUpDown`; fluent_ui NumberBox, ComboBox, and AutoSuggestBox | **Covered.** Controlled values and viewport-aware overlays are explicit Flutter contracts. |
 | Binary and grouped selection | CheckBox, RadioButton, ToggleSwitch, selectable list tiles, selection controllers/groups | MahApps `ToggleSwitch`; selection controls in fluent_ui | **Covered.** Shared selection policy is package-owned rather than application state management. |
