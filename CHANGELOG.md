@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reorganize documentation around package adoption, design direction,
+  contribution, maintenance, and releases.
 - Add Metro 4-informed logical tile badges and left/right/zoom live-face
   transitions while preserving WinJS motion curves and reduced-motion rules.
 - Add `MetroEntrance` for directional and staggered Windows 8 page-content

@@ -8,7 +8,7 @@ List the commands, platforms, interactions, and visual states verified.
 
 ## Checklist
 
-- [ ] The change follows `doc/design_principles.md` and Flutter conventions.
+- [ ] The change follows `doc/design.md` and Flutter conventions.
 - [ ] Applicable pointer, touch, keyboard, focus, disabled, and semantic states
       are covered.
 - [ ] RTL, reduced motion, text scaling, high contrast, and theme precedence
