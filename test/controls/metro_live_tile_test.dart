@@ -155,9 +155,7 @@ void main() {
     expect(find.text('ONE'), findsNothing);
   });
 
-  testWidgets('horizontal and zoom recipes follow Metro 4 live faces', (
-    tester,
-  ) async {
+  testWidgets('horizontal recipe follows Metro 4 live faces', (tester) async {
     await tester.pumpWidget(
       metroTestApp(
         child: Center(
@@ -196,7 +194,11 @@ void main() {
     );
     expect(incomingSlide.position.value.dx, greaterThan(0));
     expect(outgoingSlide.position.value.dx, lessThan(0));
+  });
 
+  testWidgets('zoom recipe expands the outgoing Metro 4 live face', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       metroTestApp(
         child: Center(
@@ -223,7 +225,11 @@ void main() {
     final incomingScale = tester.widget<ScaleTransition>(
       find.ancestor(of: find.text('B'), matching: find.byType(ScaleTransition)),
     );
+    final outgoingScale = tester.widget<ScaleTransition>(
+      find.ancestor(of: find.text('A'), matching: find.byType(ScaleTransition)),
+    );
     expect(incomingScale.scale.value, greaterThan(1));
+    expect(outgoingScale.scale.value, greaterThan(1));
   });
 }
 

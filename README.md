@@ -538,7 +538,7 @@ MetroLiveTile(
 ```
 
 The default transition moves the complete face upward without adding carousel
-chrome. `slideDown`, left/right slides, `fade`, `zoom`, and `none`
+chrome. `slideDown`, `slideLeft`, `slideRight`, `fade`, `zoom`, and `none`
 recipes are also available. Automatic updates pause when `active` is false,
 the subtree's `TickerMode` is disabled, or the platform requests reduced
 motion.

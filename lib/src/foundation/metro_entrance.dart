@@ -28,8 +28,13 @@ class MetroEntrance extends StatefulWidget {
   }) : assert(distance >= 0 && distance < double.infinity),
        assert(index >= 0);
 
+  /// Content that enters without changing its layout position or focus order.
   final Widget child;
+
+  /// Direction from which [child] travels into place.
   final MetroEntranceDirection direction;
+
+  /// Logical pixels traveled by [child] during the entrance.
   final double distance;
 
   /// Delay before the first indexed entrance begins.
@@ -40,8 +45,14 @@ class MetroEntrance extends StatefulWidget {
 
   /// Additional delay applied for every [index].
   final Duration stagger;
+
+  /// Total duration of the directional movement after the delay.
   final Duration? duration;
+
+  /// Duration in which opacity reaches its final value.
   final Duration? fadeDuration;
+
+  /// Easing curve used for both movement and opacity.
   final Curve? curve;
 
   /// Whether to play the entrance when this widget is first mounted.
@@ -102,6 +113,7 @@ class _MetroEntranceState extends State<MetroEntrance>
         !widget.animate ||
         widget.direction == MetroEntranceDirection.none ||
         metroReduceMotion(context) ||
+        !metroTickerModeEnabled(context) ||
         motionDuration == Duration.zero;
     if (noMotion) {
       _controller.value = 1;

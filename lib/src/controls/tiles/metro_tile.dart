@@ -136,6 +136,7 @@ class _MetroTileState extends State<MetroTile> {
           final overlay = effectiveStyle.overlayColor?.resolve(states);
           final borderColor = effectiveStyle.borderColor?.resolve(states);
           final borderWidth = effectiveStyle.borderWidth?.resolve(states) ?? 0;
+          final badgeTextStyle = effectiveStyle.badgeTextStyle?.resolve(states);
           final transform = pressed && widget.enablePressTilt && !reduceMotion
               ? _pressedTransform(width, height)
               : Matrix4.identity();
@@ -174,7 +175,7 @@ class _MetroTileState extends State<MetroTile> {
                     end: 10,
                     bottom:
                         widget.badgePosition == MetroTileBadgePosition.bottomEnd
-                        ? 0
+                        ? 10
                         : null,
                     child: DecoratedBox(
                       key: const ValueKey<String>('metro-tile-badge'),
@@ -189,9 +190,9 @@ class _MetroTileState extends State<MetroTile> {
                           vertical: MetroSpacing.xxs,
                         ),
                         child: DefaultTextStyle.merge(
-                          style: effectiveStyle.badgeTextStyle
-                              ?.resolve(states)
-                              ?.copyWith(color: foreground),
+                          style: badgeTextStyle?.copyWith(
+                            color: badgeTextStyle.color ?? foreground,
+                          ),
                           child: widget.badge!,
                         ),
                       ),

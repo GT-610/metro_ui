@@ -278,6 +278,27 @@ void main() {
     expect(decoration.color, badgeColor);
   });
 
+  testWidgets('default tile badge uses the bottom-end inset', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: MetroTile(
+            title: 'Mail',
+            badge: const Text('3'),
+            onPressed: () {},
+          ),
+        ),
+      ),
+    );
+
+    final tile = tester.getRect(find.byType(MetroTile));
+    final badge = tester.getRect(
+      find.byKey(const ValueKey<String>('metro-tile-badge')),
+    );
+    expect(tile.bottom - badge.bottom, 10);
+    expect(tile.right - badge.right, 10);
+  });
+
   testWidgets('hover uses the Metro 4 four-pixel tile outline', (tester) async {
     final previousStrategy = FocusManager.instance.highlightStrategy;
     addTearDown(() {
@@ -293,13 +314,10 @@ void main() {
       ),
     );
 
-    final position = tester.getCenter(find.byType(MetroTile));
-    await tester.sendEventToBinding(
-      const PointerAddedEvent(kind: PointerDeviceKind.mouse),
-    );
-    await tester.sendEventToBinding(
-      PointerHoverEvent(kind: PointerDeviceKind.mouse, position: position),
-    );
+    final pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(pointer.removePointer);
+    await pointer.addPointer(location: const Offset(1, 1));
+    await pointer.moveTo(tester.getCenter(find.byType(MetroTile)));
     await tester.pump();
 
     final outline = tester.widget<DecoratedBox>(
