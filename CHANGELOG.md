@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - Reorganize documentation around package adoption, design direction,
   contribution, maintenance, and releases.
