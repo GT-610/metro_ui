@@ -329,6 +329,38 @@ void main() {
 
     expect(_barTranslation(tester), Offset.zero);
   });
+  testWidgets('glyph command content follows the command state color', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: MetroCommandBar(
+          commands: [
+            MetroCommandButton(
+              icon: const Text('*'),
+              label: const Text('Favorite'),
+              onPressed: () {},
+              selected: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final glyph = tester.widget<RichText>(
+      find
+          .descendant(
+            of: find.byKey(
+              const ValueKey<String>('metro-command-button-circle'),
+            ),
+            matching: find.byType(RichText),
+          )
+          .first,
+    );
+
+    // A selected light-theme command inverts: filled ring, panel-colored glyph.
+    expect(glyph.text.style?.color, const Color(0xFFF0F0F0));
+  });
 }
 
 Offset _barTranslation(WidgetTester tester) {

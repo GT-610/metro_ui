@@ -483,9 +483,15 @@ class MetroCommandButton extends StatelessWidget {
                     width: borderWidth,
                   ),
                 ),
+                // Command content in this era is frequently a font glyph
+                // rather than an icon, so both the icon theme and the default
+                // text style must carry the command state color.
                 child: IconTheme.merge(
                   data: IconThemeData(color: foreground, size: 20),
-                  child: Center(child: icon),
+                  child: DefaultTextStyle.merge(
+                    style: TextStyle(color: foreground, fontSize: 20),
+                    child: Center(child: icon),
+                  ),
                 ),
               ),
               const SizedBox(height: MetroSpacing.xxs),
