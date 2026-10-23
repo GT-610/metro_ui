@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
+import '../../theme/metro_color_scheme.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
@@ -119,8 +120,15 @@ class _MetroTileState extends State<MetroTile> {
             : math.min(desired.width, availableWidth));
     final height = widget.height ?? desired.height;
 
+    // Tile content follows the fill of the tile itself, not the application
+    // accent: a blue tile keeps white content even when the accent is orange.
+    final requestedBackground =
+        widget.backgroundColor ??
+        tileTheme.style?.backgroundColor?.resolve(const <WidgetState>{}) ??
+        theme.colors.accent;
     var effectiveStyle = _defaultStyle(
       theme,
+      requestedBackground,
     ).merge(tileTheme.style).merge(widget.style);
     if (widget.backgroundColor != null || widget.foregroundColor != null) {
       effectiveStyle = effectiveStyle.merge(
@@ -270,27 +278,28 @@ class _MetroTileState extends State<MetroTile> {
     return transform;
   }
 
-  static MetroTileStyle _defaultStyle(MetroThemeData theme) {
+  static MetroTileStyle _defaultStyle(MetroThemeData theme, Color background) {
     final colors = theme.colors;
+    final content = MetroColorScheme.tileForegroundFor(background);
     return MetroTileStyle(
       backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
           return colors.disabledBackground;
         }
-        return colors.accent;
+        return background;
       }),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
           return colors.disabledForeground;
         }
-        return colors.onAccent;
+        return content;
       }),
       overlayColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
-          return const Color(0x24000000);
+          return content.withValues(alpha: 0.18);
         }
         if (states.contains(WidgetState.hovered)) {
-          return const Color(0x18FFFFFF);
+          return content.withValues(alpha: 0.12);
         }
         return const Color(0x00000000);
       }),
@@ -299,7 +308,7 @@ class _MetroTileState extends State<MetroTile> {
           return colors.focus;
         }
         if (states.contains(WidgetState.hovered)) {
-          return colors.onAccent.withValues(alpha: 0.85);
+          return content.withValues(alpha: 0.85);
         }
         return const Color(0x00000000);
       }),

@@ -291,6 +291,40 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('tile content follows the tile fill, not the accent', (
+    tester,
+  ) async {
+    // An orange accent would make its own content dark; a blue tile must still
+    // keep white content, and a pale tile must flip to black.
+    final theme = MetroThemeData.light(accentColor: MetroColors.orange);
+    await tester.pumpWidget(
+      metroTestApp(
+        theme: theme,
+        child: Center(
+          child: MetroTileGrid(
+            children: [
+              MetroTile(
+                title: 'Blue',
+                backgroundColor: MetroColors.cobalt,
+                onPressed: () {},
+              ),
+              MetroTile(
+                title: 'Pale',
+                backgroundColor: MetroColors.yellow,
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    Color? titleColor(String title) =>
+        DefaultTextStyle.of(tester.element(find.text(title))).style.color;
+    expect(titleColor('Blue'), const Color(0xFFFFFFFF));
+    expect(titleColor('Pale'), const Color(0xFF000000));
+  });
+
   testWidgets('tile badge uses Metro notification geometry', (tester) async {
     const badgeColor = Color(0xFF123456);
     await tester.pumpWidget(

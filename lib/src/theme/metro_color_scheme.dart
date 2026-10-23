@@ -210,6 +210,18 @@ class MetroColorScheme {
     );
   }
 
+  /// Content color for a tile or another saturated block filled with
+  /// [background].
+  ///
+  /// Tiles in this era carried white content on every accent fill, so this rule
+  /// keeps white until the fill is light enough that white content would be
+  /// unreadable, and only then switches to black.
+  static Color tileForegroundFor(Color background) {
+    return background.computeLuminance() > 0.45
+        ? const Color(0xFF000000)
+        : const Color(0xFFFFFFFF);
+  }
+
   static Color idealForegroundFor(Color background) {
     return background.computeLuminance() > 0.179
         ? const Color(0xFF000000)
