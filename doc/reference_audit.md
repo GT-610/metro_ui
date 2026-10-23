@@ -91,6 +91,7 @@ The dark theme keeps light fields with black text, exactly as the era did.
 | FlipView navigation | 69 by 39 blocks, fill `rgba(213,213,213,0.35)`, hover `rgba(215,215,215,0.94)`, pressed `rgba(41,41,41,0.74)`, glyph `rgba(0,0,0,0.6)` | identical |
 | Tooltip | `#ffffff` panel, `#808080` 2px border, text `rgba(0,0,0,0.6)`, padding 10/6/10/7, maximum width 380 | identical |
 | Flyout | 346 wide (345 plus border), header padding 40/32, content padding 40/33, header on the panel surface, label 20pt | identical |
+| Place list (navigation rail) | Accent-tinted rail with text-only items, no icons, no dividers, and a full-width brighter accent bar for the current place; horizontal place bars use 210 wide items | `MetroListTile` with a rail style and `showSelectionMark: false` |
 | Slider | 11px track and thumb, upper fill `rgba(0,0,0,0.1)`, hover `0.15`, disabled `0.2` and thumb `#929292`, ticks `0.5` | identical |
 
 ### Tiles

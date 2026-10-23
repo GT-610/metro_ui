@@ -22,6 +22,10 @@
   single-line entry boxes to the 28 pixel intrinsic height.
 - Add a reference audit that records the era measurements behind the visual
   tokens and lists every deliberate deviation.
+- Add `MetroListTileStyle.showSelectionMark` so place lists and navigation rails
+  can keep the accent filled selection without the collection check mark, and
+  restyle the Gallery rail as an era place list: an accent flood, text-only rows
+  without dividers or icons, and a full-width selection bar.
 
 ## 0.2.0
 

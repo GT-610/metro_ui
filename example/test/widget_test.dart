@@ -233,7 +233,7 @@ void main() {
 
     expect(find.byType(GalleryNavigation), findsOneWidget);
     expect(find.byType(CompactGalleryNavigation), findsNothing);
-    expect(find.text('METRO GALLERY'), findsOneWidget);
+    expect(find.text('Metro Gallery'), findsOneWidget);
 
     await tester.tap(find.text('Data display'));
     await tester.pump();

@@ -82,6 +82,9 @@ Some habits of the era look like defects until you know them:
   reads as a second selected state.
 - Command surfaces are square. Circles are reserved for the AppBar command
   ring, the back button, and the progress ring.
+- Place lists are text, not toolbars. A rail of places is a flood of the accent
+  with the current place marked by a softer accent bar, and it carries no icons,
+  dividers, or selection marks; iconography belongs in tiles and commands.
 - Tiles are drawn from the grid, not from arbitrary sizes. A 150 pixel extent
   and a 10 pixel gutter derive the 70, 150, and 310 pixel tile assets.
 
