@@ -41,6 +41,57 @@ void main() {
     );
   });
 
+  testWidgets('tile sizes follow the Modern UI asset grid', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 700,
+            child: MetroTileGrid(
+              children: [
+                MetroTile(
+                  size: MetroTileSize.small,
+                  title: 'Small',
+                  onPressed: () {},
+                ),
+                MetroTile(title: 'Square', onPressed: () {}),
+                MetroTile(
+                  size: MetroTileSize.wide,
+                  title: 'Wide',
+                  onPressed: () {},
+                ),
+                MetroTile(
+                  size: MetroTileSize.large,
+                  title: 'Large',
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // A 150 pixel extent with a 10 pixel gutter reproduces the 70, 150, and
+    // 310 pixel tile assets.
+    expect(
+      tester.getSize(find.widgetWithText(MetroTile, 'Small')),
+      const Size(70, 70),
+    );
+    expect(
+      tester.getSize(find.widgetWithText(MetroTile, 'Square')),
+      const Size(150, 150),
+    );
+    expect(
+      tester.getSize(find.widgetWithText(MetroTile, 'Wide')),
+      const Size(310, 150),
+    );
+    expect(
+      tester.getSize(find.widgetWithText(MetroTile, 'Large')),
+      const Size(310, 310),
+    );
+  });
+
   testWidgets('wide tiles clamp to a narrow grid', (tester) async {
     await tester.pumpWidget(
       metroTestApp(

@@ -323,6 +323,25 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       onPressed: () => _record('Weather tile'),
                                     ),
                                     MetroTile(
+                                      size: MetroTileSize.large,
+                                      icon: const Icon(
+                                        Icons.photo_library_outlined,
+                                      ),
+                                      title: 'Collection',
+                                      subtitle: 'Large tile',
+                                      backgroundColor: MetroColors.indigo,
+                                      onPressed: () =>
+                                          _record('Collection tile'),
+                                    ),
+                                    MetroTile(
+                                      size: MetroTileSize.small,
+                                      icon: const Icon(Icons.search),
+                                      badge: const Text('7'),
+                                      backgroundColor: MetroColors.emerald,
+                                      semanticLabel: 'Search tile',
+                                      onPressed: () => _record('Search tile'),
+                                    ),
+                                    MetroTile(
                                       icon: const Icon(Icons.settings_outlined),
                                       title: 'Disabled',
                                       onPressed: null,
