@@ -53,6 +53,15 @@
 - Left-align Gallery section headings independently of the surrounding column.
 - Press buttons by color inversion instead of a 0.975 scale, and wash pressed list
   and grid rows instead of scaling them; only the tile keeps the phone-era tilt.
+- Keep the press wash on alternate grid rows, fall back to a nominal 180 pixel
+  length when a progress bar has no bounded width, and resolve the search box's
+  action corridor against the text direction so it mirrors in right-to-left
+  layouts.
+- Give number-box steppers high-contrast palette colors and require a
+  `semanticLabel` for icon-only AppBar commands, since a label-less command
+  otherwise reaches assistive technology unnamed.
+- Stop `metroFocusStates` from mutating the caller's state set when focus chrome
+  is hidden.
 
 ## 0.2.0
 

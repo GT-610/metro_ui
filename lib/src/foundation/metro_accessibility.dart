@@ -32,7 +32,13 @@ bool metroFocusVisible() {
 }
 
 /// Removes [WidgetState.focused] from [states] when focus chrome is hidden.
+///
+/// The caller's set is returned untouched while focus chrome is visible; the
+/// filtered variant is always a copy, because a cascade in a conditional
+/// expression would otherwise mutate the set the caller passed in.
 Set<WidgetState> metroFocusStates(Set<WidgetState> states) {
-  return metroFocusVisible() ? states : <WidgetState>{...states}
-    ..remove(WidgetState.focused);
+  if (metroFocusVisible()) return states;
+  final filtered = <WidgetState>{...states};
+  filtered.remove(WidgetState.focused);
+  return filtered;
 }
