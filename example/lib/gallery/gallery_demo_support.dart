@@ -17,7 +17,7 @@ class GallerySectionHeading extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: typography.title),
+        Text(title, style: typography.subheader),
         if (description case final description?) ...[
           const SizedBox(height: MetroSpacing.xs),
           ConstrainedBox(

@@ -14,7 +14,7 @@ void main() {
 
     expect(find.text('Metro UI'), findsWidgets);
     expect(find.text('Modern UI for Flutter'), findsOneWidget);
-    expect(find.text('BROWSE BY CATEGORY'), findsOneWidget);
+    expect(find.text('Browse by category'), findsOneWidget);
     final catalogSearch = find.byType(EditableText);
     expect(catalogSearch, findsOneWidget);
     expect(find.bySemanticsLabel('Use dark theme'), findsOneWidget);
@@ -27,7 +27,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Inputs & pickers'), findsWidgets);
     expect(find.text('MetroNumberBox'), findsOneWidget);
-    expect(find.text('SEARCH RESULT'), findsOneWidget);
+    expect(find.text('Search result'), findsOneWidget);
     await tester.tap(find.text('JUMP TO DEMO'));
     await tester.pump();
     await tester.pump();
@@ -235,7 +235,12 @@ void main() {
     expect(find.byType(CompactGalleryNavigation), findsNothing);
     expect(find.text('Metro Gallery'), findsOneWidget);
 
-    await tester.tap(find.text('Data display'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(GalleryNavigation),
+        matching: find.text('Data display'),
+      ),
+    );
     await tester.pump();
 
     expect(find.text('Data display'), findsWidgets);
