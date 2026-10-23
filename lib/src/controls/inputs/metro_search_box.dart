@@ -481,30 +481,34 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
 
   /// Reserves the trailing corridor of the field for the action buttons while
   /// keeping any leading padding the app asked for.
+  ///
+  /// The corridor sits at the directional end of the field, so the caller's
+  /// padding is resolved against [textDirection] first; a physical inset would
+  /// otherwise reserve the wrong side under a right-to-left layout.
   MetroTextFieldStyle _fieldStyleWithTrailing(
     MetroSearchBoxStyle style,
     double trailingExtent,
+    TextDirection textDirection,
   ) {
     final fieldStyle = style.fieldStyle!;
-    final padding = switch (fieldStyle.padding) {
-      final EdgeInsetsDirectional directional => EdgeInsetsDirectional.only(
-        start: directional.start,
-        top: directional.top,
-        bottom: directional.bottom,
+    final padding =
+        (fieldStyle.padding ??
+                const EdgeInsetsDirectional.only(start: MetroSpacing.xs))
+            .resolve(textDirection);
+    // The action buttons are anchored to the directional end of the field, so
+    // only the resolved leading inset survives and the end inset becomes the
+    // corridor the buttons occupy.
+    final leading = textDirection == TextDirection.ltr
+        ? padding.left
+        : padding.right;
+    return fieldStyle.copyWith(
+      padding: EdgeInsetsDirectional.only(
+        start: leading,
+        top: padding.top,
+        bottom: padding.bottom,
         end: trailingExtent,
       ),
-      final EdgeInsets edge => EdgeInsets.only(
-        left: edge.left,
-        top: edge.top,
-        bottom: edge.bottom,
-        right: trailingExtent,
-      ),
-      _ => EdgeInsetsDirectional.only(
-        start: MetroSpacing.xs,
-        end: trailingExtent,
-      ),
-    };
-    return fieldStyle.copyWith(padding: padding);
+    );
   }
 
   @override
@@ -523,7 +527,11 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
     // The action buttons sit flush against the field border, so the editable
     // corridor ends where they begin.
     final trailingExtent = searchExtent + clearExtent;
-    final fieldStyle = _fieldStyleWithTrailing(style, trailingExtent);
+    final fieldStyle = _fieldStyleWithTrailing(
+      style,
+      trailingExtent,
+      Directionality.of(context),
+    );
     final armed = widget.enabled && _focusNode.hasFocus;
     final actions = Row(
       mainAxisSize: MainAxisSize.min,

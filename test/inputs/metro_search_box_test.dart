@@ -296,6 +296,61 @@ void main() {
     expect(tester.getSize(button).height, 24);
   });
 
+  testWidgets('action corridor sits at the directional end of the field', (
+    tester,
+  ) async {
+    Future<(EdgeInsets, double)> pump(TextDirection direction) async {
+      await tester.pumpWidget(
+        _searchTestApp(
+          textDirection: direction,
+          child: Center(
+            child: SizedBox(
+              width: 280,
+              child: MetroSearchBox<String>(
+                controller: TextEditingController(text: 'metro'),
+                items: const [],
+                onSubmitted: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      final field = tester.widget<MetroTextField>(find.byType(MetroTextField));
+      final padding = (field.style!.padding! as EdgeInsetsDirectional).resolve(
+        direction,
+      );
+      // The corridor holds both the clear and the submit buttons.
+      final corridor =
+          tester
+              .getSize(
+                find.byKey(const ValueKey<String>('metro-search-box-submit')),
+              )
+              .width +
+          tester
+              .getSize(
+                find.byKey(const ValueKey<String>('metro-search-box-clear')),
+              )
+              .width;
+      return (padding, corridor);
+    }
+
+    final (ltrPadding, ltrCorridor) = await pump(TextDirection.ltr);
+    expect(ltrPadding.left, MetroSpacing.xs);
+    expect(
+      ltrPadding.right,
+      ltrCorridor,
+      reason: 'the LTR corridor belongs on the resolved right edge',
+    );
+
+    final (rtlPadding, rtlCorridor) = await pump(TextDirection.rtl);
+    expect(rtlPadding.right, MetroSpacing.xs);
+    expect(
+      rtlPadding.left,
+      rtlCorridor,
+      reason: 'the RTL corridor must mirror to the resolved left edge',
+    );
+  });
+
   testWidgets('reduced motion removes the popup entrance duration', (
     tester,
   ) async {
