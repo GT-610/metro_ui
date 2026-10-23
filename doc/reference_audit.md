@@ -91,7 +91,7 @@ The dark theme keeps light fields with black text, exactly as the era did.
 | FlipView navigation | 69 by 39 blocks, fill `rgba(213,213,213,0.35)`, hover `rgba(215,215,215,0.94)`, pressed `rgba(41,41,41,0.74)`, glyph `rgba(0,0,0,0.6)` | identical |
 | Tooltip | `#ffffff` panel, `#808080` 2px border, text `rgba(0,0,0,0.6)`, padding 10/6/10/7, maximum width 380 | identical |
 | Flyout | 346 wide (345 plus border), header padding 40/32, content padding 40/33, header on the panel surface, label 20pt | identical |
-| Place list (navigation rail) | Accent-tinted rail with text-only items, no icons, no dividers, and a full-width brighter accent bar for the current place; horizontal place bars use 210 wide items | `MetroListTile` with a rail style and `showSelectionMark: false` |
+| Place list (navigation rail) | Accent-tinted rail with text-only items, no icons, no dividers, no ring around the current place, and a full-width brighter accent bar; horizontal place bars use 210 wide items | `MetroListTile` with a rail style and `showSelectionMark: false` |
 | Slider | 11px track and thumb, upper fill `rgba(0,0,0,0.1)`, hover `0.15`, disabled `0.2` and thumb `#929292`, ticks `0.5` | identical |
 
 ### Tiles
@@ -100,6 +100,7 @@ The dark theme keeps light fields with black text, exactly as the era did.
 | --- | --- | --- |
 | Asset sizes | 70, 150, 310 by 150, 310 pixels | `MetroTileSize.small`, `square`, `wide`, `large` |
 | Grid | 150 extent with a 10 gutter derives all four sizes | `MetroTileThemeData` defaults |
+| Content | White tile text on every vivid accent fill, including the orange and teal tiles | `MetroColorScheme.tileForegroundFor`, white until the fill passes 0.45 luminance |
 | Selection | accent fill, white content, end-corner check mark | identical |
 
 ## Deviations
@@ -110,6 +111,7 @@ These are intentional. Change them only with a design decision, not silently.
 | --- | --- |
 | Press scale of 0.975 on buttons, list tiles, and tiles, plus the tile tilt | Windows Phone 8 touch feedback; the desktop did not scale pressed controls. Applications can pass a scale of 1 to opt out. |
 | Tile badge draws a translucent chip behind the content | Metro 4 keeps the count readable on arbitrary tile art; the operating system badge had no backdrop. |
+| Focus outlines follow the keyboard only | The era suppressed focus visuals for pointer input and drew them on keyboard navigation; the package draws them whenever a control holds focus, so application shells that own a tinted surface gate them per build. |
 | Hover on a tile adds a 4px outline, and hover on a list tile a light wash | Windows 8 list controls revealed a selection affordance instead of a wash; a Flutter package needs a pointer affordance that does not imply selection. |
 | `header`, `title`, and `tileTitle` type steps, and the 30pt and 15pt sizes | The era ramp jumps from 42pt to 20pt to 11pt; the extra steps come from later Metro libraries and keep hierarchy usable in application layouts. |
 | Combo box and search suggestions use a Flutter popup with 40px rows | The era used native drop-downs and suggestion panes; the Flutter equivalents are keyboard accessible and viewport aware. |

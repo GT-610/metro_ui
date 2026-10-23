@@ -33,15 +33,39 @@ bool _filterGalleryComponent(
 ///
 /// The era's place lists were a flood of the accent color with a brighter bar
 /// for the current place, so the rail is a darkened accent and the selection is
-/// the accent itself.
-(Color, Color, Color) _railPalette(MetroThemeData theme) {
+/// the accent itself. Each surface derives its own content color: the dark rail
+/// takes light labels even when the accent is bright, and the selection bar
+/// takes whatever reads on the accent.
+({Color rail, Color railContent, Color selection, Color selectionContent})
+_railPalette(MetroThemeData theme) {
   final colors = theme.colors;
   final rail = Color.lerp(
     colors.accent,
     const Color(0xFF000000),
-    colors.isDark ? 0.55 : 0.42,
+    colors.isDark ? 0.62 : 0.55,
   )!;
-  return (rail, colors.onAccent, colors.accent);
+  final selection = colors.accent;
+  return (
+    rail: rail,
+    railContent: MetroColorScheme.idealForegroundFor(rail),
+    selection: selection,
+    selectionContent: MetroColorScheme.idealForegroundFor(selection),
+  );
+}
+
+/// Whether focus chrome should appear.
+///
+/// This era showed focus visuals for keyboard input only, so a pointer click
+/// leaves a selected place with just its accent bar.
+bool _focusVisualVisible() {
+  final manager = FocusManager.instance;
+  if (manager.highlightStrategy == FocusHighlightStrategy.alwaysTraditional) {
+    return true;
+  }
+  if (manager.highlightStrategy == FocusHighlightStrategy.alwaysTouch) {
+    return false;
+  }
+  return manager.highlightMode == FocusHighlightMode.traditional;
 }
 
 class GalleryNavigation extends StatelessWidget {
@@ -63,11 +87,12 @@ class GalleryNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = MetroTheme.of(context);
-    final (rail, railForeground, selectionColor) = _railPalette(theme);
+    final palette = _railPalette(theme);
+    final railForeground = palette.railContent;
     return SizedBox(
       width: 300,
       child: ColoredBox(
-        color: rail,
+        color: palette.rail,
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +171,8 @@ class GalleryNavigation extends StatelessWidget {
                 child: _GalleryPlaceList(
                   selected: selected,
                   foreground: railForeground,
-                  selectionColor: selectionColor,
+                  selectionColor: palette.selection,
+                  selectionForeground: palette.selectionContent,
                   onSelected: onSelected,
                 ),
               ),
@@ -164,12 +190,14 @@ class _GalleryPlaceList extends StatelessWidget {
     required this.selected,
     required this.foreground,
     required this.selectionColor,
+    required this.selectionForeground,
     required this.onSelected,
   });
 
   final GalleryDestinationId selected;
   final Color foreground;
   final Color selectionColor;
+  final Color selectionForeground;
   final ValueChanged<GalleryDestinationId> onSelected;
 
   @override
@@ -183,10 +211,26 @@ class _GalleryPlaceList extends StatelessWidget {
         }
         return const Color(0x00000000);
       }),
-      foregroundColor: WidgetStatePropertyAll(foreground),
-      titleStyle: WidgetStatePropertyAll(
-        theme.typography.title.copyWith(color: foreground),
-      ),
+      foregroundColor: WidgetStateProperty.resolveWith((states) {
+        return states.contains(WidgetState.selected)
+            ? selectionForeground
+            : foreground;
+      }),
+      // The era drew no ring around a selected place and showed the focus
+      // outline for keyboard input only, in the rail's own content color.
+      borderColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.focused) && _focusVisualVisible()) {
+          return foreground;
+        }
+        return const Color(0x00000000);
+      }),
+      borderWidth: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.focused) && _focusVisualVisible()) {
+          return 2;
+        }
+        return 0;
+      }),
+      titleStyle: WidgetStatePropertyAll(theme.typography.title),
       padding: const EdgeInsets.symmetric(horizontal: MetroSpacing.lg),
       minimumHeight: 52,
       showSelectionMark: false,
@@ -228,8 +272,8 @@ class CompactGalleryNavigation extends StatelessWidget {
     final theme = MetroTheme.of(context);
     final style = MetroListTileStyle(
       titleStyle: WidgetStatePropertyAll(theme.typography.title),
-      padding: const EdgeInsets.symmetric(horizontal: MetroSpacing.md),
-      minimumHeight: 44,
+      padding: const EdgeInsets.symmetric(horizontal: MetroSpacing.lg),
+      minimumHeight: 52,
       showSelectionMark: false,
     );
     return Column(

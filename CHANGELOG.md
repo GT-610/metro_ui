@@ -29,6 +29,10 @@
 - Lead Gallery sections with the 20pt light heading step in sentence case, give
   tiles and headings their natural capitalization, and add the rail's back
   affordance for nested component pages.
+- Derive tile content from the tile's own fill with
+  `MetroColorScheme.tileForegroundFor`, so a colored tile keeps white content
+  when the application accent is bright, and tint the Gallery rail from the
+  accent with surface-derived labels and keyboard-only focus outlines.
 
 ## 0.2.0
 
