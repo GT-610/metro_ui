@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_field_surface.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -168,65 +169,25 @@ class MetroPickerField extends StatelessWidget {
   static MetroPickerStyle _defaultStyle(MetroThemeData theme) {
     final colors = theme.colors;
     return MetroPickerStyle(
-      backgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (colors.isHighContrast) {
-          return colors.background;
-        }
-        if (states.contains(WidgetState.disabled)) {
-          return colors.isDark
-              ? const Color(0x00000000)
-              : const Color(0x66CACACA);
-        }
-        return states.contains(WidgetState.hovered) ||
-                states.contains(WidgetState.focused)
-            ? const Color(0xDEFFFFFF)
-            : const Color(0xCCFFFFFF);
-      }),
-      foregroundColor: WidgetStateProperty.resolveWith((states) {
-        if (colors.isHighContrast) {
-          return states.contains(WidgetState.disabled)
-              ? colors.disabledForeground
-              : colors.foreground;
-        }
-        if (states.contains(WidgetState.disabled)) {
-          return colors.isDark
-              ? const Color(0x66FFFFFF)
-              : const Color(0x66000000);
-        }
-        return const Color(0xFF000000);
-      }),
-      borderColor: WidgetStateProperty.resolveWith((states) {
-        if (colors.isHighContrast) {
-          return states.contains(WidgetState.focused)
-              ? colors.accent
-              : states.contains(WidgetState.disabled)
-              ? colors.disabledForeground
-              : colors.foreground;
-        }
-        if (colors.isDark) {
-          return states.contains(WidgetState.disabled)
-              ? const Color(0x66FFFFFF)
-              : const Color(0x00000000);
-        }
-        if (states.contains(WidgetState.disabled)) {
-          return const Color(0x26000000);
-        }
-        if (states.contains(WidgetState.focused)) {
-          return const Color(0x99000000);
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return const Color(0x70000000);
-        }
-        return const Color(0x45000000);
-      }),
-      borderWidth: const WidgetStatePropertyAll(2),
+      backgroundColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.backgroundColor(colors, states),
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.foregroundColor(colors, states),
+      ),
+      borderColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.borderColor(colors, states),
+      ),
+      borderWidth: const WidgetStatePropertyAll(
+        MetroFieldSurface.borderWidth,
+      ),
       separatorColor: const WidgetStatePropertyAll(Color(0x00000000)),
       textStyle: WidgetStatePropertyAll(theme.typography.body),
       padding: const EdgeInsets.symmetric(
-        horizontal: MetroSpacing.sm,
+        horizontal: MetroSpacing.xs,
         vertical: MetroSpacing.xxs,
       ),
-      minimumHeight: 32,
+      minimumHeight: MetroFieldSurface.minimumAffordanceHeight,
       minimumSegmentWidth: 80,
       segmentSpacing: 20,
     );

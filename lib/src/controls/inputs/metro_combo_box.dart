@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../foundation/metro_accessibility.dart';
+import '../../foundation/metro_field_surface.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
@@ -700,52 +701,33 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
   static MetroComboBoxStyle _defaultStyle(MetroThemeData theme) {
     final colors = theme.colors;
     return MetroComboBoxStyle(
-      backgroundColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledBackground
-            : colors.background;
-      }),
-      foregroundColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledForeground
-            : colors.foreground;
-      }),
-      placeholderColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledForeground
-            : colors.mutedForeground;
-      }),
-      borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused) ||
-            states.contains(WidgetState.selected)) {
-          return colors.accent;
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return colors.foreground;
-        }
-        return colors.border;
-      }),
-      borderWidth: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.focused) ||
-                states.contains(WidgetState.hovered) ||
-                states.contains(WidgetState.selected)
-            ? 2
-            : 1;
-      }),
-      iconColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledForeground
-            : colors.foreground;
-      }),
+      backgroundColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.backgroundColor(colors, states),
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.foregroundColor(colors, states),
+      ),
+      placeholderColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.placeholderColor(colors, states),
+      ),
+      borderColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.borderColor(colors, states),
+      ),
+      borderWidth: const WidgetStatePropertyAll(
+        MetroFieldSurface.borderWidth,
+      ),
+      iconColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.foregroundColor(colors, states),
+      ),
       textStyle: WidgetStatePropertyAll(theme.typography.body),
       padding: const EdgeInsetsDirectional.fromSTEB(
-        MetroSpacing.sm,
         MetroSpacing.xs,
+        MetroSpacing.xxs,
         MetroSpacing.xs,
-        MetroSpacing.xs,
+        MetroSpacing.xxs,
       ),
       minimumWidth: 120,
-      minimumHeight: 44,
+      minimumHeight: MetroFieldSurface.minimumAffordanceHeight,
       iconSize: 12,
       menuBackgroundColor: colors.background,
       menuBorderColor: colors.border,
