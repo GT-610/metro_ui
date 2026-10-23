@@ -222,12 +222,16 @@ class MetroListTile extends StatelessWidget {
         if (states.contains(WidgetState.disabled)) {
           return const Color(0x00000000);
         }
-        if (states.contains(WidgetState.focused)) return colors.focus;
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
+          return colors.focus;
+        }
         return const Color(0x00000000);
       }),
       borderWidth: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) return 0;
-        if (states.contains(WidgetState.focused)) return 2;
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
+          return 2;
+        }
         return 0;
       }),
       titleStyle: WidgetStatePropertyAll(theme.typography.bodyStrong),

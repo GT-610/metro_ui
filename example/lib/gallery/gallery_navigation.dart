@@ -73,21 +73,6 @@ Color _liftToward(Color base, Color target, Color content) {
   return Color.lerp(base, target, 0.2)!;
 }
 
-/// Whether focus chrome should appear.
-///
-/// This era showed focus visuals for keyboard input only, so a pointer click
-/// leaves a selected place with just its accent bar.
-bool _focusVisualVisible() {
-  final manager = FocusManager.instance;
-  if (manager.highlightStrategy == FocusHighlightStrategy.alwaysTraditional) {
-    return true;
-  }
-  if (manager.highlightStrategy == FocusHighlightStrategy.alwaysTouch) {
-    return false;
-  }
-  return manager.highlightMode == FocusHighlightMode.traditional;
-}
-
 class GalleryNavigation extends StatelessWidget {
   const GalleryNavigation({
     required this.selected,
@@ -229,18 +214,14 @@ class _GalleryPlaceList extends StatelessWidget {
         return const Color(0x00000000);
       }),
       foregroundColor: WidgetStatePropertyAll(foreground),
-      // The era drew no ring around a selected place and showed the focus
-      // outline for keyboard input only, in the rail's own content color.
+      // The rail draws the focus outline in its own content color; the
+      // framework only surfaces it for keyboard input.
       borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused) && _focusVisualVisible()) {
-          return foreground;
-        }
+        if (states.contains(WidgetState.focused)) return foreground;
         return const Color(0x00000000);
       }),
       borderWidth: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused) && _focusVisualVisible()) {
-          return 2;
-        }
+        if (states.contains(WidgetState.focused)) return 2;
         return 0;
       }),
       titleStyle: WidgetStatePropertyAll(theme.typography.title),

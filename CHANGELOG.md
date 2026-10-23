@@ -36,6 +36,11 @@
 - Keep one label color across place-list states: the current place is a lifted
   tint of the rail that stays dark enough for the rail's label, instead of the
   raw accent with an inverted label.
+- Show focus outlines only while the platform reports keyboard navigation, with
+  `metroFocusVisible` gating buttons, tiles, list tiles, commands, selection
+  controls, Pivot, the data grid, and the Gallery rail.
+- Replace the tile hover outline with the content-colored wash the rest of the
+  library uses, so pointer feedback never reads as a second selection.
 
 ## 0.2.0
 

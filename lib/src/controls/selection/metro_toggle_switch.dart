@@ -324,7 +324,7 @@ class MetroToggleSwitch extends StatelessWidget {
         return colors.foreground;
       }),
       borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) {
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
           return colors.focus;
         }
         if (states.contains(WidgetState.disabled)) {

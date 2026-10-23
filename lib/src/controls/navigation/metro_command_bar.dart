@@ -460,7 +460,8 @@ class MetroCommandButton extends StatelessWidget {
             effectiveStyle.borderWidth?.resolve(effectiveStates) ?? 2;
         final labelStyle = effectiveStyle.labelStyle?.resolve(effectiveStates);
         final minimumSize = effectiveStyle.minimumSize ?? const Size(100, 80);
-        final focused = states.contains(WidgetState.focused);
+        final focused =
+            states.contains(WidgetState.focused) && metroFocusVisible();
 
         final command = ConstrainedBox(
           constraints: BoxConstraints(

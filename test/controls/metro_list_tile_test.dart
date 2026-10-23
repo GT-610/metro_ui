@@ -205,6 +205,32 @@ void main() {
     expect(border.top, border.left);
   });
 
+  testWidgets('pointer focus draws no outline, keyboard focus does', (
+    tester,
+  ) async {
+    final previousStrategy = FocusManager.instance.highlightStrategy;
+    addTearDown(() {
+      FocusManager.instance.highlightStrategy = previousStrategy;
+    });
+    await tester.pumpWidget(buildTile());
+    await tester.pump();
+
+    // A pointer press focuses the row without drawing focus chrome.
+    await tester.tap(find.byType(MetroListTile));
+    await tester.pump();
+    expect(FocusManager.instance.highlightMode, FocusHighlightMode.touch);
+    expect(outline, findsNothing);
+
+    // Keyboard navigation brings the outline back.
+    FocusManager.instance.highlightStrategy =
+        FocusHighlightStrategy.alwaysTraditional;
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    expect(outline, findsOneWidget);
+  });
+
   testWidgets('outline stays visible between adjacent list tiles', (
     tester,
   ) async {

@@ -111,8 +111,8 @@ These are intentional. Change them only with a design decision, not silently.
 | --- | --- |
 | Press scale of 0.975 on buttons, list tiles, and tiles, plus the tile tilt | Windows Phone 8 touch feedback; the desktop did not scale pressed controls. Applications can pass a scale of 1 to opt out. |
 | Tile badge draws a translucent chip behind the content | Metro 4 keeps the count readable on arbitrary tile art; the operating system badge had no backdrop. |
-| Focus outlines follow the keyboard only | The era suppressed focus visuals for pointer input and drew them on keyboard navigation; the package draws them whenever a control holds focus, so application shells that own a tinted surface gate them per build. |
-| Hover on a tile adds a 4px outline, and hover on a list tile a light wash | Windows 8 list controls revealed a selection affordance instead of a wash; a Flutter package needs a pointer affordance that does not imply selection. |
+| Focus outlines follow the keyboard only | The era suppressed focus visuals for pointer input, so `metroFocusVisible` hides outlines unless the platform reports keyboard navigation; fill and border state changes such as a focused text box still apply to every input. |
+| Hover and pointer feedback use a light wash instead of the operating system's selection reveal | Windows 8 list controls revealed a selection affordance on hover; a Flutter package needs a pointer affordance that does not imply selection, so hover washes the surface in the content color instead. |
 | `header`, `title`, and `tileTitle` type steps, and the 30pt and 15pt sizes | The era ramp jumps from 42pt to 20pt to 11pt; the extra steps come from later Metro libraries and keep hierarchy usable in application layouts. |
 | Combo box and search suggestions use a Flutter popup with 40px rows | The era used native drop-downs and suggestion panes; the Flutter equivalents are keyboard accessible and viewport aware. |
 | Picker dialogs scroll in columns | Windows 8 desktop used segmented drop-downs; the scrolling dialog is a keyboard-accessible adaptation. |

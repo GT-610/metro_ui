@@ -384,7 +384,7 @@ void main() {
     expect(tile.right - badge.right, 10);
   });
 
-  testWidgets('hover uses the Metro 4 four-pixel tile outline', (tester) async {
+  testWidgets('hover washes the tile instead of outlining it', (tester) async {
     final previousStrategy = FocusManager.instance.highlightStrategy;
     addTearDown(() {
       FocusManager.instance.highlightStrategy = previousStrategy;
@@ -405,10 +405,15 @@ void main() {
     await pointer.moveTo(tester.getCenter(find.byType(MetroTile)));
     await tester.pump();
 
-    final outline = tester.widget<DecoratedBox>(
+    expect(
       find.byKey(const ValueKey<String>('metro-tile-outline')),
+      findsNothing,
     );
-    final decoration = outline.decoration as BoxDecoration;
-    expect(decoration.border!.top.width, 4);
+    expect(
+      tester
+          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .map((box) => box.color),
+      contains(const Color.fromRGBO(255, 255, 255, 0.12)),
+    );
   });
 }

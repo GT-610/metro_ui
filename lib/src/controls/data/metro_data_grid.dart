@@ -996,7 +996,9 @@ MetroDataGridStyle _defaultDataGridStyle(MetroThemeData theme) {
     }),
     headerForegroundColor: WidgetStatePropertyAll(colors.foreground),
     headerBorderColor: WidgetStateProperty.resolveWith((states) {
-      if (states.contains(WidgetState.focused)) return colors.focus;
+      if (states.contains(WidgetState.focused) && metroFocusVisible()) {
+        return colors.focus;
+      }
       if (states.contains(WidgetState.selected) ||
           states.contains(WidgetState.hovered)) {
         return colors.accent;

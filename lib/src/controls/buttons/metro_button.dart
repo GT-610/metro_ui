@@ -85,7 +85,8 @@ class MetroButton extends StatelessWidget {
         final borderColor = effectiveStyle.borderColor?.resolve(states);
         final borderWidth = effectiveStyle.borderWidth?.resolve(states) ?? 0;
         final textStyle = effectiveStyle.textStyle?.resolve(states);
-        final focused = states.contains(WidgetState.focused);
+        final focused =
+            states.contains(WidgetState.focused) && metroFocusVisible();
         final pressed = states.contains(WidgetState.pressed);
         final reduceMotion = metroReduceMotion(context);
 

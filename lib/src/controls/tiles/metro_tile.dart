@@ -304,17 +304,15 @@ class _MetroTileState extends State<MetroTile> {
         return const Color(0x00000000);
       }),
       borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) {
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
           return colors.focus;
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return content.withValues(alpha: 0.85);
         }
         return const Color(0x00000000);
       }),
       borderWidth: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) return 2;
-        if (states.contains(WidgetState.hovered)) return 4;
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
+          return 2;
+        }
         return 0;
       }),
       titleStyle: WidgetStatePropertyAll(theme.typography.tileTitle),
