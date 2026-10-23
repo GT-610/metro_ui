@@ -127,12 +127,14 @@ class MetroFlyout extends StatelessWidget {
     final theme = MetroTheme.of(context);
     final defaults = MetroFlyoutThemeData(
       backgroundColor: theme.colors.background,
-      headerColor: theme.colors.accent,
+      // The header shares the panel surface and the accent stays in the
+      // controls; pass an explicit header color to opt into an accent band.
+      headerColor: theme.colors.background,
       width: 346,
       headerPadding: const EdgeInsets.fromLTRB(40, 32, 40, 16),
       contentPadding: const EdgeInsets.fromLTRB(40, 33, 40, 40),
       titleStyle: theme.typography.subheader.copyWith(
-        color: theme.colors.onAccent,
+        color: theme.colors.foreground,
       ),
       contentStyle: theme.typography.body,
     );
