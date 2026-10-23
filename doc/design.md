@@ -65,5 +65,28 @@ or licenses its code and assets for reuse.
 - Prefer a small set of durable controls over imitating every historical
   Windows, WPF, or web-framework widget.
 
+## Era conventions worth knowing
+
+Some habits of the era look like defects until you know them:
+
+- Entry fields stay light in the dark theme. Text inputs, combo boxes, number
+  boxes, search boxes, and picker segments are translucent white boxes with
+  black content in both brightness modes; only the surfaces around them invert.
+- Field height follows purpose. Single-line text entry is 28 logical pixels
+  tall and fields that carry a trailing affordance are 32, so a text field and
+  a combo box differ by four pixels on purpose.
+- Accent means interaction, not decoration. The accent fills selections,
+  accents armed search, and marks the current Pivot header; headers, panels,
+  and flyout titles stay on the neutral surface.
+- Outlines are for keyboard focus. Hover uses a light color wash so it never
+  reads as a second selected state.
+- Command surfaces are square. Circles are reserved for the AppBar command
+  ring, the back button, and the progress ring.
+- Tiles are drawn from the grid, not from arbitrary sizes. A 150 pixel extent
+  and a 10 pixel gutter derive the 70, 150, and 310 pixel tile assets.
+
+Every measurement behind these conventions, and each deliberate departure, is
+recorded in the [reference audit](reference_audit.md).
+
 For implementation standards and review expectations, read the
 [contribution guide](../CONTRIBUTING.md).

@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+- Give text fields, combo boxes, number boxes, search boxes, and picker
+  segments one shared entry-box surface: a 28 or 32 pixel translucent box with
+  a 2px border, and no more 44 pixel combo boxes with accent focus outlines.
+- Restore the panel-colored search button that only takes the accent while the
+  field has focus, and place the search and clear affordances flush inside the
+  field border.
+- Derive `MetroTileSize.small` and `MetroTileSize.large` from the grid, and
+  default the extent and gutter to 150 and 10 so the four tile sizes match the
+  70, 150, 310 by 150, and 310 pixel assets of the era.
+- Inset the toggle-switch fill, keep a gap before the thumb, and let the thumb
+  overhang the track border on its resting side.
+- Keep the settings flyout header on the panel surface instead of the accent.
+- Soften list-tile hover to the shared 13 percent wash and reserve outlines for
+  keyboard focus.
+- Color glyph commands from the command state so selected and pressed AppBar
+  commands stay legible.
+- Use pure black foreground and focus colors in the light scheme, and size
+  single-line entry boxes to the 28 pixel intrinsic height.
+- Add a reference audit that records the era measurements behind the visual
+  tokens and lists every deliberate deviation.
+
 ## 0.2.0
 
 - Reorganize documentation around package adoption, design direction,

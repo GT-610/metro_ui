@@ -156,6 +156,7 @@ script coverage can provide a licensed font through `MetroTypography`.
 ## Documentation
 
 - [Design language and references](doc/design.md)
+- [Era reference audit and deviations](doc/reference_audit.md)
 - [Development and contribution guide](CONTRIBUTING.md)
 - [Architecture and maintenance notes](doc/development.md)
 - [Release checklist](doc/releasing.md)
