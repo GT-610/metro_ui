@@ -438,6 +438,44 @@ void main() {
     );
     await gesture.up();
   });
+
+  testWidgets('pressing an alternate row keeps the press wash', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 420,
+            child: MetroDataGrid<_Album>(
+              columns: _columns(),
+              rows: const <_Album>[
+                _Album('Discovery', 'Daft Punk', 2001),
+                _Album('Homework', 'Daft Punk', 1997),
+              ],
+              onRowPressed: (_) {},
+              showHeader: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final surface = find.byKey(
+      const ValueKey<String>('metro-data-grid-row-1-surface'),
+    );
+    final gesture = await tester.startGesture(tester.getCenter(surface));
+    await tester.pump();
+
+    final colors = MetroThemeData.light().colors;
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      Color.alphaBlend(
+        colors.foreground.withValues(alpha: 0.2),
+        colors.background,
+      ),
+      reason: 'the alternate fill must not replace the pressed row wash',
+    );
+    await gesture.up();
+  });
 }
 
 List<MetroDataGridColumn<_Album>> _columns({double? fixedWidth}) {

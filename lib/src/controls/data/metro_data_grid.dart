@@ -729,7 +729,13 @@ class _MetroDataGridRowState<T extends Object>
       if (_pressed) WidgetState.pressed,
     };
     var background = widget.style.rowBackgroundColor?.resolve(states);
-    if (widget.index.isOdd && !widget.selected && !_hovered && widget.enabled) {
+    // The alternate fill must not win over touch feedback: a pressed row keeps
+    // its press wash even when it is an odd row.
+    if (widget.index.isOdd &&
+        !widget.selected &&
+        !_hovered &&
+        !_pressed &&
+        widget.enabled) {
       background = widget.style.alternateRowBackgroundColor ?? background;
     }
     final foreground = widget.style.rowForegroundColor?.resolve(states);
