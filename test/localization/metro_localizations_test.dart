@@ -123,12 +123,15 @@ void main() {
           ),
         ),
       );
+      // The last positioned box is the thumb; the first is the track fill.
       return tester
           .getCenter(
-            find.descendant(
-              of: find.byType(AnimatedPositionedDirectional),
-              matching: find.byType(ColoredBox),
-            ),
+            find
+                .descendant(
+                  of: find.byType(AnimatedPositionedDirectional),
+                  matching: find.byType(ColoredBox),
+                )
+                .last,
           )
           .dx;
     }
