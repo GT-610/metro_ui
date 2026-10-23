@@ -201,10 +201,7 @@ void main() {
     await tester.pumpWidget(
       metroTestApp(
         child: const Row(
-          children: <Widget>[
-            SizedBox(width: 40),
-            MetroProgressBar(value: 0.5),
-          ],
+          children: <Widget>[SizedBox(width: 40), MetroProgressBar(value: 0.5)],
         ),
       ),
     );
