@@ -33,6 +33,9 @@
   `MetroColorScheme.tileForegroundFor`, so a colored tile keeps white content
   when the application accent is bright, and tint the Gallery rail from the
   accent with surface-derived labels and keyboard-only focus outlines.
+- Keep one label color across place-list states: the current place is a lifted
+  tint of the rail that stays dark enough for the rail's label, instead of the
+  raw accent with an inverted label.
 
 ## 0.2.0
 

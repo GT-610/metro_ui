@@ -29,28 +29,48 @@ bool _filterGalleryComponent(
   return searchText.contains(query.trim().toLowerCase());
 }
 
-/// The tinted rail surface used by the wide gallery navigation.
+/// The tinted rail surfaces used by the wide gallery navigation.
 ///
-/// The era's place lists were a flood of the accent color with a brighter bar
-/// for the current place, so the rail is a darkened accent and the selection is
-/// the accent itself. Each surface derives its own content color: the dark rail
-/// takes light labels even when the accent is bright, and the selection bar
-/// takes whatever reads on the accent.
-({Color rail, Color railContent, Color selection, Color selectionContent})
-_railPalette(MetroThemeData theme) {
+/// A place list is a flood of the accent color: the rail sits deep in the
+/// accent's shade and the current place is a lifted tint of that same channel,
+/// so the labels keep one color in both states. Switching the label color with
+/// the selection would make a row change its text weight mid-list, which the
+/// era never did.
+({Color rail, Color railContent, Color selection}) _railPalette(
+  MetroThemeData theme,
+) {
   final colors = theme.colors;
   final rail = Color.lerp(
     colors.accent,
     const Color(0xFF000000),
     colors.isDark ? 0.62 : 0.55,
   )!;
-  final selection = colors.accent;
+  final railContent = MetroColorScheme.idealForegroundFor(rail);
   return (
     rail: rail,
-    railContent: MetroColorScheme.idealForegroundFor(rail),
-    selection: selection,
-    selectionContent: MetroColorScheme.idealForegroundFor(selection),
+    railContent: railContent,
+    // The bar is the rail lifted toward the accent rather than the raw accent,
+    // and it stops lifting before the label color would stop reading.
+    selection: _liftToward(rail, colors.accent, railContent),
   );
+}
+
+/// Lifts [base] toward [target] as far as [content] still reads on the result.
+///
+/// A place list keeps one label color, so the current place needs a bar that
+/// stays dark enough for that color even when the accent is a bright yellow.
+Color _liftToward(Color base, Color target, Color content) {
+  final ceiling = content == const Color(0xFFFFFFFF) ? 0.18 : 0.35;
+  for (final amount in <double>[0.72, 0.6, 0.5, 0.4, 0.3, 0.2]) {
+    final candidate = Color.lerp(base, target, amount)!;
+    final luminance = candidate.computeLuminance();
+    if (content == const Color(0xFFFFFFFF)
+        ? luminance <= ceiling
+        : luminance >= ceiling) {
+      return candidate;
+    }
+  }
+  return Color.lerp(base, target, 0.2)!;
 }
 
 /// Whether focus chrome should appear.
@@ -172,7 +192,6 @@ class GalleryNavigation extends StatelessWidget {
                   selected: selected,
                   foreground: railForeground,
                   selectionColor: palette.selection,
-                  selectionForeground: palette.selectionContent,
                   onSelected: onSelected,
                 ),
               ),
@@ -190,14 +209,12 @@ class _GalleryPlaceList extends StatelessWidget {
     required this.selected,
     required this.foreground,
     required this.selectionColor,
-    required this.selectionForeground,
     required this.onSelected,
   });
 
   final GalleryDestinationId selected;
   final Color foreground;
   final Color selectionColor;
-  final Color selectionForeground;
   final ValueChanged<GalleryDestinationId> onSelected;
 
   @override
@@ -211,11 +228,7 @@ class _GalleryPlaceList extends StatelessWidget {
         }
         return const Color(0x00000000);
       }),
-      foregroundColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.selected)
-            ? selectionForeground
-            : foreground;
-      }),
+      foregroundColor: WidgetStatePropertyAll(foreground),
       // The era drew no ring around a selected place and showed the focus
       // outline for keyboard input only, in the rail's own content color.
       borderColor: WidgetStateProperty.resolveWith((states) {
@@ -270,7 +283,21 @@ class CompactGalleryNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = MetroTheme.of(context);
+    final colors = theme.colors;
+    // On a page surface the current place is a filled selection, so its label
+    // follows the same content rule as a tile of that color.
+    final selectionContent = MetroColorScheme.tileForegroundFor(colors.accent);
     final style = MetroListTileStyle(
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        return states.contains(WidgetState.selected)
+            ? colors.accent
+            : const Color(0x00000000);
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith((states) {
+        return states.contains(WidgetState.selected)
+            ? selectionContent
+            : colors.foreground;
+      }),
       titleStyle: WidgetStatePropertyAll(theme.typography.title),
       padding: const EdgeInsets.symmetric(horizontal: MetroSpacing.lg),
       minimumHeight: 52,
