@@ -185,4 +185,35 @@ void main() {
 
     expect(rtlPainter.shouldRepaint(ltrPainter), isTrue);
   });
+
+  testWidgets('bar fills a bounded width and falls back when unbounded', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: const Center(
+          child: SizedBox(width: 240, child: MetroProgressBar(value: 0.5)),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.byType(MetroProgressBar)).width, 240);
+
+    await tester.pumpWidget(
+      metroTestApp(
+        child: const Row(
+          children: <Widget>[
+            SizedBox(width: 40),
+            MetroProgressBar(value: 0.5),
+          ],
+        ),
+      ),
+    );
+    final unbounded = tester.getSize(find.byType(MetroProgressBar));
+    expect(
+      unbounded.width,
+      moreOrLessEquals(180),
+      reason: 'an unbounded parent must not force an infinite width',
+    );
+    expect(unbounded.height, 6);
+  });
 }
