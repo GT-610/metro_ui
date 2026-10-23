@@ -112,7 +112,9 @@ void main() {
   testWidgets('resting thumb overhangs the track border', (tester) async {
     await tester.pumpWidget(
       metroTestApp(
-        child: Center(child: MetroToggleSwitch(value: false, onChanged: (_) {})),
+        child: Center(
+          child: MetroToggleSwitch(value: false, onChanged: (_) {}),
+        ),
       ),
     );
 

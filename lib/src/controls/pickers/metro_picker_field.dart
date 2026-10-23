@@ -178,9 +178,7 @@ class MetroPickerField extends StatelessWidget {
       borderColor: WidgetStateProperty.resolveWith(
         (states) => MetroFieldSurface.borderColor(colors, states),
       ),
-      borderWidth: const WidgetStatePropertyAll(
-        MetroFieldSurface.borderWidth,
-      ),
+      borderWidth: const WidgetStatePropertyAll(MetroFieldSurface.borderWidth),
       separatorColor: const WidgetStatePropertyAll(Color(0x00000000)),
       textStyle: WidgetStatePropertyAll(theme.typography.body),
       padding: const EdgeInsets.symmetric(

@@ -713,9 +713,7 @@ class _MetroComboBoxState<T extends Object> extends State<MetroComboBox<T>> {
       borderColor: WidgetStateProperty.resolveWith(
         (states) => MetroFieldSurface.borderColor(colors, states),
       ),
-      borderWidth: const WidgetStatePropertyAll(
-        MetroFieldSurface.borderWidth,
-      ),
+      borderWidth: const WidgetStatePropertyAll(MetroFieldSurface.borderWidth),
       iconColor: WidgetStateProperty.resolveWith(
         (states) => MetroFieldSurface.foregroundColor(colors, states),
       ),
