@@ -153,7 +153,7 @@ void main() {
     );
   });
 
-  testWidgets('hover uses a three pixel full outline and filled hover well', (
+  testWidgets('hover uses the shared light wash without an outline', (
     tester,
   ) async {
     final previousStrategy = FocusManager.instance.highlightStrategy;
@@ -173,17 +173,11 @@ void main() {
     );
     await tester.pump();
 
-    final decoration = tester.widget<DecoratedBox>(outline).decoration;
-    final border = (decoration as BoxDecoration).border! as Border;
-    expect(border.top.width, 3);
-    expect(border.top.color, theme.colors.foreground.withValues(alpha: 0.3));
-    expect(border.top, border.right);
-    expect(border.top, border.bottom);
-    expect(border.top, border.left);
+    expect(outline, findsNothing);
     expect(
       (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
       Color.alphaBlend(
-        theme.colors.foreground.withValues(alpha: 0.3),
+        theme.colors.foreground.withValues(alpha: 0.13),
         const Color(0xFFFFFFFF),
       ),
     );

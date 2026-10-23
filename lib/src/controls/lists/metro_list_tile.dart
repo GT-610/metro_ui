@@ -197,8 +197,10 @@ class MetroListTile extends StatelessWidget {
         }
         if (states.contains(WidgetState.hovered)) {
           if (colors.isHighContrast) return colors.accent;
+          // Hover stays a light wash so it never competes with the accent
+          // filled selection or the focus outline.
           return Color.alphaBlend(
-            colors.foreground.withValues(alpha: 0.3),
+            colors.foreground.withValues(alpha: 0.13),
             itemBackground,
           );
         }
@@ -221,15 +223,11 @@ class MetroListTile extends StatelessWidget {
           return const Color(0x00000000);
         }
         if (states.contains(WidgetState.focused)) return colors.focus;
-        if (states.contains(WidgetState.hovered)) {
-          return colors.foreground.withValues(alpha: 0.3);
-        }
         return const Color(0x00000000);
       }),
       borderWidth: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) return 0;
         if (states.contains(WidgetState.focused)) return 2;
-        if (states.contains(WidgetState.hovered)) return 3;
         return 0;
       }),
       titleStyle: WidgetStatePropertyAll(theme.typography.bodyStrong),
