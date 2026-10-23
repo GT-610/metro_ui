@@ -271,81 +271,83 @@ class _MetroTextFieldState extends State<MetroTextField> {
       cursor: widget.enabled && !widget.readOnly
           ? SystemMouseCursors.text
           : SystemMouseCursors.basic,
-      child: Container(
-        padding:
-            effectiveStyle.padding ??
-            const EdgeInsets.symmetric(
-              horizontal: MetroSpacing.xs,
-              vertical: MetroSpacing.xs,
-            ),
-        decoration: BoxDecoration(
-          color: background,
-          border: Border.all(
-            color: borderColor ?? const Color(0x00000000),
-            width: borderWidth,
-          ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: MetroFieldSurface.minimumHeight,
         ),
-        child: Row(
-          crossAxisAlignment: widget.maxLines == 1
-              ? CrossAxisAlignment.center
-              : CrossAxisAlignment.start,
-          children: [
-            if (widget.prefix != null) ...[
-              IconTheme.merge(
-                data: IconThemeData(color: foreground, size: 18),
-                child: widget.prefix!,
-              ),
-              const SizedBox(width: MetroSpacing.xs),
-            ],
-            Expanded(
-              child: Stack(
-                alignment: AlignmentDirectional.centerStart,
-                children: [
-                  if (_controller.text.isEmpty && widget.placeholder != null)
-                    IgnorePointer(
-                      child: Text(
-                        widget.placeholder!,
-                        maxLines: widget.maxLines,
-                        overflow: TextOverflow.ellipsis,
-                        style: placeholderStyle,
-                      ),
-                    ),
-                  EditableText(
-                    autofocus: widget.autofocus,
-                    autocorrect: widget.autocorrect,
-                    autofillHints: widget.autofillHints,
-                    backgroundCursorColor: theme.colors.background,
-                    controller: _controller,
-                    cursorColor: cursorColor,
-                    focusNode: _focusNode,
-                    inputFormatters: widget.inputFormatters,
-                    keyboardType: widget.keyboardType,
-                    maxLines: widget.maxLines,
-                    minLines: widget.minLines,
-                    enableSuggestions: widget.enableSuggestions,
-                    obscuringCharacter: widget.obscuringCharacter,
-                    obscureText: widget.obscureText,
-                    onChanged: widget.onChanged,
-                    onEditingComplete: widget.onEditingComplete,
-                    onSubmitted: widget.onSubmitted,
-                    readOnly: widget.readOnly || !widget.enabled,
-                    selectionColor: selectionColor,
-                    style: textStyle,
-                    textAlign: widget.textAlign,
-                    textCapitalization: widget.textCapitalization,
-                    textInputAction: widget.textInputAction,
-                  ),
-                ],
-              ),
+        child: Container(
+          padding:
+              effectiveStyle.padding ??
+              const EdgeInsets.symmetric(horizontal: MetroSpacing.xs),
+          decoration: BoxDecoration(
+            color: background,
+            border: Border.all(
+              color: borderColor ?? const Color(0x00000000),
+              width: borderWidth,
             ),
-            if (widget.suffix != null) ...[
-              const SizedBox(width: MetroSpacing.xs),
-              IconTheme.merge(
-                data: IconThemeData(color: foreground, size: 18),
-                child: widget.suffix!,
+          ),
+          child: Row(
+            crossAxisAlignment: widget.maxLines == 1
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
+            children: [
+              if (widget.prefix != null) ...[
+                IconTheme.merge(
+                  data: IconThemeData(color: foreground, size: 18),
+                  child: widget.prefix!,
+                ),
+                const SizedBox(width: MetroSpacing.xs),
+              ],
+              Expanded(
+                child: Stack(
+                  alignment: AlignmentDirectional.centerStart,
+                  children: [
+                    if (_controller.text.isEmpty && widget.placeholder != null)
+                      IgnorePointer(
+                        child: Text(
+                          widget.placeholder!,
+                          maxLines: widget.maxLines,
+                          overflow: TextOverflow.ellipsis,
+                          style: placeholderStyle,
+                        ),
+                      ),
+                    EditableText(
+                      autofocus: widget.autofocus,
+                      autocorrect: widget.autocorrect,
+                      autofillHints: widget.autofillHints,
+                      backgroundCursorColor: theme.colors.background,
+                      controller: _controller,
+                      cursorColor: cursorColor,
+                      focusNode: _focusNode,
+                      inputFormatters: widget.inputFormatters,
+                      keyboardType: widget.keyboardType,
+                      maxLines: widget.maxLines,
+                      minLines: widget.minLines,
+                      enableSuggestions: widget.enableSuggestions,
+                      obscuringCharacter: widget.obscuringCharacter,
+                      obscureText: widget.obscureText,
+                      onChanged: widget.onChanged,
+                      onEditingComplete: widget.onEditingComplete,
+                      onSubmitted: widget.onSubmitted,
+                      readOnly: widget.readOnly || !widget.enabled,
+                      selectionColor: selectionColor,
+                      style: textStyle,
+                      textAlign: widget.textAlign,
+                      textCapitalization: widget.textCapitalization,
+                      textInputAction: widget.textInputAction,
+                    ),
+                  ],
+                ),
               ),
+              if (widget.suffix != null) ...[
+                const SizedBox(width: MetroSpacing.xs),
+                IconTheme.merge(
+                  data: IconThemeData(color: foreground, size: 18),
+                  child: widget.suffix!,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -412,9 +414,7 @@ class _MetroTextFieldState extends State<MetroTextField> {
       borderColor: WidgetStateProperty.resolveWith(
         (states) => MetroFieldSurface.borderColor(colors, states),
       ),
-      borderWidth: const WidgetStatePropertyAll(
-        MetroFieldSurface.borderWidth,
-      ),
+      borderWidth: const WidgetStatePropertyAll(MetroFieldSurface.borderWidth),
       cursorColor: WidgetStatePropertyAll(colors.accent),
       selectionColor: WidgetStatePropertyAll(
         colors.accent.withValues(alpha: 0.35),
@@ -425,10 +425,7 @@ class _MetroTextFieldState extends State<MetroTextField> {
       supportingTextStyle: WidgetStatePropertyAll(theme.typography.caption),
       errorColor: WidgetStatePropertyAll(colors.error),
       successColor: WidgetStatePropertyAll(colors.success),
-      padding: const EdgeInsets.symmetric(
-        horizontal: MetroSpacing.xs,
-        vertical: MetroSpacing.xxs,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: MetroSpacing.xs),
     );
   }
 }
