@@ -113,6 +113,7 @@ These are intentional. Change them only with a design decision, not silently.
 | `header`, `title`, and `tileTitle` type steps, and the 30pt and 15pt sizes | The era ramp jumps from 42pt to 20pt to 11pt; the extra steps come from later Metro libraries and keep hierarchy usable in application layouts. |
 | Combo box and search suggestions use a Flutter popup with 40px rows | The era used native drop-downs and suggestion panes; the Flutter equivalents are keyboard accessible and viewport aware. |
 | Picker dialogs scroll in columns | Windows 8 desktop used segmented drop-downs; the scrolling dialog is a keyboard-accessible adaptation. |
+| Dialogs keep a 2px frame | The era content dialog was a borderless panel over a dimmed surface; a frame keeps the panel legible over arbitrary application content. |
 | Row heights of 52 and 44 in lists and the data grid | The era did not fix list row heights; these are package measurements that keep touch targets comfortable. |
 | High-contrast palettes | Windows 8 read system colors; the package ships explicit high-contrast schemes so tests and previews are deterministic. |
 

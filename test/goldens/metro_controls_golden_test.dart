@@ -171,13 +171,18 @@ void main() {
                         ),
                         const SizedBox(height: MetroSpacing.lg),
                         MetroTileGrid(
-                          tileExtent: 120,
                           children: [
                             MetroTile(title: 'Square', onPressed: () {}),
                             MetroTile(
                               size: MetroTileSize.wide,
                               title: 'Wide tile',
                               backgroundColor: MetroColors.magenta,
+                              onPressed: () {},
+                            ),
+                            MetroTile(
+                              size: MetroTileSize.small,
+                              title: 'Small',
+                              backgroundColor: MetroColors.teal,
                               onPressed: () {},
                             ),
                           ],

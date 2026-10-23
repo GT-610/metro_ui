@@ -55,6 +55,20 @@ in baselines are the canonical visual reference. Package screenshots are copies
 of approved Golden images and are checked by
 `tool/check_package_screenshots.dart`.
 
+Regenerate baselines with:
+
+```sh
+flutter test --update-goldens --tags golden
+dart run tool/check_package_screenshots.dart --update
+flutter test --tags golden
+```
+
+Text rasterization differs between platforms, so a baseline refreshed on macOS
+or Linux shows the current layout and colors but not the canonical Windows
+pixels. Refresh the affected baselines on the Windows renderer before a release
+and review the diff; a stale baseline is worse than none, because it silently
+blesses the previous design.
+
 Use the Gallery in `example` to validate a component in an integrated
 application. The quality workflow checks formatting, API declarations,
 screenshots, analysis, tests, a publish dry run, and Gallery analysis/tests/web
