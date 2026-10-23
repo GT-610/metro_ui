@@ -362,6 +362,23 @@ void main() {
     expect(glyph.text.style?.color, const Color(0xFFF0F0F0));
   });
 
+  testWidgets('an icon-only command must declare a semantic label', (
+    tester,
+  ) async {
+    expect(
+      () => MetroCommandButton(icon: const Text('*'), onPressed: () {}),
+      throwsAssertionError,
+    );
+    expect(
+      () => MetroCommandButton(
+        icon: const Text('*'),
+        onPressed: () {},
+        semanticLabel: 'Favorite',
+      ),
+      returnsNormally,
+    );
+  });
+
   testWidgets('a label-less command shrinks to an icon command', (
     tester,
   ) async {

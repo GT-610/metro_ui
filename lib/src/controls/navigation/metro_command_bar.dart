@@ -425,7 +425,11 @@ class MetroCommandButton extends StatelessWidget {
     this.focusNode,
     this.semanticLabel,
     super.key,
-  });
+  }) : assert(
+         label != null || semanticLabel != null,
+         'An icon-only command needs a semanticLabel: without it assistive '
+         'technology has no name to announce for the command.',
+       );
 
   final Widget icon;
 
