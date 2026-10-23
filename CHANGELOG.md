@@ -26,6 +26,9 @@
   can keep the accent filled selection without the collection check mark, and
   restyle the Gallery rail as an era place list: an accent flood, text-only rows
   without dividers or icons, and a full-width selection bar.
+- Lead Gallery sections with the 20pt light heading step in sentence case, give
+  tiles and headings their natural capitalization, and add the rail's back
+  affordance for nested component pages.
 
 ## 0.2.0
 

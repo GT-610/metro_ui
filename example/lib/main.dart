@@ -174,6 +174,9 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                       selected: _selectedDestination,
                       onSelected: _selectDestination,
                       onComponentSelected: _selectComponent,
+                      onBack: _selectedComponent == null
+                          ? null
+                          : () => _selectDestination(_selectedDestination),
                     ),
                   Expanded(
                     child: MetroPage(

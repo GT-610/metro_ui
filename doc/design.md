@@ -82,6 +82,9 @@ Some habits of the era look like defects until you know them:
   reads as a second selected state.
 - Command surfaces are square. Circles are reserved for the AppBar command
   ring, the back button, and the progress ring.
+- Section headers are a type step, not a badge. A hub section or demo group
+  leads with the 20pt light step in sentence case, and labels inside content are
+  sentence case too; uppercase belongs to buttons and commands, not to headings.
 - Place lists are text, not toolbars. A rail of places is a flood of the accent
   with the current place marked by a softer accent bar, and it carries no icons,
   dividers, or selection marks; iconography belongs in tiles and commands.

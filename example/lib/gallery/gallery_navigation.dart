@@ -49,12 +49,16 @@ class GalleryNavigation extends StatelessWidget {
     required this.selected,
     required this.onSelected,
     required this.onComponentSelected,
+    this.onBack,
     super.key,
   });
 
   final GalleryDestinationId selected;
   final ValueChanged<GalleryDestinationId> onSelected;
   final ValueChanged<GalleryComponent> onComponentSelected;
+
+  /// Leaves a nested component page, or null when there is nothing to leave.
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -78,18 +82,48 @@ class GalleryNavigation extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Metro Gallery',
-                      style: theme.typography.subheader.copyWith(
-                        color: railForeground,
-                      ),
-                    ),
-                    const SizedBox(height: MetroSpacing.xxs),
-                    Text(
-                      '${galleryComponents.length} controls and patterns',
-                      style: theme.typography.caption.copyWith(
-                        color: railForeground.withValues(alpha: 0.72),
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (onBack case final onBack?) ...[
+                          MetroBackButton(
+                            onPressed: onBack,
+                            style: MetroBackButtonStyle(
+                              size: 30,
+                              iconSize: 14,
+                              foregroundColor: WidgetStatePropertyAll(
+                                railForeground,
+                              ),
+                              borderColor: WidgetStatePropertyAll(
+                                railForeground,
+                              ),
+                            ),
+                            semanticLabel: 'Back to Metro Gallery',
+                          ),
+                          const SizedBox(width: MetroSpacing.sm),
+                        ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Metro Gallery',
+                                style: theme.typography.subheader.copyWith(
+                                  color: railForeground,
+                                ),
+                              ),
+                              const SizedBox(height: MetroSpacing.xxs),
+                              Text(
+                                '${galleryComponents.length} controls and '
+                                'patterns',
+                                style: theme.typography.caption.copyWith(
+                                  color: railForeground.withValues(alpha: 0.72),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: MetroSpacing.lg),
                     _GallerySearch(
