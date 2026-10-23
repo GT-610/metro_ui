@@ -382,6 +382,21 @@ void main() {
     );
     expect(tile.bottom - badge.bottom, 10);
     expect(tile.right - badge.right, 10);
+
+    // A bare badge: no chip behind the count, and the count reads as the tile
+    // content color.
+    final decoration =
+        tester
+                .widget<DecoratedBox>(
+                  find.byKey(const ValueKey<String>('metro-tile-badge')),
+                )
+                .decoration
+            as BoxDecoration;
+    expect(decoration.color, const Color(0x00000000));
+    expect(
+      DefaultTextStyle.of(tester.element(find.text('3'))).style.color,
+      const Color(0xFFFFFFFF),
+    );
   });
 
   testWidgets('hover washes the tile instead of outlining it', (tester) async {

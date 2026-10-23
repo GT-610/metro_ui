@@ -41,6 +41,12 @@
   controls, Pivot, the data grid, and the Gallery rail.
 - Replace the tile hover outline with the content-colored wash the rest of the
   library uses, so pointer feedback never reads as a second selection.
+- Draw the tile badge as bare content in the tile's own content color, with the
+  chip still available through `MetroTile.badgeBackgroundColor`.
+- Make `MetroCommandButton.label` optional for 56 by 40 icon commands that pair
+  with a 60 pixel bar, and add `MetroCommandBarLayer.minimalInvokeButton` so a
+  collapsed bar keeps its 56 by 21 ellipsis affordance; both are shown in the
+  Gallery.
 
 ## 0.2.0
 

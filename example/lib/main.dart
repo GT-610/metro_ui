@@ -163,6 +163,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
         data: theme,
         highContrastData: highContrastTheme,
         child: MetroCommandBarLayer(
+          minimalInvokeButton: true,
           commandBar: _buildCommandBar(),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -1190,6 +1191,11 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
               semanticLabel: 'About Metro UI',
             );
           },
+        ),
+        MetroCommandButton(
+          icon: const Icon(Icons.search),
+          onPressed: () => _record('Compact command'),
+          semanticLabel: 'Icon-only command example',
         ),
       ],
     );

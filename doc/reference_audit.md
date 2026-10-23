@@ -86,6 +86,8 @@ The dark theme keeps light fields with black text, exactly as the era did.
 | App bar | `#f0f0f0` light, `#000000` dark, 80 tall, commands at least 100 by 80 | identical |
 | Command glyph ring | 40 by 40, 2px, hover fill `rgba(0,0,0,0.13)`, checked ring filled with the bar foreground | identical |
 | Command label | 9pt | `caption` |
+| Bare command | 60 tall bar with icon-only commands, 56 wide by 40 tall, 8px glyph inset | `MetroCommandButton` without a label plus `MetroCommandBar.height: 60` |
+| Minimized bar | 60 by 40 invoke area at the bar edge holding a 56 by 21 bordered ellipsis | `MetroCommandBarLayer.minimalInvokeButton` |
 | Back button | 45 by 45 including a 2px ring (41 plus border), hover `0.13`, pressed inversion | identical |
 | Pivot header | 45pt, weight 400, 0/9 padding, 19 content inset, 72 header band | identical |
 | FlipView navigation | 69 by 39 blocks, fill `rgba(213,213,213,0.35)`, hover `rgba(215,215,215,0.94)`, pressed `rgba(41,41,41,0.74)`, glyph `rgba(0,0,0,0.6)` | identical |

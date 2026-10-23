@@ -317,8 +317,12 @@ class _MetroTileState extends State<MetroTile> {
       }),
       titleStyle: WidgetStatePropertyAll(theme.typography.tileTitle),
       subtitleStyle: WidgetStatePropertyAll(theme.typography.caption),
-      badgeBackgroundColor: const WidgetStatePropertyAll(Color(0x66000000)),
-      badgeTextStyle: WidgetStatePropertyAll(theme.typography.caption),
+      // The era badge is bare content in the tile's corner; a chip is opt-in
+      // through MetroTile.badgeBackgroundColor.
+      badgeBackgroundColor: const WidgetStatePropertyAll(Color(0x00000000)),
+      badgeTextStyle: WidgetStatePropertyAll(
+        theme.typography.caption.copyWith(color: content),
+      ),
       padding: const EdgeInsets.all(MetroSpacing.sm),
     );
   }

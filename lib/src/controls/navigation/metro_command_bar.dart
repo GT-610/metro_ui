@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
+import '../../localization/metro_localizations.dart';
 import '../../theme/metro_color_scheme.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -36,6 +37,7 @@ class MetroCommandBarLayer extends StatefulWidget {
     this.edgeSwipeEnabled = true,
     this.edgeSwipeExtent = 20,
     this.edgeSwipeThreshold = 24,
+    this.minimalInvokeButton = false,
     this.onOpenChanged,
     super.key,
   }) : assert(edgeSwipeExtent > 0),
@@ -70,6 +72,10 @@ class MetroCommandBarLayer extends StatefulWidget {
 
   /// Inward or outward drag distance required to change visibility.
   final double edgeSwipeThreshold;
+
+  /// Whether a collapsed bar leaves the minimal ellipsis invoke button on its
+  /// edge, the way a minimized AppBar could still be discovered.
+  final bool minimalInvokeButton;
 
   /// Reports user-requested visibility changes.
   final ValueChanged<bool>? onOpenChanged;
@@ -226,6 +232,22 @@ class _MetroCommandBarLayerState extends State<MetroCommandBarLayer>
                     onVerticalDragUpdate: _updateEdgeDrag,
                     onVerticalDragEnd: _endEdgeDrag,
                   ),
+                ),
+              ),
+            if (!_effectiveOpen && widget.minimalInvokeButton)
+              PositionedDirectional(
+                end: 0,
+                top: widget.placement == MetroCommandBarPlacement.top
+                    ? 0
+                    : null,
+                bottom: widget.placement == MetroCommandBarPlacement.bottom
+                    ? 0
+                    : null,
+                child: _MinimalInvokeButton(
+                  onPressed: () => _requestOpen(true),
+                  semanticLabel: MetroLocalizations.of(
+                    context,
+                  ).commandBarInvokeLabel,
                 ),
               ),
             Positioned(
@@ -395,8 +417,8 @@ class MetroCommandBar extends StatelessWidget {
 class MetroCommandButton extends StatelessWidget {
   const MetroCommandButton({
     required this.icon,
-    required this.label,
     required this.onPressed,
+    this.label,
     this.selected,
     this.style,
     this.autofocus = false,
@@ -406,7 +428,10 @@ class MetroCommandButton extends StatelessWidget {
   });
 
   final Widget icon;
-  final Widget label;
+
+  /// Optional caption. Commands without one are icon-only and pair with a
+  /// 60 pixel bar, matching the compact AppBar of the era.
+  final Widget? label;
   final VoidCallback? onPressed;
   final bool? selected;
   final MetroCommandButtonStyle? style;
@@ -459,7 +484,10 @@ class MetroCommandButton extends StatelessWidget {
         final borderWidth =
             effectiveStyle.borderWidth?.resolve(effectiveStates) ?? 2;
         final labelStyle = effectiveStyle.labelStyle?.resolve(effectiveStates);
-        final minimumSize = effectiveStyle.minimumSize ?? const Size(100, 80);
+        final label = this.label;
+        final minimumSize =
+            effectiveStyle.minimumSize ??
+            (label == null ? const Size(56, 40) : const Size(100, 80));
         final focused =
             states.contains(WidgetState.focused) && metroFocusVisible();
 
@@ -495,16 +523,18 @@ class MetroCommandButton extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: MetroSpacing.xxs),
-              DefaultTextStyle(
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    labelStyle?.copyWith(color: foreground) ??
-                    TextStyle(color: foreground),
-                textAlign: TextAlign.center,
-                child: label,
-              ),
+              if (label != null) ...[
+                const SizedBox(height: MetroSpacing.xxs),
+                DefaultTextStyle(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      labelStyle?.copyWith(color: foreground) ??
+                      TextStyle(color: foreground),
+                  textAlign: TextAlign.center,
+                  child: label,
+                ),
+              ],
             ],
           ),
         );
@@ -571,7 +601,6 @@ class MetroCommandButton extends StatelessWidget {
       labelStyle: WidgetStatePropertyAll(
         theme.typography.caption.copyWith(color: barForeground),
       ),
-      minimumSize: const Size(100, 80),
     );
   }
 }
@@ -595,4 +624,87 @@ class _MetroCommandBarScope extends InheritedWidget {
     return backgroundColor != oldWidget.backgroundColor ||
         buttonStyle != oldWidget.buttonStyle;
   }
+}
+
+/// The ellipsis that keeps a minimized AppBar discoverable.
+class _MinimalInvokeButton extends StatelessWidget {
+  const _MinimalInvokeButton({
+    required this.onPressed,
+    required this.semanticLabel,
+  });
+
+  final VoidCallback onPressed;
+  final String semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = MetroTheme.of(context);
+    final bar =
+        theme.commandBarTheme.backgroundColor ??
+        (theme.colors.isDark
+            ? const Color(0xFF000000)
+            : const Color(0xFFF0F0F0));
+    final content = MetroColorScheme.idealForegroundFor(bar);
+    return MetroInteractive(
+      onPressed: onPressed,
+      semanticLabel: semanticLabel,
+      builder: (context, states) {
+        final color = switch (states) {
+          _ when states.contains(WidgetState.pressed) => bar,
+          _ when states.contains(WidgetState.hovered) => Color.lerp(
+            bar,
+            content,
+            0.13,
+          )!,
+          _ => bar,
+        };
+        final glyph = states.contains(WidgetState.pressed) ? bar : content;
+        return AnimatedContainer(
+          duration: metroReduceMotion(context)
+              ? Duration.zero
+              : theme.motion.fast,
+          curve: theme.motion.standardCurve,
+          width: 56,
+          height: 21,
+          margin: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: states.contains(WidgetState.pressed) ? content : color,
+            border: Border.all(
+              color: states.contains(WidgetState.focused) && metroFocusVisible()
+                  ? content
+                  : color,
+              width: 2,
+            ),
+          ),
+          child: CustomPaint(painter: _EllipsisPainter(color: glyph)),
+        );
+      },
+    );
+  }
+}
+
+class _EllipsisPainter extends CustomPainter {
+  const _EllipsisPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    const dot = 3.0;
+    const gap = 4.0;
+    const totalWidth = (dot * 3) + (gap * 2);
+    final startX = (size.width - totalWidth) / 2;
+    final y = (size.height - dot) / 2;
+    for (var index = 0; index < 3; index += 1) {
+      canvas.drawRect(
+        Rect.fromLTWH(startX + index * (dot + gap), y, dot, dot),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_EllipsisPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

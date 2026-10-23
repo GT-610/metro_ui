@@ -82,6 +82,9 @@ Some habits of the era look like defects until you know them:
   reads as a second selected state.
 - Command surfaces are square. Circles are reserved for the AppBar command
   ring, the back button, and the progress ring.
+- A hidden command bar stays discoverable. Collapse it to the ellipsis on the
+  bar edge rather than removing every trace of it, and drop command labels for
+  a compact 60 pixel bar when the glyphs carry the meaning.
 - Section headers are a type step, not a badge. A hub section or demo group
   leads with the 20pt light step in sentence case, and labels inside content are
   sentence case too; uppercase belongs to buttons and commands, not to headings.

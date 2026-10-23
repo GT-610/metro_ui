@@ -70,6 +70,9 @@ abstract class MetroLocalizations {
   /// Default accessible label for moving to the next FlipView item.
   String get flipViewNextLabel => 'Next item';
 
+  /// Default accessible label for revealing a minimized command bar.
+  String get commandBarInvokeLabel => 'Show commands';
+
   /// Default accessible label for a semantic zoom container.
   String get semanticZoomLabel => 'Semantic zoom';
 
@@ -170,6 +173,8 @@ class MetroLocalizationsZh extends MetroLocalizations {
   String get flipViewPreviousLabel => '\u4e0a\u4e00\u9879';
   @override
   String get flipViewNextLabel => '\u4e0b\u4e00\u9879';
+  @override
+  String get commandBarInvokeLabel => '\u663e\u793a\u547d\u4ee4';
   @override
   String get semanticZoomLabel => '\u8bed\u4e49\u7f29\u653e';
   @override
