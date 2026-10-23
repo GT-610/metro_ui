@@ -65,116 +65,109 @@ class MetroListTile extends StatelessWidget {
             const Color(0x00000000);
         final borderWidth =
             effective.borderWidth?.resolve(effectiveStates) ?? 0;
-        final reduceMotion = metroReduceMotion(context);
-        return AnimatedScale(
-          key: const ValueKey<String>('metro-list-tile-scale'),
-          scale: states.contains(WidgetState.pressed) ? 0.975 : 1,
-          duration: reduceMotion ? Duration.zero : theme.motion.normal,
-          curve: theme.motion.standardCurve,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                key: const ValueKey<String>('metro-list-tile-surface'),
-                constraints: BoxConstraints(
-                  minHeight: effective.minimumHeight ?? 52,
-                ),
-                padding:
-                    effective.padding ??
-                    const EdgeInsets.symmetric(
-                      horizontal: MetroSpacing.sm,
-                      vertical: MetroSpacing.xs,
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              key: const ValueKey<String>('metro-list-tile-surface'),
+              constraints: BoxConstraints(
+                minHeight: effective.minimumHeight ?? 52,
+              ),
+              padding:
+                  effective.padding ??
+                  const EdgeInsets.symmetric(
+                    horizontal: MetroSpacing.sm,
+                    vertical: MetroSpacing.xs,
+                  ),
+              decoration: BoxDecoration(
+                color: effective.backgroundColor?.resolve(effectiveStates),
+              ),
+              child: Row(
+                children: [
+                  if (leading != null) ...[
+                    IconTheme.merge(
+                      data: IconThemeData(color: foreground, size: 24),
+                      child: leading!,
                     ),
-                decoration: BoxDecoration(
-                  color: effective.backgroundColor?.resolve(effectiveStates),
-                ),
-                child: Row(
-                  children: [
-                    if (leading != null) ...[
-                      IconTheme.merge(
-                        data: IconThemeData(color: foreground, size: 24),
-                        child: leading!,
-                      ),
-                      const SizedBox(width: MetroSpacing.sm),
-                    ],
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                    const SizedBox(width: MetroSpacing.sm),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        DefaultTextStyle.merge(
+                          style: effective.titleStyle
+                              ?.resolve(effectiveStates)
+                              ?.copyWith(color: foreground),
+                          child: title,
+                        ),
+                        if (subtitle != null) ...[
+                          const SizedBox(height: MetroSpacing.xxs),
                           DefaultTextStyle.merge(
-                            style: effective.titleStyle
+                            style: effective.subtitleStyle
                                 ?.resolve(effectiveStates)
                                 ?.copyWith(color: foreground),
-                            child: title,
+                            child: subtitle!,
                           ),
-                          if (subtitle != null) ...[
-                            const SizedBox(height: MetroSpacing.xxs),
-                            DefaultTextStyle.merge(
-                              style: effective.subtitleStyle
-                                  ?.resolve(effectiveStates)
-                                  ?.copyWith(color: foreground),
-                              child: subtitle!,
-                            ),
-                          ],
                         ],
+                      ],
+                    ),
+                  ),
+                  if (trailing != null) ...[
+                    const SizedBox(width: MetroSpacing.sm),
+                    IconTheme.merge(
+                      data: IconThemeData(color: foreground, size: 20),
+                      child: trailing!,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (borderWidth > 0 && borderColor.a > 0)
+              Positioned(
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    key: const ValueKey<String>('metro-list-tile-outline'),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: borderColor,
+                        width: borderWidth,
                       ),
                     ),
-                    if (trailing != null) ...[
-                      const SizedBox(width: MetroSpacing.sm),
-                      IconTheme.merge(
-                        data: IconThemeData(color: foreground, size: 20),
-                        child: trailing!,
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
               ),
-              if (borderWidth > 0 && borderColor.a > 0)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  left: 0,
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      key: const ValueKey<String>('metro-list-tile-outline'),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: borderColor,
-                          width: borderWidth,
-                        ),
+            if (selected && (effective.showSelectionMark ?? true))
+              PositionedDirectional(
+                top: 0,
+                end: 0,
+                child: IgnorePointer(
+                  child: ExcludeSemantics(
+                    child: Padding(
+                      key: const ValueKey<String>(
+                        'metro-list-tile-selection-checkmark',
                       ),
-                    ),
-                  ),
-                ),
-              if (selected && (effective.showSelectionMark ?? true))
-                PositionedDirectional(
-                  top: 0,
-                  end: 0,
-                  child: IgnorePointer(
-                    child: ExcludeSemantics(
-                      child: Padding(
-                        key: const ValueKey<String>(
-                          'metro-list-tile-selection-checkmark',
-                        ),
-                        padding: const EdgeInsets.all(2),
-                        child: SizedBox.square(
-                          dimension: 11 * 4 / 3,
-                          child: CustomPaint(
-                            painter: _MetroSelectionCheckmarkPainter(
-                              color: theme.colors.isHighContrast
-                                  ? theme.colors.onAccent
-                                  : const Color(0xFFFFFFFF),
-                            ),
+                      padding: const EdgeInsets.all(2),
+                      child: SizedBox.square(
+                        dimension: 11 * 4 / 3,
+                        child: CustomPaint(
+                          painter: _MetroSelectionCheckmarkPainter(
+                            color: theme.colors.isHighContrast
+                                ? theme.colors.onAccent
+                                : const Color(0xFFFFFFFF),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         );
       },
     );
@@ -194,6 +187,15 @@ class MetroListTile extends StatelessWidget {
             return colors.isHighContrast ? colors.accent : colors.accentHover;
           }
           return colors.accent;
+        }
+        if (states.contains(WidgetState.pressed)) {
+          if (colors.isHighContrast) return colors.accent;
+          // Press stays a wash: the era inverted a button's color on press but
+          // never scaled a list row.
+          return Color.alphaBlend(
+            colors.foreground.withValues(alpha: 0.2),
+            itemBackground,
+          );
         }
         if (states.contains(WidgetState.hovered)) {
           if (colors.isHighContrast) return colors.accent;

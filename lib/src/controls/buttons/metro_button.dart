@@ -208,7 +208,7 @@ class MetroButton extends StatelessWidget {
         vertical: MetroSpacing.xxs,
       ),
       minimumSize: const Size(90, 32),
-      pressScale: 0.975,
+      pressScale: 1,
     );
   }
 }

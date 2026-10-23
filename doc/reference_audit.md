@@ -111,7 +111,7 @@ These are intentional. Change them only with a design decision, not silently.
 
 | Deviation | Why |
 | --- | --- |
-| Press scale of 0.975 on buttons, list tiles, and tiles, plus the tile tilt | Windows Phone 8 touch feedback; the desktop did not scale pressed controls. Applications can pass a scale of 1 to opt out. |
+| The tile keeps the Windows Phone 8 press tilt while every other press is color | The desktop inverted a pressed button's colors and washed a pressed row; only the phone-era tile tilted. `MetroTile.enablePressTilt` opts out, and `MetroButtonStyle.pressScale` still accepts a scale for touch-forward apps. |
 | Tile badge draws a translucent chip behind the content | Metro 4 keeps the count readable on arbitrary tile art; the operating system badge had no backdrop. |
 | Focus outlines follow the keyboard only | The era suppressed focus visuals for pointer input, so `metroFocusVisible` hides outlines unless the platform reports keyboard navigation; fill and border state changes such as a focused text box still apply to every input. |
 | Hover and pointer feedback use a light wash instead of the operating system's selection reveal | Windows 8 list controls revealed a selection affordance on hover; a Flutter package needs a pointer affordance that does not imply selection, so hover washes the surface in the content color instead. |

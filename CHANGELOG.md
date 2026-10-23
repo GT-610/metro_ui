@@ -51,6 +51,8 @@
   the text box, and let `MetroProgressBar` fill the width it is given so it no
   longer collapses inside a Row or Column.
 - Left-align Gallery section headings independently of the surrounding column.
+- Press buttons by color inversion instead of a 0.975 scale, and wash pressed list
+  and grid rows instead of scaling them; only the tile keeps the phone-era tilt.
 
 ## 0.2.0
 

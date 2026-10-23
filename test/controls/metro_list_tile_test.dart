@@ -329,38 +329,30 @@ void main() {
     expect(markTopLeft.dy, closeTo(surfaceTopLeft.dy, 0.01));
   });
 
-  testWidgets('pointer press uses the WinJS 0.975 scale recipe', (
+  testWidgets('pointer press washes the row instead of scaling it', (
     tester,
   ) async {
+    final theme = MetroThemeData.light();
     await tester.pumpWidget(buildTile());
     final gesture = await tester.startGesture(
       tester.getCenter(find.byType(MetroListTile)),
     );
     await tester.pump();
 
-    var animatedScale = tester.widget<AnimatedScale>(scale);
-    expect(animatedScale.scale, 0.975);
-    expect(animatedScale.duration, const Duration(milliseconds: 167));
-    expect(animatedScale.curve, MetroThemeData.light().motion.standardCurve);
-
-    await gesture.up();
-    await tester.pump();
-    animatedScale = tester.widget<AnimatedScale>(scale);
-    expect(animatedScale.scale, 1);
-  });
-
-  testWidgets('reduced motion makes the press transform immediate', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      buildTile(
-        mediaQueryData: const MediaQueryData(
-          size: Size(800, 600),
-          disableAnimations: true,
-        ),
+    expect(scale, findsNothing);
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      Color.alphaBlend(
+        theme.colors.foreground.withValues(alpha: 0.2),
+        const Color(0xFFFFFFFF),
       ),
     );
 
-    expect(tester.widget<AnimatedScale>(scale).duration, Duration.zero);
+    await gesture.up();
+    await tester.pump();
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      const Color(0xFFFFFFFF),
+    );
   });
 }

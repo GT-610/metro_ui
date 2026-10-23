@@ -399,7 +399,7 @@ void main() {
     controller.dispose();
   });
 
-  testWidgets('row pointer press uses the 0.975 scale without a pressed fill', (
+  testWidgets('row pointer press washes the row without scaling it', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -421,18 +421,20 @@ void main() {
     final surface = find.byKey(
       const ValueKey<String>('metro-data-grid-row-0-surface'),
     );
-    final scale = find.byKey(
-      const ValueKey<String>('metro-data-grid-row-0-scale'),
-    );
     final gesture = await tester.startGesture(tester.getCenter(surface));
     await tester.pump();
 
-    final animatedScale = tester.widget<AnimatedScale>(scale);
-    expect(animatedScale.scale, 0.975);
-    expect(animatedScale.duration, const Duration(milliseconds: 167));
+    final colors = MetroThemeData.light().colors;
+    expect(
+      find.byKey(const ValueKey<String>('metro-data-grid-row-0-scale')),
+      findsNothing,
+    );
     expect(
       (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
-      MetroThemeData.light().colors.background,
+      Color.alphaBlend(
+        colors.foreground.withValues(alpha: 0.2),
+        colors.background,
+      ),
     );
     await gesture.up();
   });
