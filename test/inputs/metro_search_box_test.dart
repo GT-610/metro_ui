@@ -291,8 +291,9 @@ void main() {
       of: find.byKey(const ValueKey<String>('metro-search-box-submit')),
       matching: find.byType(AnimatedContainer),
     );
-    expect(tester.getSize(button).height, 52);
     expect(tester.getSize(button).width, 52);
+    // The button fills the field interior instead of forcing a square block.
+    expect(tester.getSize(button).height, 24);
   });
 
   testWidgets('reduced motion removes the popup entrance duration', (
