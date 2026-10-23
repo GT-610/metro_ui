@@ -47,6 +47,10 @@
   with a 60 pixel bar, and add `MetroCommandBarLayer.minimalInvokeButton` so a
   collapsed bar keeps its 56 by 21 ellipsis affordance; both are shown in the
   Gallery.
+- Keep number-box steppers on the field surface instead of accent blocks inside
+  the text box, and let `MetroProgressBar` fill the width it is given so it no
+  longer collapses inside a Row or Column.
+- Left-align Gallery section headings independently of the surrounding column.
 
 ## 0.2.0
 

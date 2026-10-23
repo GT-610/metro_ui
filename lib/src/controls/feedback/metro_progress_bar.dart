@@ -98,8 +98,11 @@ class _MetroProgressBarState extends State<MetroProgressBar>
           (widget.value == null
               ? null
               : MetroLocalizations.of(context).formatPercentage(widget.value!)),
+      // A bar fills the width it is given; without this it would collapse
+      // inside the loose constraints of a Row or Column.
       child: SizedBox(
         height: height,
+        width: double.infinity,
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) => CustomPaint(
