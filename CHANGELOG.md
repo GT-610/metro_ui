@@ -62,6 +62,10 @@
   otherwise reaches assistive technology unnamed.
 - Stop `metroFocusStates` from mutating the caller's state set when focus chrome
   is hidden.
+- Paint the search box action glyphs from the palette: the armed search button
+  uses the accent's contrast color so a bright accent such as amber stays
+  legible, and high contrast swaps the clear button's wash and glyph for
+  palette pairs that reach 12:1 or better.
 
 ## 0.2.0
 

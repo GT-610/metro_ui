@@ -833,25 +833,42 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
         if (states.contains(WidgetState.pressed)) {
           return const Color(0xFFF0F0F0);
         }
+        // Armed and hovered both paint an accent-derived background, so the
+        // glyph comes from the accent's own contrast color instead of a fixed
+        // white that a bright accent such as amber cannot carry.
         if (states.contains(WidgetState.selected) ||
             states.contains(WidgetState.hovered)) {
-          return const Color(0xFFFFFFFF);
+          return colors.onAccent;
         }
         return const Color(0x99000000);
       }),
       clearButtonBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
-          return const Color(0xFF000000);
+          return colors.isHighContrast
+              ? colors.foreground
+              : const Color(0xFF000000);
         }
         if (states.contains(WidgetState.hovered) ||
             states.contains(WidgetState.focused)) {
-          return const Color(0xFFDEDEDE);
+          // The flat gray wash belongs to the translucent field; high contrast
+          // swaps it for the palette's raised surface so the glyph below stays
+          // legible.
+          return colors.isHighContrast
+              ? colors.surfaceVariant
+              : const Color(0xFFDEDEDE);
         }
         return const Color(0x00000000);
       }),
       clearButtonForegroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
-          return const Color(0xFFF0F0F0);
+          return colors.isHighContrast
+              ? colors.background
+              : const Color(0xFFF0F0F0);
+        }
+        // High contrast replaces the translucent field with a flat background,
+        // where a semi-transparent black glyph can vanish completely.
+        if (colors.isHighContrast) {
+          return colors.foreground;
         }
         return const Color(0x99000000);
       }),

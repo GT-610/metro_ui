@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -501,6 +501,88 @@ void main() {
     expect(localizations.searchBoxSearchLabel, '\u641c\u7d22');
     expect(localizations.searchBoxClearLabel, '\u6e05\u9664\u641c\u7d22');
     expect(localizations.searchBoxNoResultsLabel, '\u6ca1\u6709\u5efa\u8bae');
+  });
+
+  testWidgets('high contrast keeps both action glyphs visible', (tester) async {
+    final controller = TextEditingController(text: 'metro');
+    addTearDown(controller.dispose);
+    final boundaryKey = GlobalKey();
+    await tester.pumpWidget(
+      _searchTestApp(
+        theme: MetroThemeData.highContrastDark(),
+        child: Center(
+          child: RepaintBoundary(
+            key: boundaryKey,
+            child: SizedBox(
+              width: 280,
+              child: MetroSearchBox<String>(
+                autofocus: true,
+                controller: controller,
+                items: const [],
+                onSubmitted: (_) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final origin = tester.getTopLeft(find.byKey(boundaryKey));
+    final boundary =
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
+    final (pixels, imageWidth, scale) = (await tester.runAsync(() async {
+      final image = await boundary.toImage();
+      final data = await image.toByteData();
+      return (
+        data!.buffer.asUint8List(),
+        image.width,
+        image.width / boundary.size.width,
+      );
+    }))!;
+
+    /// Counts glyph pixels of [key] whose luminance satisfies [matches], which
+    /// samples the button interior only, never its fill.
+    int glyphPixels(Key key, bool Function(double luminance) matches) {
+      final rect = tester.getRect(find.byKey(key));
+      final left = ((rect.left - origin.dx) * scale).round() + 3;
+      final right = ((rect.right - origin.dx) * scale).round() - 3;
+      final top = ((rect.top - origin.dy) * scale).round() + 3;
+      final bottom = ((rect.bottom - origin.dy) * scale).round() - 3;
+      var count = 0;
+      for (var y = top; y < bottom; y += 1) {
+        for (var x = left; x < right; x += 1) {
+          final offset = (y * imageWidth + x) * 4;
+          final luminance =
+              (pixels[offset] + pixels[offset + 1] + pixels[offset + 2]) / 3;
+          if (matches(luminance)) count += 1;
+        }
+      }
+      return count;
+    }
+
+    // The flat high contrast field is black, so the idle clear glyph must be
+    // painted light; a translucent black glyph disappeared entirely here.
+    expect(
+      glyphPixels(
+        const ValueKey<String>('metro-search-box-clear'),
+        (luminance) => luminance > 128,
+      ),
+      greaterThan(0),
+      reason: 'the idle clear glyph vanished on the flat dark field',
+    );
+
+    // The armed search button paints the yellow accent, so its glyph has to be
+    // the accent's dark contrast color rather than a fixed white.
+    expect(
+      glyphPixels(
+        const ValueKey<String>('metro-search-box-submit'),
+        (luminance) => luminance < 60,
+      ),
+      greaterThan(0),
+      reason: 'the armed search glyph must contrast with the accent fill',
+    );
   });
 }
 
