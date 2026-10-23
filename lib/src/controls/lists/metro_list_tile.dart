@@ -148,7 +148,7 @@ class MetroListTile extends StatelessWidget {
                     ),
                   ),
                 ),
-              if (selected)
+              if (selected && (effective.showSelectionMark ?? true))
                 PositionedDirectional(
                   top: 0,
                   end: 0,

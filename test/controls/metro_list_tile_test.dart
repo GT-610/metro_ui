@@ -263,6 +263,33 @@ void main() {
     },
   );
 
+  testWidgets('a rail can keep the accent fill without the selection mark', (
+    tester,
+  ) async {
+    final theme = MetroThemeData.light();
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 240,
+            child: MetroListTile(
+              title: const Text('Documents'),
+              selected: true,
+              style: const MetroListTileStyle(showSelectionMark: false),
+              onPressed: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(checkmark, findsNothing);
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      theme.colors.accent,
+    );
+  });
+
   testWidgets('selection checkmark mirrors to logical top-end in RTL', (
     tester,
   ) async {
