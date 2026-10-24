@@ -76,8 +76,8 @@ void main() {
     );
     expect(styles.first.style.fontSize, 60);
     expect(styles.first.style.fontWeight, FontWeight.w400);
-    expect(styles.first.style.color, const Color(0xFF1D1D1D));
-    expect(styles.last.style.color, const Color(0x331D1D1D));
+    expect(styles.first.style.color, const Color(0xFF000000));
+    expect(styles.last.style.color, const Color(0x33000000));
     expect(styles.first.duration, const Duration(milliseconds: 167));
     expect(styles.first.curve, Curves.linear);
 

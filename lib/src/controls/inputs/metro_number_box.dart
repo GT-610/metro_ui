@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../foundation/metro_accessibility.dart';
+import '../../foundation/metro_field_surface.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
@@ -552,22 +553,54 @@ class _MetroNumberBoxState<T extends num> extends State<MetroNumberBox<T>> {
       fieldStyle: const MetroTextFieldStyle(
         padding: EdgeInsetsDirectional.only(start: MetroSpacing.sm),
       ),
+      // The stepper belongs to the field, so it stays on the field surface
+      // instead of introducing an accent block inside a text box. High
+      // contrast themes replace the translucent field fill with the flat
+      // background, so the stepper needs palette colors there to stay visible.
       buttonBackgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (colors.isHighContrast) {
+          if (states.contains(WidgetState.disabled)) {
+            return const Color(0x00000000);
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return colors.foreground;
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return colors.accent;
+          }
+          return const Color(0x00000000);
+        }
         if (states.contains(WidgetState.disabled)) {
-          return colors.disabledBackground;
+          return const Color(0x00000000);
         }
         if (states.contains(WidgetState.pressed)) {
-          return colors.accentPressed;
+          return const Color(0xFF000000);
         }
         if (states.contains(WidgetState.hovered)) {
-          return colors.accentHover;
+          return const Color(0x22000000);
         }
-        return colors.accent;
+        return const Color(0x00000000);
       }),
       buttonForegroundColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledForeground
-            : colors.onAccent;
+        if (colors.isHighContrast) {
+          if (states.contains(WidgetState.disabled)) {
+            return colors.disabledForeground;
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return colors.background;
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return colors.onAccent;
+          }
+          return MetroFieldSurface.foregroundColor(colors, states);
+        }
+        if (states.contains(WidgetState.disabled)) {
+          return const Color(0x66000000);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return const Color(0xFFFFFFFF);
+        }
+        return const Color(0xFF000000);
       }),
       buttonExtent: 40,
       iconSize: 14,

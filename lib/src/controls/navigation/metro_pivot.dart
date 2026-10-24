@@ -489,7 +489,8 @@ class _MetroPivotState extends State<MetroPivot>
                             style: selected ? selectedHeaderStyle : headerStyle,
                             child: CustomPaint(
                               foregroundPainter:
-                                  states.contains(WidgetState.focused)
+                                  states.contains(WidgetState.focused) &&
+                                      metroFocusVisible()
                                   ? _PivotFocusPainter(
                                       color: theme.colors.focus,
                                     )

@@ -14,6 +14,7 @@ class MetroListTileStyle {
     this.subtitleStyle,
     this.padding,
     this.minimumHeight,
+    this.showSelectionMark,
   });
 
   final WidgetStateProperty<Color?>? backgroundColor;
@@ -25,6 +26,13 @@ class MetroListTileStyle {
   final EdgeInsetsGeometry? padding;
   final double? minimumHeight;
 
+  /// Whether a filled selection also draws the end-corner selection mark.
+  ///
+  /// List collections show the mark so a filled row still reads as a selected
+  /// item. Navigation rails and other single-choice surfaces usually want only
+  /// the accent fill, so they can turn the mark off.
+  final bool? showSelectionMark;
+
   MetroListTileStyle copyWith({
     WidgetStateProperty<Color?>? backgroundColor,
     WidgetStateProperty<Color?>? foregroundColor,
@@ -34,6 +42,7 @@ class MetroListTileStyle {
     WidgetStateProperty<TextStyle?>? subtitleStyle,
     EdgeInsetsGeometry? padding,
     double? minimumHeight,
+    bool? showSelectionMark,
   }) => MetroListTileStyle(
     backgroundColor: backgroundColor ?? this.backgroundColor,
     foregroundColor: foregroundColor ?? this.foregroundColor,
@@ -43,6 +52,7 @@ class MetroListTileStyle {
     subtitleStyle: subtitleStyle ?? this.subtitleStyle,
     padding: padding ?? this.padding,
     minimumHeight: minimumHeight ?? this.minimumHeight,
+    showSelectionMark: showSelectionMark ?? this.showSelectionMark,
   );
 
   MetroListTileStyle merge(MetroListTileStyle? other) => other == null
@@ -56,6 +66,7 @@ class MetroListTileStyle {
           subtitleStyle: other.subtitleStyle,
           padding: other.padding,
           minimumHeight: other.minimumHeight,
+          showSelectionMark: other.showSelectionMark,
         );
 
   static MetroListTileStyle lerp(
@@ -104,6 +115,11 @@ class MetroListTileStyle {
       ),
       padding: EdgeInsetsGeometry.lerp(first.padding, second.padding, t),
       minimumHeight: lerpDouble(first.minimumHeight, second.minimumHeight, t),
+      showSelectionMark: lerpDiscrete(
+        first.showSelectionMark,
+        second.showSelectionMark,
+        t,
+      ),
     );
   }
 }

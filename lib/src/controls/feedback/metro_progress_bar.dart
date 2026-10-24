@@ -40,6 +40,11 @@ class MetroProgressBar extends StatefulWidget {
 
 class _MetroProgressBarState extends State<MetroProgressBar>
     with SingleTickerProviderStateMixin {
+  /// Length used when the parent offers no bounded width to fill, such as a
+  /// loose [Row] or [Column]. A bar has no intrinsic width in this era, so it
+  /// needs a finite stand-in rather than an infinite constraint.
+  static const double _nominalWidth = 180;
+
   late final AnimationController _controller = AnimationController(vsync: this);
 
   @override
@@ -91,6 +96,23 @@ class _MetroProgressBarState extends State<MetroProgressBar>
         widget.height ??
         (widget.value == null ? barTheme.indeterminateHeight : barTheme.height);
     final textDirection = Directionality.of(context);
+    final bar = AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) => CustomPaint(
+        painter: _ProgressBarPainter(
+          animationValue: _controller.value,
+          active: widget.active,
+          animateIndeterminate: _controller.isAnimating,
+          background: background,
+          color: color,
+          dotCount: barTheme.indeterminateDotCount,
+          dotDiameter: barTheme.indeterminateDotDiameter,
+          dotSpacing: barTheme.indeterminateDotSpacing,
+          textDirection: textDirection,
+          value: widget.value,
+        ),
+      ),
+    );
     return Semantics(
       label: widget.semanticLabel,
       value:
@@ -98,25 +120,17 @@ class _MetroProgressBarState extends State<MetroProgressBar>
           (widget.value == null
               ? null
               : MetroLocalizations.of(context).formatPercentage(widget.value!)),
-      child: SizedBox(
-        height: height,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) => CustomPaint(
-            painter: _ProgressBarPainter(
-              animationValue: _controller.value,
-              active: widget.active,
-              animateIndeterminate: _controller.isAnimating,
-              background: background,
-              color: color,
-              dotCount: barTheme.indeterminateDotCount,
-              dotDiameter: barTheme.indeterminateDotDiameter,
-              dotSpacing: barTheme.indeterminateDotSpacing,
-              textDirection: textDirection,
-              value: widget.value,
-            ),
-          ),
-        ),
+      // A bar fills the width it is given; without this it would collapse
+      // inside the loose constraints of a Row or Column. An unbounded parent
+      // has no width to fill, so the bar falls back to its nominal length
+      // instead of asking for an infinite one.
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : _nominalWidth;
+          return SizedBox(height: height, width: width, child: bar);
+        },
       ),
     );
   }

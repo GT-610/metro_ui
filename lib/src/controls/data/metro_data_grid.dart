@@ -721,7 +721,6 @@ class _MetroDataGridRowState<T extends Object>
 
   @override
   Widget build(BuildContext context) {
-    final theme = MetroTheme.of(context);
     final states = <WidgetState>{
       if (!widget.enabled) WidgetState.disabled,
       if (widget.selected) WidgetState.selected,
@@ -730,74 +729,72 @@ class _MetroDataGridRowState<T extends Object>
       if (_pressed) WidgetState.pressed,
     };
     var background = widget.style.rowBackgroundColor?.resolve(states);
-    if (widget.index.isOdd && !widget.selected && !_hovered && widget.enabled) {
+    // The alternate fill must not win over touch feedback: a pressed row keeps
+    // its press wash even when it is an odd row.
+    if (widget.index.isOdd &&
+        !widget.selected &&
+        !_hovered &&
+        !_pressed &&
+        widget.enabled) {
       background = widget.style.alternateRowBackgroundColor ?? background;
     }
     final foreground = widget.style.rowForegroundColor?.resolve(states);
-    Widget visual = AnimatedScale(
-      key: ValueKey<String>('metro-data-grid-row-${widget.index}-scale'),
-      scale: _pressed ? 0.975 : 1,
-      duration: metroReduceMotion(context)
-          ? Duration.zero
-          : theme.motion.normal,
-      curve: theme.motion.standardCurve,
-      child: Container(
-        key: ValueKey<String>('metro-data-grid-row-${widget.index}-surface'),
-        height: widget.rowHeight,
-        decoration: BoxDecoration(
-          color: background,
-          border: Border(
-            bottom: BorderSide(
-              color: widget.style.dividerColor ?? const Color(0x00000000),
-              width: widget.style.dividerWidth ?? 1,
-            ),
+    Widget visual = Container(
+      key: ValueKey<String>('metro-data-grid-row-${widget.index}-surface'),
+      height: widget.rowHeight,
+      decoration: BoxDecoration(
+        color: background,
+        border: Border(
+          bottom: BorderSide(
+            color: widget.style.dividerColor ?? const Color(0x00000000),
+            width: widget.style.dividerWidth ?? 1,
           ),
         ),
-        foregroundDecoration: _focused
-            ? BoxDecoration(
-                border: Border.all(
-                  color: widget.style.focusColor ?? const Color(0x00000000),
-                  width: widget.style.focusWidth ?? 2,
-                ),
-              )
-            : null,
-        child: DefaultTextStyle.merge(
-          style: widget.style.cellTextStyle
-              ?.resolve(states)
-              ?.copyWith(color: foreground),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          child: Row(
-            children: [
-              for (var index = 0; index < widget.columns.length; index += 1)
-                SizedBox(
-                  width: widget.widths[index],
-                  child: Container(
-                    alignment: widget.columns[index].alignment,
-                    padding:
-                        widget.style.cellPadding ??
-                        const EdgeInsets.symmetric(horizontal: MetroSpacing.sm),
-                    decoration: BoxDecoration(
-                      border: index == widget.columns.length - 1
-                          ? null
-                          : BorderDirectional(
-                              end: BorderSide(
-                                color:
-                                    widget.style.dividerColor ??
-                                    const Color(0x00000000),
-                                width: widget.style.dividerWidth ?? 1,
-                              ),
+      ),
+      foregroundDecoration: _focused
+          ? BoxDecoration(
+              border: Border.all(
+                color: widget.style.focusColor ?? const Color(0x00000000),
+                width: widget.style.focusWidth ?? 2,
+              ),
+            )
+          : null,
+      child: DefaultTextStyle.merge(
+        style: widget.style.cellTextStyle
+            ?.resolve(states)
+            ?.copyWith(color: foreground),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        child: Row(
+          children: [
+            for (var index = 0; index < widget.columns.length; index += 1)
+              SizedBox(
+                width: widget.widths[index],
+                child: Container(
+                  alignment: widget.columns[index].alignment,
+                  padding:
+                      widget.style.cellPadding ??
+                      const EdgeInsets.symmetric(horizontal: MetroSpacing.sm),
+                  decoration: BoxDecoration(
+                    border: index == widget.columns.length - 1
+                        ? null
+                        : BorderDirectional(
+                            end: BorderSide(
+                              color:
+                                  widget.style.dividerColor ??
+                                  const Color(0x00000000),
+                              width: widget.style.dividerWidth ?? 1,
                             ),
-                    ),
-                    child: widget.columns[index].cellBuilder(
-                      context,
-                      widget.row,
-                      widget.index,
-                    ),
+                          ),
+                  ),
+                  child: widget.columns[index].cellBuilder(
+                    context,
+                    widget.row,
+                    widget.index,
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -996,7 +993,9 @@ MetroDataGridStyle _defaultDataGridStyle(MetroThemeData theme) {
     }),
     headerForegroundColor: WidgetStatePropertyAll(colors.foreground),
     headerBorderColor: WidgetStateProperty.resolveWith((states) {
-      if (states.contains(WidgetState.focused)) return colors.focus;
+      if (states.contains(WidgetState.focused) && metroFocusVisible()) {
+        return colors.focus;
+      }
       if (states.contains(WidgetState.selected) ||
           states.contains(WidgetState.hovered)) {
         return colors.accent;
@@ -1012,6 +1011,13 @@ MetroDataGridStyle _defaultDataGridStyle(MetroThemeData theme) {
           return colors.isHighContrast ? colors.accent : colors.accentHover;
         }
         return colors.accent;
+      }
+      if (states.contains(WidgetState.pressed)) {
+        if (colors.isHighContrast) return colors.accent;
+        return Color.alphaBlend(
+          colors.foreground.withValues(alpha: 0.2),
+          colors.background,
+        );
       }
       if (states.contains(WidgetState.hovered)) {
         if (colors.isHighContrast) return colors.accent;

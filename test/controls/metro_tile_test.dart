@@ -41,6 +41,57 @@ void main() {
     );
   });
 
+  testWidgets('tile sizes follow the Modern UI asset grid', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 700,
+            child: MetroTileGrid(
+              children: [
+                MetroTile(
+                  size: MetroTileSize.small,
+                  title: 'Small',
+                  onPressed: () {},
+                ),
+                MetroTile(title: 'Square', onPressed: () {}),
+                MetroTile(
+                  size: MetroTileSize.wide,
+                  title: 'Wide',
+                  onPressed: () {},
+                ),
+                MetroTile(
+                  size: MetroTileSize.large,
+                  title: 'Large',
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // A 150 pixel extent with a 10 pixel gutter reproduces the 70, 150, and
+    // 310 pixel tile assets.
+    expect(
+      tester.getSize(find.widgetWithText(MetroTile, 'Small')),
+      const Size(70, 70),
+    );
+    expect(
+      tester.getSize(find.widgetWithText(MetroTile, 'Square')),
+      const Size(150, 150),
+    );
+    expect(
+      tester.getSize(find.widgetWithText(MetroTile, 'Wide')),
+      const Size(310, 150),
+    );
+    expect(
+      tester.getSize(find.widgetWithText(MetroTile, 'Large')),
+      const Size(310, 310),
+    );
+  });
+
   testWidgets('wide tiles clamp to a narrow grid', (tester) async {
     await tester.pumpWidget(
       metroTestApp(
@@ -240,6 +291,40 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('tile content follows the tile fill, not the accent', (
+    tester,
+  ) async {
+    // An orange accent would make its own content dark; a blue tile must still
+    // keep white content, and a pale tile must flip to black.
+    final theme = MetroThemeData.light(accentColor: MetroColors.orange);
+    await tester.pumpWidget(
+      metroTestApp(
+        theme: theme,
+        child: Center(
+          child: MetroTileGrid(
+            children: [
+              MetroTile(
+                title: 'Blue',
+                backgroundColor: MetroColors.cobalt,
+                onPressed: () {},
+              ),
+              MetroTile(
+                title: 'Pale',
+                backgroundColor: MetroColors.yellow,
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    Color? titleColor(String title) =>
+        DefaultTextStyle.of(tester.element(find.text(title))).style.color;
+    expect(titleColor('Blue'), const Color(0xFFFFFFFF));
+    expect(titleColor('Pale'), const Color(0xFF000000));
+  });
+
   testWidgets('tile badge uses Metro notification geometry', (tester) async {
     const badgeColor = Color(0xFF123456);
     await tester.pumpWidget(
@@ -297,9 +382,24 @@ void main() {
     );
     expect(tile.bottom - badge.bottom, 10);
     expect(tile.right - badge.right, 10);
+
+    // A bare badge: no chip behind the count, and the count reads as the tile
+    // content color.
+    final decoration =
+        tester
+                .widget<DecoratedBox>(
+                  find.byKey(const ValueKey<String>('metro-tile-badge')),
+                )
+                .decoration
+            as BoxDecoration;
+    expect(decoration.color, const Color(0x00000000));
+    expect(
+      DefaultTextStyle.of(tester.element(find.text('3'))).style.color,
+      const Color(0xFFFFFFFF),
+    );
   });
 
-  testWidgets('hover uses the Metro 4 four-pixel tile outline', (tester) async {
+  testWidgets('hover washes the tile instead of outlining it', (tester) async {
     final previousStrategy = FocusManager.instance.highlightStrategy;
     addTearDown(() {
       FocusManager.instance.highlightStrategy = previousStrategy;
@@ -320,10 +420,15 @@ void main() {
     await pointer.moveTo(tester.getCenter(find.byType(MetroTile)));
     await tester.pump();
 
-    final outline = tester.widget<DecoratedBox>(
+    expect(
       find.byKey(const ValueKey<String>('metro-tile-outline')),
+      findsNothing,
     );
-    final decoration = outline.decoration as BoxDecoration;
-    expect(decoration.border!.top.width, 4);
+    expect(
+      tester
+          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .map((box) => box.color),
+      contains(const Color.fromRGBO(255, 255, 255, 0.12)),
+    );
   });
 }

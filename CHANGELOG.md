@@ -1,5 +1,72 @@
 # Changelog
 
+## Unreleased
+
+- Give text fields, combo boxes, number boxes, search boxes, and picker
+  segments one shared entry-box surface: a 28 or 32 pixel translucent box with
+  a 2px border, and no more 44 pixel combo boxes with accent focus outlines.
+- Restore the panel-colored search button that only takes the accent while the
+  field has focus, and place the search and clear affordances flush inside the
+  field border.
+- Derive `MetroTileSize.small` and `MetroTileSize.large` from the grid, and
+  default the extent and gutter to 150 and 10 so the four tile sizes match the
+  70, 150, 310 by 150, and 310 pixel assets of the era.
+- Inset the toggle-switch fill, keep a gap before the thumb, and let the thumb
+  overhang the track border on its resting side.
+- Keep the settings flyout header on the panel surface instead of the accent.
+- Soften list-tile hover to the shared 13 percent wash and reserve outlines for
+  keyboard focus.
+- Color glyph commands from the command state so selected and pressed AppBar
+  commands stay legible.
+- Use pure black foreground and focus colors in the light scheme, and size
+  single-line entry boxes to the 28 pixel intrinsic height.
+- Add a reference audit that records the era measurements behind the visual
+  tokens and lists every deliberate deviation.
+- Add `MetroListTileStyle.showSelectionMark` so place lists and navigation rails
+  can keep the accent filled selection without the collection check mark, and
+  restyle the Gallery rail as an era place list: an accent flood, text-only rows
+  without dividers or icons, and a full-width selection bar.
+- Lead Gallery sections with the 20pt light heading step in sentence case, give
+  tiles and headings their natural capitalization, and add the rail's back
+  affordance for nested component pages.
+- Derive tile content from the tile's own fill with
+  `MetroColorScheme.tileForegroundFor`, so a colored tile keeps white content
+  when the application accent is bright, and tint the Gallery rail from the
+  accent with surface-derived labels and keyboard-only focus outlines.
+- Keep one label color across place-list states: the current place is a lifted
+  tint of the rail that stays dark enough for the rail's label, instead of the
+  raw accent with an inverted label.
+- Show focus outlines only while the platform reports keyboard navigation, with
+  `metroFocusVisible` gating buttons, tiles, list tiles, commands, selection
+  controls, Pivot, the data grid, and the Gallery rail.
+- Replace the tile hover outline with the content-colored wash the rest of the
+  library uses, so pointer feedback never reads as a second selection.
+- Draw the tile badge as bare content in the tile's own content color, with the
+  chip still available through `MetroTile.badgeBackgroundColor`.
+- Make `MetroCommandButton.label` optional for 56 by 40 icon commands that pair
+  with a 60 pixel bar, and add `MetroCommandBarLayer.minimalInvokeButton` so a
+  collapsed bar keeps its 56 by 21 ellipsis affordance; both are shown in the
+  Gallery.
+- Keep number-box steppers on the field surface instead of accent blocks inside
+  the text box, and let `MetroProgressBar` fill the width it is given so it no
+  longer collapses inside a Row or Column.
+- Left-align Gallery section headings independently of the surrounding column.
+- Press buttons by color inversion instead of a 0.975 scale, and wash pressed list
+  and grid rows instead of scaling them; only the tile keeps the phone-era tilt.
+- Keep the press wash on alternate grid rows, fall back to a nominal 180 pixel
+  length when a progress bar has no bounded width, and resolve the search box's
+  action corridor against the text direction so it mirrors in right-to-left
+  layouts.
+- Give number-box steppers high-contrast palette colors and require a
+  `semanticLabel` for icon-only AppBar commands, since a label-less command
+  otherwise reaches assistive technology unnamed.
+- Stop `metroFocusStates` from mutating the caller's state set when focus chrome
+  is hidden.
+- Paint the search box action glyphs from the palette: the armed search button
+  uses the accent's contrast color so a bright accent such as amber stays
+  legible, and high contrast swaps the clear button's wash and glyph for
+  palette pairs that reach 12:1 or better.
+
 ## 0.2.0
 
 - Reorganize documentation around package adoption, design direction,

@@ -2,6 +2,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_field_surface.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
@@ -270,81 +271,83 @@ class _MetroTextFieldState extends State<MetroTextField> {
       cursor: widget.enabled && !widget.readOnly
           ? SystemMouseCursors.text
           : SystemMouseCursors.basic,
-      child: Container(
-        padding:
-            effectiveStyle.padding ??
-            const EdgeInsets.symmetric(
-              horizontal: MetroSpacing.xs,
-              vertical: MetroSpacing.xs,
-            ),
-        decoration: BoxDecoration(
-          color: background,
-          border: Border.all(
-            color: borderColor ?? const Color(0x00000000),
-            width: borderWidth,
-          ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: MetroFieldSurface.minimumHeight,
         ),
-        child: Row(
-          crossAxisAlignment: widget.maxLines == 1
-              ? CrossAxisAlignment.center
-              : CrossAxisAlignment.start,
-          children: [
-            if (widget.prefix != null) ...[
-              IconTheme.merge(
-                data: IconThemeData(color: foreground, size: 18),
-                child: widget.prefix!,
-              ),
-              const SizedBox(width: MetroSpacing.xs),
-            ],
-            Expanded(
-              child: Stack(
-                alignment: AlignmentDirectional.centerStart,
-                children: [
-                  if (_controller.text.isEmpty && widget.placeholder != null)
-                    IgnorePointer(
-                      child: Text(
-                        widget.placeholder!,
-                        maxLines: widget.maxLines,
-                        overflow: TextOverflow.ellipsis,
-                        style: placeholderStyle,
-                      ),
-                    ),
-                  EditableText(
-                    autofocus: widget.autofocus,
-                    autocorrect: widget.autocorrect,
-                    autofillHints: widget.autofillHints,
-                    backgroundCursorColor: theme.colors.background,
-                    controller: _controller,
-                    cursorColor: cursorColor,
-                    focusNode: _focusNode,
-                    inputFormatters: widget.inputFormatters,
-                    keyboardType: widget.keyboardType,
-                    maxLines: widget.maxLines,
-                    minLines: widget.minLines,
-                    enableSuggestions: widget.enableSuggestions,
-                    obscuringCharacter: widget.obscuringCharacter,
-                    obscureText: widget.obscureText,
-                    onChanged: widget.onChanged,
-                    onEditingComplete: widget.onEditingComplete,
-                    onSubmitted: widget.onSubmitted,
-                    readOnly: widget.readOnly || !widget.enabled,
-                    selectionColor: selectionColor,
-                    style: textStyle,
-                    textAlign: widget.textAlign,
-                    textCapitalization: widget.textCapitalization,
-                    textInputAction: widget.textInputAction,
-                  ),
-                ],
-              ),
+        child: Container(
+          padding:
+              effectiveStyle.padding ??
+              const EdgeInsets.symmetric(horizontal: MetroSpacing.xs),
+          decoration: BoxDecoration(
+            color: background,
+            border: Border.all(
+              color: borderColor ?? const Color(0x00000000),
+              width: borderWidth,
             ),
-            if (widget.suffix != null) ...[
-              const SizedBox(width: MetroSpacing.xs),
-              IconTheme.merge(
-                data: IconThemeData(color: foreground, size: 18),
-                child: widget.suffix!,
+          ),
+          child: Row(
+            crossAxisAlignment: widget.maxLines == 1
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
+            children: [
+              if (widget.prefix != null) ...[
+                IconTheme.merge(
+                  data: IconThemeData(color: foreground, size: 18),
+                  child: widget.prefix!,
+                ),
+                const SizedBox(width: MetroSpacing.xs),
+              ],
+              Expanded(
+                child: Stack(
+                  alignment: AlignmentDirectional.centerStart,
+                  children: [
+                    if (_controller.text.isEmpty && widget.placeholder != null)
+                      IgnorePointer(
+                        child: Text(
+                          widget.placeholder!,
+                          maxLines: widget.maxLines,
+                          overflow: TextOverflow.ellipsis,
+                          style: placeholderStyle,
+                        ),
+                      ),
+                    EditableText(
+                      autofocus: widget.autofocus,
+                      autocorrect: widget.autocorrect,
+                      autofillHints: widget.autofillHints,
+                      backgroundCursorColor: theme.colors.background,
+                      controller: _controller,
+                      cursorColor: cursorColor,
+                      focusNode: _focusNode,
+                      inputFormatters: widget.inputFormatters,
+                      keyboardType: widget.keyboardType,
+                      maxLines: widget.maxLines,
+                      minLines: widget.minLines,
+                      enableSuggestions: widget.enableSuggestions,
+                      obscuringCharacter: widget.obscuringCharacter,
+                      obscureText: widget.obscureText,
+                      onChanged: widget.onChanged,
+                      onEditingComplete: widget.onEditingComplete,
+                      onSubmitted: widget.onSubmitted,
+                      readOnly: widget.readOnly || !widget.enabled,
+                      selectionColor: selectionColor,
+                      style: textStyle,
+                      textAlign: widget.textAlign,
+                      textCapitalization: widget.textCapitalization,
+                      textInputAction: widget.textInputAction,
+                    ),
+                  ],
+                ),
               ),
+              if (widget.suffix != null) ...[
+                const SizedBox(width: MetroSpacing.xs),
+                IconTheme.merge(
+                  data: IconThemeData(color: foreground, size: 18),
+                  child: widget.suffix!,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -399,49 +402,19 @@ class _MetroTextFieldState extends State<MetroTextField> {
   static MetroTextFieldStyle _defaultStyle(MetroThemeData theme) {
     final colors = theme.colors;
     return MetroTextFieldStyle(
-      backgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return colors.isDark
-              ? const Color(0x00000000)
-              : const Color(0x66CACACA);
-        }
-        if (states.contains(WidgetState.focused)) {
-          return const Color(0xFFFFFFFF);
-        }
-        return states.contains(WidgetState.hovered)
-            ? const Color(0xDEFFFFFF)
-            : const Color(0xCCFFFFFF);
-      }),
-      foregroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return colors.isDark
-              ? const Color(0x66FFFFFF)
-              : const Color(0x66000000);
-        }
-        return const Color(0xFF000000);
-      }),
-      placeholderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return colors.isDark
-              ? const Color(0x38FFFFFF)
-              : const Color(0x38000000);
-        }
-        return const Color(0x99000000);
-      }),
-      borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return colors.isDark
-              ? const Color(0x66FFFFFF)
-              : const Color(0x26000000);
-        }
-        if (colors.isDark) {
-          return const Color(0x00000000);
-        }
-        return states.contains(WidgetState.hovered)
-            ? const Color(0x70000000)
-            : const Color(0x45000000);
-      }),
-      borderWidth: const WidgetStatePropertyAll(2),
+      backgroundColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.backgroundColor(colors, states),
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.foregroundColor(colors, states),
+      ),
+      placeholderColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.placeholderColor(colors, states),
+      ),
+      borderColor: WidgetStateProperty.resolveWith(
+        (states) => MetroFieldSurface.borderColor(colors, states),
+      ),
+      borderWidth: const WidgetStatePropertyAll(MetroFieldSurface.borderWidth),
       cursorColor: WidgetStatePropertyAll(colors.accent),
       selectionColor: WidgetStatePropertyAll(
         colors.accent.withValues(alpha: 0.35),
@@ -452,10 +425,7 @@ class _MetroTextFieldState extends State<MetroTextField> {
       supportingTextStyle: WidgetStatePropertyAll(theme.typography.caption),
       errorColor: WidgetStatePropertyAll(colors.error),
       successColor: WidgetStatePropertyAll(colors.success),
-      padding: const EdgeInsets.symmetric(
-        horizontal: MetroSpacing.xs,
-        vertical: MetroSpacing.xxs,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: MetroSpacing.xs),
     );
   }
 }

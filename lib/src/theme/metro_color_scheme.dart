@@ -39,12 +39,12 @@ class MetroColorScheme {
       background: const Color(0xFFFFFFFF),
       surface: const Color(0xFFF4F4F4),
       surfaceVariant: const Color(0xFFE5E5E5),
-      foreground: const Color(0xFF1D1D1D),
+      foreground: const Color(0xFF000000),
       mutedForeground: const Color(0xFF666666),
       border: const Color(0xFF777777),
       disabledForeground: const Color(0xFF9A9A9A),
       disabledBackground: const Color(0xFFE1E1E1),
-      focus: const Color(0xFF1D1D1D),
+      focus: const Color(0xFF000000),
       error: MetroColors.red,
       success: MetroColors.emerald,
     );
@@ -208,6 +208,18 @@ class MetroColorScheme {
       success: Color.lerp(a.success, b.success, t)!,
       isHighContrast: t < 0.5 ? a.isHighContrast : b.isHighContrast,
     );
+  }
+
+  /// Content color for a tile or another saturated block filled with
+  /// [background].
+  ///
+  /// Tiles in this era carried white content on every accent fill, so this rule
+  /// keeps white until the fill is light enough that white content would be
+  /// unreadable, and only then switches to black.
+  static Color tileForegroundFor(Color background) {
+    return background.computeLuminance() > 0.45
+        ? const Color(0xFF000000)
+        : const Color(0xFFFFFFFF);
   }
 
   static Color idealForegroundFor(Color background) {

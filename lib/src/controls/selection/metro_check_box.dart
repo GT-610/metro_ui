@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
@@ -157,7 +158,9 @@ class MetroCheckBox extends StatelessWidget {
         return const Color(0xFF000000);
       }),
       borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) return colors.focus;
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
+          return colors.focus;
+        }
         if (states.contains(WidgetState.disabled)) {
           return dark ? const Color(0x00000000) : const Color(0x26000000);
         }

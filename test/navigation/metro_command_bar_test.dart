@@ -329,6 +329,117 @@ void main() {
 
     expect(_barTranslation(tester), Offset.zero);
   });
+  testWidgets('glyph command content follows the command state color', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: MetroCommandBar(
+          commands: [
+            MetroCommandButton(
+              icon: const Text('*'),
+              label: const Text('Favorite'),
+              onPressed: () {},
+              selected: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final glyph = tester.widget<RichText>(
+      find
+          .descendant(
+            of: find.byKey(
+              const ValueKey<String>('metro-command-button-circle'),
+            ),
+            matching: find.byType(RichText),
+          )
+          .first,
+    );
+
+    // A selected light-theme command inverts: filled ring, panel-colored glyph.
+    expect(glyph.text.style?.color, const Color(0xFFF0F0F0));
+  });
+
+  testWidgets('an icon-only command must declare a semantic label', (
+    tester,
+  ) async {
+    expect(
+      () => MetroCommandButton(icon: const Text('*'), onPressed: () {}),
+      throwsAssertionError,
+    );
+    expect(
+      () => MetroCommandButton(
+        icon: const Text('*'),
+        onPressed: () {},
+        semanticLabel: 'Favorite',
+      ),
+      returnsNormally,
+    );
+  });
+
+  testWidgets('a label-less command shrinks to an icon command', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: MetroCommandBar(
+          height: 60,
+          commands: [
+            MetroCommandButton(
+              icon: const Text('*'),
+              onPressed: () {},
+              semanticLabel: 'Favorite',
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final command = tester.getSize(find.byType(MetroCommandButton));
+    expect(command.width, 56);
+    expect(command.height, 40);
+    expect(find.byType(Text), findsOneWidget);
+    expect(
+      tester
+          .widget<RichText>(
+            find
+                .descendant(
+                  of: find.byType(MetroCommandButton),
+                  matching: find.byType(RichText),
+                )
+                .first,
+          )
+          .text
+          .toPlainText(),
+      '*',
+    );
+  });
+
+  testWidgets('a minimized bar keeps the ellipsis invoke button', (
+    tester,
+  ) async {
+    var open = false;
+    await tester.pumpWidget(
+      metroTestApp(
+        child: MetroCommandBarLayer(
+          minimalInvokeButton: true,
+          onOpenChanged: (value) => open = value,
+          commandBar: const SizedBox(height: 80),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final invoke = find.bySemanticsLabel('Show commands');
+    expect(invoke, findsOneWidget);
+
+    await tester.tap(invoke);
+    await tester.pump();
+    expect(open, isTrue);
+    expect(find.bySemanticsLabel('Show commands'), findsNothing);
+  });
 }
 
 Offset _barTranslation(WidgetTester tester) {

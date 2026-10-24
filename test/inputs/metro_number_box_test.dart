@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -540,7 +540,69 @@ void main() {
     expect(localizations.numberBoxDecrementLabel, '\u51cf\u5c11\u6570\u503c');
     expect(localizations.numberBoxEmptyValueLabel, '\u65e0\u6570\u503c');
   });
+
+  testWidgets('high contrast themes keep the spinner visible on the field', (
+    tester,
+  ) async {
+    // The high contrast field is a flat background with no translucent fill,
+    // so a black-on-black spinner would disappear entirely.
+    final boundaryKey = GlobalKey();
+    await tester.pumpWidget(
+      _numberBoxTestApp(
+        theme: MetroThemeData.highContrastDark(),
+        child: Center(
+          child: RepaintBoundary(
+            key: boundaryKey,
+            child: const SizedBox(
+              width: 260,
+              child: MetroNumberBox<int>(value: 5, onChanged: _ignoreChange),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final spinner = tester.getRect(
+      find.byKey(const ValueKey<String>('metro-number-box-increment')),
+    );
+    final origin = tester.getTopLeft(find.byKey(boundaryKey));
+    final boundary =
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
+
+    var visibleGlyphPixels = 0;
+    await tester.runAsync(() async {
+      final image = await boundary.toImage();
+      final data = await image.toByteData();
+      final pixels = data!.buffer.asUint8List();
+      for (
+        var y = spinner.top - origin.dy + 8;
+        y < spinner.bottom - origin.dy - 8;
+        y += 1
+      ) {
+        for (
+          var x = spinner.left - origin.dx + 8;
+          x < spinner.right - origin.dx - 8;
+          x += 1
+        ) {
+          final offset = (y.round() * image.width + x.round()) * 4;
+          final luminance =
+              (pixels[offset] + pixels[offset + 1] + pixels[offset + 2]) / 3;
+          if (luminance > 128) visibleGlyphPixels += 1;
+        }
+      }
+    });
+
+    expect(
+      visibleGlyphPixels,
+      greaterThan(0),
+      reason: 'the spinner glyph must contrast with the high contrast field',
+    );
+  });
 }
+
+void _ignoreChange(int? value) {}
 
 Widget _numberBoxTestApp({
   required Widget child,

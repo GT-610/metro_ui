@@ -79,12 +79,16 @@ void main() {
         matching: find.byType(AnimatedContainer),
       ),
     );
-    final thumb = tester.widget<AnimatedPositionedDirectional>(
-      find.descendant(
-        of: find.byType(MetroToggleSwitch),
-        matching: find.byType(AnimatedPositionedDirectional),
-      ),
-    );
+    final positions = tester
+        .widgetList<AnimatedPositionedDirectional>(
+          find.descendant(
+            of: find.byType(MetroToggleSwitch),
+            matching: find.byType(AnimatedPositionedDirectional),
+          ),
+        )
+        .toList();
+    final fill = positions.first;
+    final thumb = positions.last;
     expect(
       tester.getSize(
         find.descendant(
@@ -99,6 +103,35 @@ void main() {
     expect(thumb.width, 12);
     expect(thumb.height, 19);
     expect(thumb.start, 38);
+    // The accent fill is inset inside the border and stops short of the thumb.
+    expect(fill.start, 3);
+    expect(fill.width, 33);
+    expect(fill.height, 13);
+  });
+
+  testWidgets('resting thumb overhangs the track border', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: MetroToggleSwitch(value: false, onChanged: (_) {}),
+        ),
+      ),
+    );
+
+    final positions = tester
+        .widgetList<AnimatedPositionedDirectional>(
+          find.descendant(
+            of: find.byType(MetroToggleSwitch),
+            matching: find.byType(AnimatedPositionedDirectional),
+          ),
+        )
+        .toList();
+    final fill = positions.first;
+    final thumb = positions.last;
+
+    expect(thumb.start, -2);
+    expect(fill.start, 12);
+    expect(fill.width, 35);
   });
 
   testWidgets('local toggle theme overrides track geometry', (tester) async {

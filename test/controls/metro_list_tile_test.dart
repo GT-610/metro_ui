@@ -153,7 +153,7 @@ void main() {
     );
   });
 
-  testWidgets('hover uses a three pixel full outline and filled hover well', (
+  testWidgets('hover uses the shared light wash without an outline', (
     tester,
   ) async {
     final previousStrategy = FocusManager.instance.highlightStrategy;
@@ -173,17 +173,11 @@ void main() {
     );
     await tester.pump();
 
-    final decoration = tester.widget<DecoratedBox>(outline).decoration;
-    final border = (decoration as BoxDecoration).border! as Border;
-    expect(border.top.width, 3);
-    expect(border.top.color, theme.colors.foreground.withValues(alpha: 0.3));
-    expect(border.top, border.right);
-    expect(border.top, border.bottom);
-    expect(border.top, border.left);
+    expect(outline, findsNothing);
     expect(
       (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
       Color.alphaBlend(
-        theme.colors.foreground.withValues(alpha: 0.3),
+        theme.colors.foreground.withValues(alpha: 0.13),
         const Color(0xFFFFFFFF),
       ),
     );
@@ -209,6 +203,32 @@ void main() {
     expect(border.top, border.right);
     expect(border.top, border.bottom);
     expect(border.top, border.left);
+  });
+
+  testWidgets('pointer focus draws no outline, keyboard focus does', (
+    tester,
+  ) async {
+    final previousStrategy = FocusManager.instance.highlightStrategy;
+    addTearDown(() {
+      FocusManager.instance.highlightStrategy = previousStrategy;
+    });
+    await tester.pumpWidget(buildTile());
+    await tester.pump();
+
+    // A pointer press focuses the row without drawing focus chrome.
+    await tester.tap(find.byType(MetroListTile));
+    await tester.pump();
+    expect(FocusManager.instance.highlightMode, FocusHighlightMode.touch);
+    expect(outline, findsNothing);
+
+    // Keyboard navigation brings the outline back.
+    FocusManager.instance.highlightStrategy =
+        FocusHighlightStrategy.alwaysTraditional;
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    expect(outline, findsOneWidget);
   });
 
   testWidgets('outline stays visible between adjacent list tiles', (
@@ -269,6 +289,33 @@ void main() {
     },
   );
 
+  testWidgets('a rail can keep the accent fill without the selection mark', (
+    tester,
+  ) async {
+    final theme = MetroThemeData.light();
+    await tester.pumpWidget(
+      metroTestApp(
+        child: Center(
+          child: SizedBox(
+            width: 240,
+            child: MetroListTile(
+              title: const Text('Documents'),
+              selected: true,
+              style: const MetroListTileStyle(showSelectionMark: false),
+              onPressed: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(checkmark, findsNothing);
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      theme.colors.accent,
+    );
+  });
+
   testWidgets('selection checkmark mirrors to logical top-end in RTL', (
     tester,
   ) async {
@@ -282,38 +329,30 @@ void main() {
     expect(markTopLeft.dy, closeTo(surfaceTopLeft.dy, 0.01));
   });
 
-  testWidgets('pointer press uses the WinJS 0.975 scale recipe', (
+  testWidgets('pointer press washes the row instead of scaling it', (
     tester,
   ) async {
+    final theme = MetroThemeData.light();
     await tester.pumpWidget(buildTile());
     final gesture = await tester.startGesture(
       tester.getCenter(find.byType(MetroListTile)),
     );
     await tester.pump();
 
-    var animatedScale = tester.widget<AnimatedScale>(scale);
-    expect(animatedScale.scale, 0.975);
-    expect(animatedScale.duration, const Duration(milliseconds: 167));
-    expect(animatedScale.curve, MetroThemeData.light().motion.standardCurve);
-
-    await gesture.up();
-    await tester.pump();
-    animatedScale = tester.widget<AnimatedScale>(scale);
-    expect(animatedScale.scale, 1);
-  });
-
-  testWidgets('reduced motion makes the press transform immediate', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      buildTile(
-        mediaQueryData: const MediaQueryData(
-          size: Size(800, 600),
-          disableAnimations: true,
-        ),
+    expect(scale, findsNothing);
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      Color.alphaBlend(
+        theme.colors.foreground.withValues(alpha: 0.2),
+        const Color(0xFFFFFFFF),
       ),
     );
 
-    expect(tester.widget<AnimatedScale>(scale).duration, Duration.zero);
+    await gesture.up();
+    await tester.pump();
+    expect(
+      (tester.widget<Container>(surface).decoration! as BoxDecoration).color,
+      const Color(0xFFFFFFFF),
+    );
   });
 }

@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../foundation/metro_accessibility.dart';
 import '../../foundation/metro_interactive.dart';
+import '../../theme/metro_color_scheme.dart';
 import '../../theme/metro_spacing.dart';
 import '../../theme/metro_theme.dart';
 import '../../theme/metro_theme_data.dart';
@@ -13,7 +14,13 @@ import 'metro_tile_style.dart';
 export 'metro_tile_style.dart';
 
 /// Standard square or double-width Metro tile geometry.
-enum MetroTileSize { square, wide }
+/// Standard tile geometry derived from the Modern UI tile asset sizes.
+///
+/// [small], [square], and [large] describe the 70, 150, and 310 pixel square
+/// assets, and [wide] the 310 by 150 pixel wide asset. All four follow from the
+/// grid extent and gutter, so a 150 pixel extent with a 10 pixel gutter produces
+/// the historical 70, 150, and 310 pixel tiles.
+enum MetroTileSize { square, wide, small, large }
 
 /// Corner used for a [MetroTile] notification badge.
 enum MetroTileBadgePosition { topEnd, bottomEnd }
@@ -66,6 +73,26 @@ class MetroTile extends StatefulWidget {
   final FocusNode? focusNode;
   final String? semanticLabel;
 
+  /// Resolves the tile footprint for [size] on a grid with the given [extent]
+  /// and [spacing].
+  ///
+  /// The extent is the square tile edge and the spacing is the gutter, so the
+  /// derived sizes match the historical 70, 150, and 310 pixel tile assets.
+  static Size geometry({
+    required MetroTileSize size,
+    required double extent,
+    required double spacing,
+  }) {
+    final small = math.max(0.0, (extent - spacing) / 2);
+    final doubleSpan = extent * 2 + spacing;
+    return switch (size) {
+      MetroTileSize.small => Size.square(small),
+      MetroTileSize.square => Size.square(extent),
+      MetroTileSize.wide => Size(doubleSpan, extent),
+      MetroTileSize.large => Size.square(doubleSpan),
+    };
+  }
+
   @override
   State<MetroTile> createState() => _MetroTileState();
 }
@@ -80,20 +107,28 @@ class _MetroTileState extends State<MetroTile> {
     final metrics = MetroTileGridScope.maybeOf(context);
     final extent = metrics?.extent ?? tileTheme.extent;
     final spacing = metrics?.spacing ?? tileTheme.spacing;
-    final desiredWidth = switch (widget.size) {
-      MetroTileSize.square => extent,
-      MetroTileSize.wide => extent * 2 + spacing,
-    };
+    final desired = MetroTile.geometry(
+      size: widget.size,
+      extent: extent,
+      spacing: spacing,
+    );
     final availableWidth = metrics?.maxWidth;
     final width =
         widget.width ??
         (availableWidth == null
-            ? desiredWidth
-            : math.min(desiredWidth, availableWidth));
-    final height = widget.height ?? extent;
+            ? desired.width
+            : math.min(desired.width, availableWidth));
+    final height = widget.height ?? desired.height;
 
+    // Tile content follows the fill of the tile itself, not the application
+    // accent: a blue tile keeps white content even when the accent is orange.
+    final requestedBackground =
+        widget.backgroundColor ??
+        tileTheme.style?.backgroundColor?.resolve(const <WidgetState>{}) ??
+        theme.colors.accent;
     var effectiveStyle = _defaultStyle(
       theme,
+      requestedBackground,
     ).merge(tileTheme.style).merge(widget.style);
     if (widget.backgroundColor != null || widget.foregroundColor != null) {
       effectiveStyle = effectiveStyle.merge(
@@ -243,48 +278,51 @@ class _MetroTileState extends State<MetroTile> {
     return transform;
   }
 
-  static MetroTileStyle _defaultStyle(MetroThemeData theme) {
+  static MetroTileStyle _defaultStyle(MetroThemeData theme, Color background) {
     final colors = theme.colors;
+    final content = MetroColorScheme.tileForegroundFor(background);
     return MetroTileStyle(
       backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
           return colors.disabledBackground;
         }
-        return colors.accent;
+        return background;
       }),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
           return colors.disabledForeground;
         }
-        return colors.onAccent;
+        return content;
       }),
       overlayColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
-          return const Color(0x24000000);
+          return content.withValues(alpha: 0.18);
         }
         if (states.contains(WidgetState.hovered)) {
-          return const Color(0x18FFFFFF);
+          return content.withValues(alpha: 0.12);
         }
         return const Color(0x00000000);
       }),
       borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) {
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
           return colors.focus;
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return colors.onAccent.withValues(alpha: 0.85);
         }
         return const Color(0x00000000);
       }),
       borderWidth: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) return 2;
-        if (states.contains(WidgetState.hovered)) return 4;
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
+          return 2;
+        }
         return 0;
       }),
       titleStyle: WidgetStatePropertyAll(theme.typography.tileTitle),
       subtitleStyle: WidgetStatePropertyAll(theme.typography.caption),
-      badgeBackgroundColor: const WidgetStatePropertyAll(Color(0x66000000)),
-      badgeTextStyle: WidgetStatePropertyAll(theme.typography.caption),
+      // The era badge is bare content in the tile's corner; a chip is opt-in
+      // through MetroTile.badgeBackgroundColor.
+      badgeBackgroundColor: const WidgetStatePropertyAll(Color(0x00000000)),
+      badgeTextStyle: WidgetStatePropertyAll(
+        theme.typography.caption.copyWith(color: content),
+      ),
       padding: const EdgeInsets.all(MetroSpacing.sm),
     );
   }

@@ -149,8 +149,14 @@ class MetroTileThemeData {
   final double? _extent;
   final double? _spacing;
 
-  double get extent => _extent ?? 140;
-  double get spacing => _spacing ?? 8;
+  /// Square tile edge, in logical pixels.
+  double get extent => _extent ?? 150;
+
+  /// Gutter between tiles, in logical pixels.
+  ///
+  /// The 150 pixel extent and 10 pixel gutter reproduce the Modern UI tile
+  /// assets: 70 pixel small, 150 pixel square, and 310 pixel wide and large.
+  double get spacing => _spacing ?? 10;
 
   MetroTileThemeData copyWith({
     MetroTileStyle? style,

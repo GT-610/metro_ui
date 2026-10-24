@@ -14,18 +14,23 @@ class GallerySectionHeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final typography = MetroTheme.of(context).typography;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: typography.title),
-        if (description case final description?) ...[
-          const SizedBox(height: MetroSpacing.xs),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Text(description),
-          ),
+    // Fill the row so a heading keeps the page's start alignment even when the
+    // surrounding column centers its children.
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: typography.subheader),
+          if (description case final description?) ...[
+            const SizedBox(height: MetroSpacing.xs),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: Text(description),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

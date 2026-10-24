@@ -30,6 +30,11 @@ flutter pub get
 Run the Gallery locally with `flutter run -d windows` or `flutter run -d
 chrome` from `example`.
 
+The Gallery is a generated scaffold, so its platform settings follow Flutter
+rather than the package. The macOS runner targets macOS 12 because current Xcode
+releases no longer accept the older 10.15 target; raise it again only when Xcode
+raises its own floor.
+
 ## Build components responsibly
 
 For a new or materially changed interactive component, consider the applicable

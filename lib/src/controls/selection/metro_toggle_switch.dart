@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../../foundation/metro_accessibility.dart';
@@ -207,8 +209,8 @@ class MetroToggleSwitch extends StatelessWidget {
           ...states,
           if (value) WidgetState.selected,
         };
-        final trackSize = effectiveStyle.trackSize ?? const Size(48, 24);
-        final thumbSize = effectiveStyle.thumbSize ?? 18;
+        final trackSize = effectiveStyle.trackSize!;
+        final thumbSize = effectiveStyle.thumbSize!;
         final trackColor = effectiveStyle.trackColor?.resolve(effectiveStates);
         final thumbColor = effectiveStyle.thumbColor?.resolve(effectiveStates);
         final borderColor = effectiveStyle.borderColor?.resolve(
@@ -217,6 +219,13 @@ class MetroToggleSwitch extends StatelessWidget {
         final borderWidth =
             effectiveStyle.borderWidth?.resolve(effectiveStates) ?? 2;
         final reduceMotion = metroReduceMotion(context);
+        // The fill is inset inside the border and keeps a small gap from the
+        // thumb instead of filling the whole track. The thumb overhangs the
+        // border on its resting side, so the switch reads as a slider knob.
+        final fillStart = value ? borderWidth + 1 : thumbSize;
+        final fillWidth = value
+            ? (trackSize.width - thumbSize - 2) - fillStart
+            : (trackSize.width - borderWidth - 1) - fillStart;
 
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -234,7 +243,6 @@ class MetroToggleSwitch extends StatelessWidget {
                           : theme.motion.fast,
                       curve: theme.motion.standardCurve,
                       decoration: BoxDecoration(
-                        color: trackColor,
                         border: Border.all(
                           color: borderColor ?? const Color(0x00000000),
                           width: borderWidth,
@@ -245,7 +253,18 @@ class MetroToggleSwitch extends StatelessWidget {
                   AnimatedPositionedDirectional(
                     duration: reduceMotion ? Duration.zero : theme.motion.fast,
                     curve: theme.motion.standardCurve,
-                    start: value ? trackSize.width - thumbSize : 0,
+                    start: fillStart,
+                    top: borderWidth + 1,
+                    width: math.max(0, fillWidth),
+                    height: trackSize.height - (borderWidth * 2) - 2,
+                    child: ColoredBox(
+                      color: trackColor ?? const Color(0x00000000),
+                    ),
+                  ),
+                  AnimatedPositionedDirectional(
+                    duration: reduceMotion ? Duration.zero : theme.motion.fast,
+                    curve: theme.motion.standardCurve,
+                    start: value ? trackSize.width - thumbSize : -borderWidth,
                     top: 0,
                     width: thumbSize,
                     height: trackSize.height,
@@ -305,7 +324,7 @@ class MetroToggleSwitch extends StatelessWidget {
         return colors.foreground;
       }),
       borderColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.focused)) {
+        if (states.contains(WidgetState.focused) && metroFocusVisible()) {
           return colors.focus;
         }
         if (states.contains(WidgetState.disabled)) {

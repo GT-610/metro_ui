@@ -89,8 +89,8 @@ void main() {
         matching: find.byKey(const ValueKey<String>('metro-button-scale')),
       ),
     );
-    expect(scale.scale, 0.975);
-    expect(scale.duration, const Duration(milliseconds: 167));
+    // A pressed button inverts its colors and stays put.
+    expect(scale.scale, 1);
     await gesture.up();
   });
 

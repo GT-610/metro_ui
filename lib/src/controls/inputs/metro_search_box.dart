@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../foundation/metro_accessibility.dart';
+import '../../foundation/metro_field_surface.dart';
 import '../../foundation/metro_interactive.dart';
 import '../../localization/metro_localizations.dart';
 import '../../theme/metro_spacing.dart';
@@ -248,6 +249,8 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
     if (!mounted) {
       return;
     }
+    // The action buttons surface their armed state from field focus.
+    setState(() {});
     if (_focusNode.hasFocus) {
       _syncOverlay();
     } else {
@@ -476,6 +479,38 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
         .merge(widget.style);
   }
 
+  /// Reserves the trailing corridor of the field for the action buttons while
+  /// keeping any leading padding the app asked for.
+  ///
+  /// The corridor sits at the directional end of the field, so the caller's
+  /// padding is resolved against [textDirection] first; a physical inset would
+  /// otherwise reserve the wrong side under a right-to-left layout.
+  MetroTextFieldStyle _fieldStyleWithTrailing(
+    MetroSearchBoxStyle style,
+    double trailingExtent,
+    TextDirection textDirection,
+  ) {
+    final fieldStyle = style.fieldStyle!;
+    final padding =
+        (fieldStyle.padding ??
+                const EdgeInsetsDirectional.only(start: MetroSpacing.xs))
+            .resolve(textDirection);
+    // The action buttons are anchored to the directional end of the field, so
+    // only the resolved leading inset survives and the end inset becomes the
+    // corridor the buttons occupy.
+    final leading = textDirection == TextDirection.ltr
+        ? padding.left
+        : padding.right;
+    return fieldStyle.copyWith(
+      padding: EdgeInsetsDirectional.only(
+        start: leading,
+        top: padding.top,
+        bottom: padding.bottom,
+        end: trailingExtent,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(_debugValidateItems());
@@ -486,15 +521,28 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
         widget.enabled &&
         widget.onSubmitted != null &&
         (widget.allowEmptyQuery || query.trim().isNotEmpty);
-    final suffix = Row(
+    final showClear = widget.clearButtonEnabled && _canEdit && query.isNotEmpty;
+    final searchExtent = style.searchButtonExtent!;
+    final clearExtent = showClear ? style.clearButtonExtent! : 0.0;
+    // The action buttons sit flush against the field border, so the editable
+    // corridor ends where they begin.
+    final trailingExtent = searchExtent + clearExtent;
+    final fieldStyle = _fieldStyleWithTrailing(
+      style,
+      trailingExtent,
+      Directionality.of(context),
+    );
+    final armed = widget.enabled && _focusNode.hasFocus;
+    final actions = Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (widget.clearButtonEnabled && _canEdit && query.isNotEmpty)
+        if (showClear)
           _MetroSearchActionButton(
             key: const ValueKey<String>('metro-search-box-clear'),
             backgroundColor: style.clearButtonBackgroundColor!,
             foregroundColor: style.clearButtonForegroundColor!,
-            extent: style.clearButtonExtent!,
+            extent: clearExtent,
             iconSize: style.iconSize!,
             icon: _MetroSearchActionIcon.clear,
             onPressed: _clearQuery,
@@ -506,10 +554,11 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
           key: const ValueKey<String>('metro-search-box-submit'),
           backgroundColor: style.searchButtonBackgroundColor!,
           foregroundColor: style.searchButtonForegroundColor!,
-          extent: style.searchButtonExtent!,
+          extent: searchExtent,
           iconSize: style.iconSize!,
           icon: _MetroSearchActionIcon.search,
           onPressed: canSubmit ? _submitQuery : null,
+          armed: armed,
           semanticLabel:
               widget.searchButtonSemanticLabel ??
               localizations.searchBoxSearchLabel,
@@ -526,8 +575,7 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
         focusNode: _focusNode,
         placeholder: widget.placeholder,
         prefix: widget.prefix,
-        suffix: suffix,
-        style: style.fieldStyle,
+        style: fieldStyle,
         enabled: widget.enabled,
         readOnly: widget.readOnly,
         autofocus: widget.autofocus,
@@ -539,6 +587,21 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
         onSubmitted: _handleSubmitted,
         semanticLabel: widget.semanticLabel,
       ),
+    );
+    field = Stack(
+      fit: StackFit.passthrough,
+      children: [
+        field,
+        PositionedDirectional(
+          end: MetroFieldSurface.borderWidth,
+          top: MetroFieldSurface.borderWidth,
+          bottom: MetroFieldSurface.borderWidth,
+          child: IconTheme.merge(
+            data: const IconThemeData(size: 16),
+            child: actions,
+          ),
+        ),
+      ],
     );
     field = Listener(
       onPointerDown: _canEdit ? (_) => _scheduleOverlaySync() : null,
@@ -742,44 +805,76 @@ class _MetroSearchBoxState<T extends Object> extends State<MetroSearchBox<T>> {
     final colors = theme.colors;
     return MetroSearchBoxStyle(
       fieldStyle: const MetroTextFieldStyle(
-        padding: EdgeInsetsDirectional.only(start: MetroSpacing.sm),
+        padding: EdgeInsetsDirectional.only(start: MetroSpacing.xs),
       ),
+      // The search button is a panel-colored block that only takes the accent
+      // while the field is focused, matching the original search box.
       searchButtonBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return colors.disabledBackground;
+          return const Color(0x00000000);
         }
         if (states.contains(WidgetState.pressed)) {
-          return colors.accentPressed;
+          return const Color(0xFF000000);
         }
-        if (states.contains(WidgetState.hovered) ||
-            states.contains(WidgetState.focused)) {
+        if (states.contains(WidgetState.selected)) {
+          return states.contains(WidgetState.hovered)
+              ? colors.accentHover
+              : colors.accent;
+        }
+        if (states.contains(WidgetState.hovered)) {
           return colors.accentHover;
         }
-        return colors.accent;
+        return const Color(0xFFF0F0F0);
       }),
       searchButtonForegroundColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledForeground
-            : colors.onAccent;
+        if (states.contains(WidgetState.disabled)) {
+          return const Color(0x66000000);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return const Color(0xFFF0F0F0);
+        }
+        // Armed and hovered both paint an accent-derived background, so the
+        // glyph comes from the accent's own contrast color instead of a fixed
+        // white that a bright accent such as amber cannot carry.
+        if (states.contains(WidgetState.selected) ||
+            states.contains(WidgetState.hovered)) {
+          return colors.onAccent;
+        }
+        return const Color(0x99000000);
       }),
       clearButtonBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
-          return colors.border;
+          return colors.isHighContrast
+              ? colors.foreground
+              : const Color(0xFF000000);
         }
         if (states.contains(WidgetState.hovered) ||
             states.contains(WidgetState.focused)) {
-          return colors.surfaceVariant;
+          // The flat gray wash belongs to the translucent field; high contrast
+          // swaps it for the palette's raised surface so the glyph below stays
+          // legible.
+          return colors.isHighContrast
+              ? colors.surfaceVariant
+              : const Color(0xFFDEDEDE);
         }
         return const Color(0x00000000);
       }),
       clearButtonForegroundColor: WidgetStateProperty.resolveWith((states) {
-        return states.contains(WidgetState.disabled)
-            ? colors.disabledForeground
-            : colors.foreground;
+        if (states.contains(WidgetState.pressed)) {
+          return colors.isHighContrast
+              ? colors.background
+              : const Color(0xFFF0F0F0);
+        }
+        // High contrast replaces the translucent field with a flat background,
+        // where a semi-transparent black glyph can vanish completely.
+        if (colors.isHighContrast) {
+          return colors.foreground;
+        }
+        return const Color(0x99000000);
       }),
-      searchButtonExtent: 44,
-      clearButtonExtent: 36,
-      iconSize: 16,
+      searchButtonExtent: 28,
+      clearButtonExtent: 24,
+      iconSize: 14,
       popupBackgroundColor: colors.background,
       popupBorderColor: colors.border,
       popupBorderWidth: colors.isHighContrast ? 2 : 1,
@@ -844,16 +939,22 @@ class _MetroSearchActionButton extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     required this.semanticLabel,
+    this.armed = false,
     super.key,
   });
 
   final WidgetStateProperty<Color?> backgroundColor;
   final WidgetStateProperty<Color?> foregroundColor;
+
+  /// Width of the button. Its height fills the field interior.
   final double extent;
   final double iconSize;
   final _MetroSearchActionIcon icon;
   final VoidCallback? onPressed;
   final String semanticLabel;
+
+  /// Whether the field owns focus, which surfaces the accent armed state.
+  final bool armed;
 
   @override
   Widget build(BuildContext context) {
@@ -861,17 +962,22 @@ class _MetroSearchActionButton extends StatelessWidget {
       onPressed: onPressed,
       semanticLabel: semanticLabel,
       builder: (context, states) {
+        final effectiveStates = <WidgetState>{
+          ...states,
+          if (armed) WidgetState.selected,
+        };
         return AnimatedContainer(
           duration: metroReduceMotion(context)
               ? Duration.zero
               : MetroTheme.of(context).motion.fast,
           curve: MetroTheme.of(context).motion.standardCurve,
           width: extent,
-          height: extent,
-          color: backgroundColor.resolve(states),
+          color: backgroundColor.resolve(effectiveStates),
           child: CustomPaint(
             painter: _MetroSearchActionPainter(
-              color: foregroundColor.resolve(states) ?? const Color(0x00000000),
+              color:
+                  foregroundColor.resolve(effectiveStates) ??
+                  const Color(0x00000000),
               icon: icon,
               iconSize: iconSize,
             ),

@@ -163,6 +163,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
         data: theme,
         highContrastData: highContrastTheme,
         child: MetroCommandBarLayer(
+          minimalInvokeButton: true,
           commandBar: _buildCommandBar(),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -174,6 +175,9 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                       selected: _selectedDestination,
                       onSelected: _selectDestination,
                       onComponentSelected: _selectComponent,
+                      onBack: _selectedComponent == null
+                          ? null
+                          : () => _selectDestination(_selectedDestination),
                     ),
                   Expanded(
                     child: MetroPage(
@@ -321,6 +325,25 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                       badgePosition:
                                           MetroTileBadgePosition.topEnd,
                                       onPressed: () => _record('Weather tile'),
+                                    ),
+                                    MetroTile(
+                                      size: MetroTileSize.large,
+                                      icon: const Icon(
+                                        Icons.photo_library_outlined,
+                                      ),
+                                      title: 'Collection',
+                                      subtitle: 'Large tile',
+                                      backgroundColor: MetroColors.indigo,
+                                      onPressed: () =>
+                                          _record('Collection tile'),
+                                    ),
+                                    MetroTile(
+                                      size: MetroTileSize.small,
+                                      icon: const Icon(Icons.search),
+                                      badge: const Text('7'),
+                                      backgroundColor: MetroColors.emerald,
+                                      semanticLabel: 'Search tile',
+                                      onPressed: () => _record('Search tile'),
                                     ),
                                     MetroTile(
                                       icon: const Icon(Icons.settings_outlined),
@@ -1168,6 +1191,11 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
               semanticLabel: 'About Metro UI',
             );
           },
+        ),
+        MetroCommandButton(
+          icon: const Icon(Icons.search),
+          onPressed: () => _record('Compact command'),
+          semanticLabel: 'Icon-only command example',
         ),
       ],
     );

@@ -36,7 +36,7 @@ class GalleryHome extends StatelessWidget {
           ),
         ),
         const SizedBox(height: MetroSpacing.xl),
-        Text('BROWSE BY CATEGORY', style: theme.typography.bodyStrong),
+        Text('Browse by category', style: theme.typography.subheader),
         const SizedBox(height: MetroSpacing.sm),
         MetroFocusTraversalGroup.spatial(
           debugLabel: 'Gallery categories',
@@ -46,7 +46,7 @@ class GalleryHome extends StatelessWidget {
                 MetroTile(
                   size: MetroTileSize.wide,
                   icon: Icon(destination.icon),
-                  title: destination.title.toUpperCase(),
+                  title: destination.title,
                   subtitle:
                       '${galleryComponentsFor(destination.id).length} examples',
                   backgroundColor: destination.color,
@@ -57,7 +57,7 @@ class GalleryHome extends StatelessWidget {
           ),
         ),
         const SizedBox(height: MetroSpacing.xl),
-        Text('PERSONALIZE THE GALLERY', style: theme.typography.bodyStrong),
+        Text('Personalize the gallery', style: theme.typography.subheader),
         const SizedBox(height: MetroSpacing.sm),
         accentPicker,
         const SizedBox(height: MetroSpacing.xl),
@@ -102,8 +102,8 @@ class GalleryPageIntroduction extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'SEARCH RESULT',
-                      style: theme.typography.caption.copyWith(
+                      'Search result',
+                      style: theme.typography.bodyStrong.copyWith(
                         color: theme.colors.onAccent,
                       ),
                     ),
