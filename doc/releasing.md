@@ -8,6 +8,9 @@ not, by itself, a stable API commitment.
 - Review `CHANGELOG.md` and describe any migration required by public changes.
 - Confirm the package description, version, repository links, topics, and
   screenshots in `pubspec.yaml` are accurate.
+- Confirm the version in `pubspec.yaml` matches the tag you are about to push.
+  The publish workflow publishes the manifest version rather than the tag and
+  stops when the two disagree.
 - Confirm all intended public declarations are documented and listed in
   `tool/public_api_declarations.txt`.
 - Review the Gallery on the platforms relevant to the release.
