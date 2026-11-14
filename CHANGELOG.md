@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 - Give text fields, combo boxes, number boxes, search boxes, and picker
   segments one shared entry-box surface: a 28 or 32 pixel translucent box with
