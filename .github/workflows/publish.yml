@@ -6,7 +6,31 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
+  version:
+    # The reusable publish workflow takes the version from pubspec.yaml rather
+    # than from the tag, so a tag that disagrees with the manifest either asks
+    # pub.dev for a version that already exists or ships one nobody intended.
+    # Fail here, before anything is uploaded.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require the tag to match the pubspec version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml | head -n1 | tr -d '[:space:]')"
+          if [ -z "$version" ]; then
+            echo "::error file=pubspec.yaml::No version declared in pubspec.yaml."
+            exit 1
+          fi
+          if [ "${TAG#v}" != "$version" ]; then
+            echo "::error file=pubspec.yaml::Tag $TAG does not match the pubspec version $version."
+            exit 1
+          fi
+          echo "Tag $TAG matches pubspec version $version."
+
   publish:
+    needs: version
     permissions:
       id-token: write # Required for authentication using OIDC
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
