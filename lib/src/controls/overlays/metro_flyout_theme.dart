@@ -8,6 +8,7 @@ class MetroFlyoutThemeData {
   const MetroFlyoutThemeData({
     this.backgroundColor,
     this.headerColor,
+    this.borderColor,
     this.barrierColor,
     this.width,
     this.headerPadding,
@@ -18,6 +19,10 @@ class MetroFlyoutThemeData {
 
   final Color? backgroundColor;
   final Color? headerColor;
+
+  /// Outline drawn inside the panel edge so an edge-docked panel still reads as
+  /// a surface when it sits on a page of its own background color.
+  final Color? borderColor;
   final Color? barrierColor;
   final double? width;
   final EdgeInsetsGeometry? headerPadding;
@@ -28,6 +33,7 @@ class MetroFlyoutThemeData {
   MetroFlyoutThemeData copyWith({
     Color? backgroundColor,
     Color? headerColor,
+    Color? borderColor,
     Color? barrierColor,
     double? width,
     EdgeInsetsGeometry? headerPadding,
@@ -38,6 +44,7 @@ class MetroFlyoutThemeData {
     return MetroFlyoutThemeData(
       backgroundColor: backgroundColor ?? this.backgroundColor,
       headerColor: headerColor ?? this.headerColor,
+      borderColor: borderColor ?? this.borderColor,
       barrierColor: barrierColor ?? this.barrierColor,
       width: width ?? this.width,
       headerPadding: headerPadding ?? this.headerPadding,
@@ -54,6 +61,7 @@ class MetroFlyoutThemeData {
     return MetroFlyoutThemeData(
       backgroundColor: other.backgroundColor ?? backgroundColor,
       headerColor: other.headerColor ?? headerColor,
+      borderColor: other.borderColor ?? borderColor,
       barrierColor: other.barrierColor ?? barrierColor,
       width: other.width ?? width,
       headerPadding: other.headerPadding ?? headerPadding,
@@ -72,6 +80,7 @@ class MetroFlyoutThemeData {
     return MetroFlyoutThemeData(
       backgroundColor: Color.lerp(a.backgroundColor, b.backgroundColor, t),
       headerColor: Color.lerp(a.headerColor, b.headerColor, t),
+      borderColor: Color.lerp(a.borderColor, b.borderColor, t),
       barrierColor: Color.lerp(a.barrierColor, b.barrierColor, t),
       width: lerpDouble(a.width, b.width, t),
       headerPadding: EdgeInsetsGeometry.lerp(
