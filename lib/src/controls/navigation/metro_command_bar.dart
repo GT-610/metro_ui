@@ -459,10 +459,8 @@ class MetroCommandButton extends StatelessWidget {
         scope?.buttonStyle ??
         theme.commandBarTheme.buttonStyle?.merge(localTheme?.buttonStyle) ??
         localTheme?.buttonStyle;
-    final effectiveStyle = _defaultStyle(
-      theme,
-      background,
-    ).merge(themedStyle).merge(style);
+    final defaults = _defaultStyle(theme, background);
+    final effectiveStyle = defaults.merge(themedStyle).merge(style);
 
     return MetroInteractive(
       autofocus: autofocus,
@@ -487,7 +485,15 @@ class MetroCommandButton extends StatelessWidget {
         );
         final borderWidth =
             effectiveStyle.borderWidth?.resolve(effectiveStates) ?? 2;
-        final labelStyle = effectiveStyle.labelStyle?.resolve(effectiveStates);
+        // The caption sits on the bar surface, below the ring rather than
+        // inside it, so it keeps the command's label color instead of following
+        // the glyph's inversion. Starting from the state-resolved default also
+        // keeps that color when an override only sets text attributes: a style
+        // without a color would otherwise paint with the painter default, which
+        // is white, and vanish on a light bar.
+        final labelStyle = defaults.labelStyle!
+            .resolve(effectiveStates)!
+            .merge(effectiveStyle.labelStyle?.resolve(effectiveStates));
         final label = this.label;
         final minimumSize =
             effectiveStyle.minimumSize ??
@@ -529,19 +535,10 @@ class MetroCommandButton extends StatelessWidget {
               ),
               if (label != null) ...[
                 const SizedBox(height: MetroSpacing.xxs),
-                // The caption sits on the bar surface, below the ring rather
-                // than inside it, so it keeps the command's label color
-                // instead of following the glyph's inversion. Painting it
-                // with the glyph foreground made a selected command's caption
-                // the bar color on the bar: an invisible label.
                 DefaultTextStyle(
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style:
-                      labelStyle ??
-                      TextStyle(
-                        color: MetroColorScheme.idealForegroundFor(background),
-                      ),
+                  style: labelStyle,
                   textAlign: TextAlign.center,
                   child: label,
                 ),

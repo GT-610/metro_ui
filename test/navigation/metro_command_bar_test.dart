@@ -408,6 +408,81 @@ void main() {
     }
   });
 
+  testWidgets('a caption style without a color keeps the bar foreground', (
+    tester,
+  ) async {
+    // An override that only sets text attributes must not drop the color: a
+    // colorless caption paints with the painter default, which is white, and
+    // disappears on a light bar.
+    await tester.pumpWidget(
+      metroTestApp(
+        child: MetroCommandBar(
+          commands: [
+            MetroCommandButton(
+              icon: const Text('*'),
+              label: const Text('Favorite'),
+              onPressed: () {},
+              selected: true,
+              style: const MetroCommandButtonStyle(
+                labelStyle: WidgetStatePropertyAll(
+                  TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final caption = tester.widget<RichText>(
+      find
+          .descendant(
+            of: find.text('Favorite'),
+            matching: find.byType(RichText),
+          )
+          .first,
+    );
+
+    expect(
+      caption.text.style?.color,
+      MetroColorScheme.idealForegroundFor(const Color(0xFFF0F0F0)),
+    );
+    expect(caption.text.style?.fontWeight, FontWeight.w700);
+  });
+
+  testWidgets('a caption style color wins over the bar foreground', (
+    tester,
+  ) async {
+    const custom = Color(0xFF12A4D9);
+    await tester.pumpWidget(
+      metroTestApp(
+        child: MetroCommandBar(
+          commands: [
+            MetroCommandButton(
+              icon: const Text('*'),
+              label: const Text('Favorite'),
+              onPressed: () {},
+              style: const MetroCommandButtonStyle(
+                labelStyle: WidgetStatePropertyAll(TextStyle(color: custom)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final caption = tester.widget<RichText>(
+      find
+          .descendant(
+            of: find.text('Favorite'),
+            matching: find.byType(RichText),
+          )
+          .first,
+    );
+
+    expect(caption.text.style?.color, custom);
+  });
+
   testWidgets('a disabled command dims its caption', (tester) async {
     await tester.pumpWidget(
       metroTestApp(
