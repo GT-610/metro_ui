@@ -6,7 +6,9 @@
   caption sits below the inverted glyph ring rather than inside it, so painting
   it with the glyph color drew it in the bar's own color: a selected command
   read as a blank slot. Only the disabled state dims the caption now, and an
-  application label style is no longer overwritten by the glyph color.
+  application label style layers over that default instead of being overwritten
+  by the glyph color: a style that omits the color stays readable, and one that
+  names a color still wins.
 - Draw the flyout panel's 1px foreground outline. The reference audit recorded
   the border, but the widget never painted one, so an edge-docked flyout on a
   page of the same background was a panel the eye could not find.
