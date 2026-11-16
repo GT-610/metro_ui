@@ -529,12 +529,19 @@ class MetroCommandButton extends StatelessWidget {
               ),
               if (label != null) ...[
                 const SizedBox(height: MetroSpacing.xxs),
+                // The caption sits on the bar surface, below the ring rather
+                // than inside it, so it keeps the command's label color
+                // instead of following the glyph's inversion. Painting it
+                // with the glyph foreground made a selected command's caption
+                // the bar color on the bar: an invisible label.
                 DefaultTextStyle(
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style:
-                      labelStyle?.copyWith(color: foreground) ??
-                      TextStyle(color: foreground),
+                      labelStyle ??
+                      TextStyle(
+                        color: MetroColorScheme.idealForegroundFor(background),
+                      ),
                   textAlign: TextAlign.center,
                   child: label,
                 ),
@@ -602,9 +609,16 @@ class MetroCommandButton extends StatelessWidget {
         return barForeground;
       }),
       borderWidth: const WidgetStatePropertyAll(2),
-      labelStyle: WidgetStatePropertyAll(
-        theme.typography.caption.copyWith(color: barForeground),
-      ),
+      labelStyle: WidgetStateProperty.resolveWith((states) {
+        // Only the disabled state dims the caption. Every other state leaves it
+        // on the bar foreground, including a selected command whose glyph
+        // inverts into the ring.
+        return theme.typography.caption.copyWith(
+          color: states.contains(WidgetState.disabled)
+              ? barForeground.withValues(alpha: 0.4)
+              : barForeground,
+        );
+      }),
     );
   }
 }

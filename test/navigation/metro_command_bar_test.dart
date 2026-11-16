@@ -362,6 +362,85 @@ void main() {
     expect(glyph.text.style?.color, const Color(0xFFF0F0F0));
   });
 
+  testWidgets('a selected command keeps its caption on the bar foreground', (
+    tester,
+  ) async {
+    for (final brightness in Brightness.values) {
+      await tester.pumpWidget(
+        metroTestApp(
+          theme: brightness == Brightness.light
+              ? MetroThemeData.light()
+              : MetroThemeData.dark(),
+          child: MetroCommandBar(
+            commands: [
+              MetroCommandButton(
+                icon: const Text('*'),
+                label: const Text('Favorite'),
+                onPressed: () {},
+                selected: true,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      // The bar's own default background, which is also the color a selected
+      // command inverts its ring glyph into. The caption sits below that ring
+      // on the bar itself, so it must stay the bar foreground instead.
+      final barBackground = brightness == Brightness.light
+          ? const Color(0xFFF0F0F0)
+          : const Color(0xFF000000);
+      final caption = tester.widget<RichText>(
+        find
+            .descendant(
+              of: find.text('Favorite'),
+              matching: find.byType(RichText),
+            )
+            .first,
+      );
+
+      expect(
+        caption.text.style?.color,
+        MetroColorScheme.idealForegroundFor(barBackground),
+        reason: 'the ${brightness.name} caption must not take the ring color',
+      );
+      expect(caption.text.style?.color, isNot(barBackground));
+    }
+  });
+
+  testWidgets('a disabled command dims its caption', (tester) async {
+    await tester.pumpWidget(
+      metroTestApp(
+        child: const MetroCommandBar(
+          commands: [
+            MetroCommandButton(
+              icon: Text('*'),
+              label: Text('Unavailable'),
+              onPressed: null,
+              semanticLabel: 'Unavailable command',
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final caption = tester.widget<RichText>(
+      find
+          .descendant(
+            of: find.text('Unavailable'),
+            matching: find.byType(RichText),
+          )
+          .first,
+    );
+
+    expect(
+      caption.text.style?.color,
+      MetroColorScheme.idealForegroundFor(
+        const Color(0xFFF0F0F0),
+      ).withValues(alpha: 0.4),
+    );
+  });
+
   testWidgets('an icon-only command must declare a semantic label', (
     tester,
   ) async {

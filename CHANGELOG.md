@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Keep a selected command bar command's caption on the bar foreground. The
+  caption sits below the inverted glyph ring rather than inside it, so painting
+  it with the glyph color drew it in the bar's own color: a selected command
+  read as a blank slot. Only the disabled state dims the caption now, and an
+  application label style is no longer overwritten by the glyph color.
+
 ## 0.3.0
 
 - Give text fields, combo boxes, number boxes, search boxes, and picker
