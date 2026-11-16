@@ -74,9 +74,14 @@ flutter test --tags golden
 
 Text rasterization differs between platforms, so a baseline refreshed on macOS
 or Linux shows the current layout and colors but not the canonical Windows
-pixels. Refresh the affected baselines on the Windows renderer before a release
-and review the diff; a stale baseline is worse than none, because it silently
-blesses the previous design.
+pixels, and the `goldens` job rejects it. Refresh the affected baselines on the
+Windows renderer before a release and review the diff; a stale baseline is worse
+than none, because it silently blesses the previous design.
+
+The **Refresh Goldens** workflow does this render for you: dispatch it for the
+branch, download the `baselines` and `screenshots` artifacts, copy them over the
+working tree, and commit the result. It regenerates every baseline and re-syncs
+the package previews, so the previews stay byte copies of the new images.
 
 For the same reason `flutter test --tags golden` is expected to differ on a
 developer machine that is not the canonical renderer. Run the behavioural suite
