@@ -79,9 +79,11 @@ Windows renderer before a release and review the diff; a stale baseline is worse
 than none, because it silently blesses the previous design.
 
 The **Refresh Goldens** workflow does this render for you: dispatch it for the
-branch, download the `baselines` and `screenshots` artifacts, copy them over the
-working tree, and commit the result. It regenerates every baseline and re-syncs
-the package previews, so the previews stay byte copies of the new images.
+branch, download the `goldens` artifact, and extract it over the working tree.
+The artifact keeps the repository layout, so the images land back in
+`test/goldens/baselines/` and `screenshots/` and replace the tracked files there;
+review the diff and commit it. It regenerates every baseline and re-syncs the
+package previews, so the previews stay byte copies of the new images.
 
 For the same reason `flutter test --tags golden` is expected to differ on a
 developer machine that is not the canonical renderer. Run the behavioural suite

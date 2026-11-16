@@ -3,8 +3,10 @@ name: Refresh Goldens
 # The checked in baselines are rendered with Flutter's Windows rasterizer, and
 # text antialiasing differs per platform, so a refresh done on macOS or Linux
 # leaves baselines the "goldens" job rejects. This dispatch renders them where
-# they are judged: run it, download the `baselines` and `screenshots` artifacts,
-# copy them over the working tree, and commit the result.
+# they are judged: run it, download the `goldens` artifact, extract it over a
+# checkout, and commit the result. The artifact mirrors the repository, so the
+# images land back in test/goldens/baselines/ and screenshots/ rather than at the
+# working tree root.
 on:
   workflow_dispatch:
 
@@ -24,13 +26,17 @@ jobs:
         run: flutter test --update-goldens --tags=golden
       - name: Re-sync the package previews from the new baselines
         run: dart run tool/check_package_screenshots.dart --update
+      # upload-artifact roots the artifact at the uploaded directory, so a plain
+      # upload of the two directories would flatten them into a handful of PNGs
+      # at the artifact root. Stage them under their repository paths instead.
+      - name: Stage the refreshed images at their repository paths
+        shell: bash
+        run: |
+          mkdir -p artifact/test/goldens/baselines artifact/screenshots
+          cp test/goldens/baselines/*.png artifact/test/goldens/baselines/
+          cp screenshots/*.png artifact/screenshots/
       - uses: actions/upload-artifact@v4
         with:
-          name: baselines
-          path: test/goldens/baselines
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: screenshots
+          name: goldens
+          path: artifact
           if-no-files-found: error
