@@ -54,6 +54,7 @@ jobs:
           if-no-files-found: ignore
 
   minimum-flutter:
+    # This job proves the package still builds on its own declared floor.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,6 +63,11 @@ jobs:
           flutter-version: "3.32.0"
           channel: stable
           cache: true
+      - name: Drop the gallery from this checkout
+        # `flutter pub get` resolves an adjacent example/ directory
+        # automatically, and the gallery targets a newer Flutter than this
+        # job's floor. Nothing below touches it.
+        run: rm -rf example
       - run: flutter pub get
       - run: dart run tool/check_public_api.dart
       - run: dart run tool/check_package_screenshots.dart

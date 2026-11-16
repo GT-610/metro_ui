@@ -20,6 +20,11 @@ Use the language button in the page header to switch the locale supplied to
 `LOCAL THEME` button demonstrates a component theme that affects only one
 subtree without rebuilding the application `MetroThemeData`.
 
+The gallery targets Flutter 3.47 and up, and it builds against
+`package:material_ui/material_ui.dart` rather than the SDK's `Material`
+library, which Flutter 3.50 deprecated. That floor applies to the gallery only;
+the `metro_ui` package keeps its own, older Flutter minimum.
+
 ```sh
 flutter run -d windows
 # or

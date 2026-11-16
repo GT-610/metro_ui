@@ -7,6 +7,15 @@ Applications should import only `package:metro_ui/metro_ui.dart`. Files below
 The package deliberately does not re-export Flutter Material, Widgets, or
 Services APIs.
 
+The gallery in `example/` is a development harness, not part of the published
+package, so it may declare a newer Flutter floor than the package. It targets
+Flutter 3.47 to take the Material migration that Flutter 3.50 completed: the
+SDK's `package:flutter/material.dart` is deprecated there in favour of
+`package:material_ui/material_ui.dart`, and the gallery depends on the latter
+instead of suppressing the notice. Keep the package's own `environment.flutter`
+floor at its published minimum — raising it there narrows the range for every
+downstream application, which the gallery's requirement does not.
+
 Before 1.0.0, APIs may change when doing so materially improves the Metro model
 or removes an accidental contract. Record every user-visible change in
 `CHANGELOG.md`; explain non-mechanical migrations in release notes or pull

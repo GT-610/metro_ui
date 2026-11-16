@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:metro_ui/metro_ui.dart';
 
 class GallerySectionHeading extends StatelessWidget {

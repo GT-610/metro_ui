@@ -3,16 +3,23 @@ description: Gallery and development harness for metro_ui.
 publish_to: none
 version: 1.0.0+1
 
+# The gallery is never published, so it may target a newer Flutter than the
+# package it demonstrates. Flutter 3.50 moved Material out of the SDK into
+# package:material_ui and deprecated the in-SDK library; the gallery takes the
+# migration so it keeps building without suppressions. The package itself
+# stays on its Flutter 3.32 floor.
 environment:
-  sdk: ">=3.8.0 <4.0.0"
-  flutter: ">=3.32.0"
+  sdk: ">=3.13.0 <4.0.0"
+  flutter: ">=3.47.0"
 
 dependencies:
   cupertino_icons: ^1.0.8
+  cupertino_ui: ^1.1.6
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  material_ui: ^1.4.0
   metro_ui:
     path: ../
 

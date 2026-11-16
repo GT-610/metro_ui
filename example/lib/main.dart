@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show GlobalCupertinoLocalizations;
+import 'package:flutter_localizations/flutter_localizations.dart'
+    show GlobalWidgetsLocalizations;
+import 'package:material_ui/material_ui.dart';
 import 'package:metro_ui/metro_ui.dart';
 
 import 'gallery/catalog.dart';
@@ -308,8 +311,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                                         ),
                                         MetroLiveTileFrame(
                                           id: 'highlights',
-                                          semanticLabel:
-                                              'Photos, highlights from this week',
+                                          semanticLabel: 'Photos, highlights from this week',
                                           child: Align(
                                             alignment: Alignment.centerLeft,
                                             child: Text('12 NEW\nMEMORIES'),
@@ -518,8 +520,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                               GallerySectionHeading(
                                 key: _progressKey,
                                 title: 'Progress',
-                                description:
-                                    'Determinate and indeterminate feedback for ongoing work.',
+                                description: 'Determinate and indeterminate feedback for ongoing work.',
                               ),
                               const SizedBox(height: MetroSpacing.sm),
                               const SizedBox(
@@ -538,8 +539,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                               GallerySectionHeading(
                                 key: _overlaysKey,
                                 title: 'Dialogs, flyouts, and tooltips',
-                                description:
-                                    'Transient surfaces for decisions, settings, and contextual help.',
+                                description: 'Transient surfaces for decisions, settings, and contextual help.',
                               ),
                               const SizedBox(height: MetroSpacing.sm),
                               Wrap(
@@ -1094,8 +1094,7 @@ class _MetroGalleryAppState extends State<MetroGalleryApp> {
                               GallerySectionHeading(
                                 key: _pivotKey,
                                 title: 'Pivot and page routes',
-                                description:
-                                    'Section switching and directional transitions for Metro pages.',
+                                description: 'Section switching and directional transitions for Metro pages.',
                               ),
                               const SizedBox(height: MetroSpacing.sm),
                               SizedBox(
