@@ -10,7 +10,7 @@ import 'preview_support.dart';
 void main() {
   setUpAll(loadPreviewFonts);
 
-  for (final brightness in Brightness.values) {
+  for (final brightness in previewBrightnesses) {
     testWidgets('navigation preview in ${brightness.name} theme', (
       tester,
     ) async {

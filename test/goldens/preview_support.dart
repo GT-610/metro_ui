@@ -3,6 +3,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:metro_ui/metro_ui.dart';
 
+/// The two themes every preview renders.
+///
+/// Fixtures iterate this instead of `Brightness.values`: `flutter/widgets.dart`
+/// re-exports `Brightness` only from Flutter 3.35 onward, and the package still
+/// supports its declared floor of 3.32.
+const List<Brightness> previewBrightnesses = Brightness.values;
+
 /// The canvas every package preview shares.
 ///
 /// 1280 by 720 is the shape the pub.dev gallery presents: the first screenshot
