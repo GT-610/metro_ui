@@ -17,10 +17,14 @@ topics:
   - widgets
 
 screenshots:
-  - description: Light theme Metro controls.
-    path: screenshots/metro_controls_light.png
-  - description: Dark theme Metro navigation and overlays.
-    path: screenshots/metro_navigation_dark.png
+  - description: Light theme controls, selection, progress, and input surfaces.
+    path: screenshots/preview_controls_light.png
+  - description: Dark theme navigation, dialogs, and the edge-docked flyout.
+    path: screenshots/preview_navigation_dark.png
+  - description: Light theme selectable rows, a sortable data grid, and tiles.
+    path: screenshots/preview_lists_light.png
+  - description: Light theme text entry, search, number boxes, and pickers.
+    path: screenshots/preview_inputs_light.png
 
 dependencies:
   flutter:

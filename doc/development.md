@@ -64,6 +64,14 @@ in baselines are the canonical visual reference. Package screenshots are copies
 of approved Golden images and are checked by
 `tool/check_package_screenshots.dart`.
 
+Four of the fixtures are package previews rather than single-component
+surfaces: `preview_controls`, `preview_navigation`, `preview_lists`, and
+`preview_inputs`. They share `test/goldens/preview_support.dart`, which pins the
+1280 by 720 canvas, loads the bundled Selawik faces, and takes the golden with
+`await expectLater`. Keep new previews on that helper: `expect` with an
+asynchronous matcher returns before the comparison finishes, so a golden checked
+that way never fails.
+
 Regenerate baselines with:
 
 ```sh

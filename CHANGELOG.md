@@ -12,6 +12,12 @@
 - Draw the flyout panel's 1px foreground outline. The reference audit recorded
   the border, but the widget never painted one, so an edge-docked flyout on a
   page of the same background was a panel the eye could not find.
+- Replace the two package previews with four 1280 by 720 surfaces covering
+  controls, navigation, lists and data, and inputs and pickers. The previous
+  control preview ended in 181 empty pixels, which is what a pub.dev thumbnail
+  cropped first, and between them the two previews showed 13 of the 29 exported
+  widgets. The previews are now fixtures in `test/goldens` behind a shared
+  helper, so a preview and the baseline the suite compares cannot drift apart.
 
 ## 0.3.0
 

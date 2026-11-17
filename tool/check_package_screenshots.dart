@@ -1,10 +1,20 @@
 import 'dart:io';
 
+/// Package screenshots paired with the Golden baseline each one is a copy of.
+///
+/// The preview surfaces are rendered by the tagged Golden suite, and a package
+/// screenshot is only allowed to be a byte copy of the baseline that suite
+/// compared. That keeps the README and the pub.dev gallery from drifting away
+/// from what the tests actually assert.
 const _screenshotSources = <String, String>{
-  'screenshots/metro_controls_light.png':
-      'test/goldens/baselines/metro_controls_light.png',
-  'screenshots/metro_navigation_dark.png':
-      'test/goldens/baselines/metro_navigation_dark.png',
+  'screenshots/preview_controls_light.png':
+      'test/goldens/baselines/preview_controls_light.png',
+  'screenshots/preview_navigation_dark.png':
+      'test/goldens/baselines/preview_navigation_dark.png',
+  'screenshots/preview_lists_light.png':
+      'test/goldens/baselines/preview_lists_light.png',
+  'screenshots/preview_inputs_light.png':
+      'test/goldens/baselines/preview_inputs_light.png',
 };
 
 void main(List<String> arguments) {

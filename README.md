@@ -15,9 +15,13 @@ endorsed by Microsoft.
 
 ## Preview
 
-![Light Metro controls](screenshots/metro_controls_light.png)
+![Light theme Metro controls](screenshots/preview_controls_light.png)
 
-![Dark Metro navigation and overlays](screenshots/metro_navigation_dark.png)
+![Dark theme Metro navigation, dialogs, and flyout](screenshots/preview_navigation_dark.png)
+
+![Light theme selectable rows, data grid, and tiles](screenshots/preview_lists_light.png)
+
+![Light theme text entry, search, number boxes, and pickers](screenshots/preview_inputs_light.png)
 
 ## Install
 
