@@ -124,6 +124,68 @@ void main() {
     expect(backgrounds.first.color, customColor);
   });
 
+  testWidgets('the panel edge is outlined against the shared background', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _overlayTestApp(
+        // An edge-docked panel gets loose constraints from the route, which is
+        // what lets it take its declared width.
+        child: const Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: MetroFlyout(
+            title: Text('Settings'),
+            child: Text('Flyout content'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final colors = MetroColorScheme.light();
+    final outline =
+        tester
+                .widget<DecoratedBox>(
+                  find.byKey(const ValueKey<String>('metro-flyout-panel')),
+                )
+                .decoration
+            as BoxDecoration;
+    final border = outline.border! as Border;
+
+    expect(border.top.color, colors.foreground);
+    expect(border.top.width, 1);
+    // The outline covers the panel edge instead of insetting the content, so
+    // the panel still measures the width the theme asks for.
+    expect(
+      tester
+          .getSize(find.byKey(const ValueKey<String>('metro-flyout-panel')))
+          .width,
+      346,
+    );
+  });
+
+  testWidgets('the panel outline follows the flyout theme', (tester) async {
+    const outline = Color(0xFF123456);
+    await tester.pumpWidget(
+      _overlayTestApp(
+        child: const MetroFlyoutTheme(
+          data: MetroFlyoutThemeData(borderColor: outline),
+          child: MetroFlyout(child: Text('Themed content')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final decoration =
+        tester
+                .widget<DecoratedBox>(
+                  find.byKey(const ValueKey<String>('metro-flyout-panel')),
+                )
+                .decoration
+            as BoxDecoration;
+    expect((decoration.border! as Border).top.color, outline);
+  });
+
   testWidgets('flyout entrance and exit share the same ease-out progress', (
     tester,
   ) async {

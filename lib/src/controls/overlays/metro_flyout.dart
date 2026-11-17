@@ -105,6 +105,7 @@ class MetroFlyout extends StatelessWidget {
     this.semanticLabel,
     this.backgroundColor,
     this.headerColor,
+    this.borderColor,
     this.width,
     this.headerPadding,
     this.contentPadding,
@@ -118,6 +119,9 @@ class MetroFlyout extends StatelessWidget {
   final String? semanticLabel;
   final Color? backgroundColor;
   final Color? headerColor;
+
+  /// Outline drawn inside the panel edge; defaults to the foreground.
+  final Color? borderColor;
   final double? width;
   final EdgeInsetsGeometry? headerPadding;
   final EdgeInsetsGeometry? contentPadding;
@@ -130,6 +134,7 @@ class MetroFlyout extends StatelessWidget {
       // The header shares the panel surface and the accent stays in the
       // controls; pass an explicit header color to opt into an accent band.
       headerColor: theme.colors.background,
+      borderColor: theme.colors.foreground,
       width: 346,
       headerPadding: const EdgeInsets.fromLTRB(40, 32, 40, 16),
       contentPadding: const EdgeInsets.fromLTRB(40, 33, 40, 40),
@@ -141,6 +146,7 @@ class MetroFlyout extends StatelessWidget {
     final widgetOverrides = MetroFlyoutThemeData(
       backgroundColor: backgroundColor,
       headerColor: headerColor,
+      borderColor: borderColor,
       width: width,
       headerPadding: headerPadding,
       contentPadding: contentPadding,
@@ -157,52 +163,74 @@ class MetroFlyout extends StatelessWidget {
     Widget panel = SizedBox(
       width: effectiveTheme.width,
       height: double.infinity,
-      child: ColoredBox(
-        color: effectiveTheme.backgroundColor!,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (title != null || leading != null || actions.isNotEmpty)
-              ColoredBox(
-                color: effectiveHeaderColor,
-                child: Padding(
-                  padding: effectiveTheme.headerPadding!,
-                  child: IconTheme.merge(
-                    data: IconThemeData(color: headerForeground),
-                    child: DefaultTextStyle.merge(
-                      style: effectiveTheme.titleStyle?.copyWith(
-                        color: headerForeground,
-                      ),
-                      child: Row(
-                        children: [
-                          if (leading != null) ...[
-                            leading!,
-                            if (title != null)
-                              const SizedBox(width: MetroSpacing.sm),
-                          ],
-                          if (title != null) Expanded(child: title!),
-                          if (title == null) const Spacer(),
-                          if (actions.isNotEmpty) ...[
-                            const SizedBox(width: MetroSpacing.sm),
-                            Wrap(spacing: MetroSpacing.xs, children: actions),
-                          ],
-                        ],
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(
+            color: effectiveTheme.backgroundColor!,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (title != null || leading != null || actions.isNotEmpty)
+                  ColoredBox(
+                    color: effectiveHeaderColor,
+                    child: Padding(
+                      padding: effectiveTheme.headerPadding!,
+                      child: IconTheme.merge(
+                        data: IconThemeData(color: headerForeground),
+                        child: DefaultTextStyle.merge(
+                          style: effectiveTheme.titleStyle?.copyWith(
+                            color: headerForeground,
+                          ),
+                          child: Row(
+                            children: [
+                              if (leading != null) ...[
+                                leading!,
+                                if (title != null)
+                                  const SizedBox(width: MetroSpacing.sm),
+                              ],
+                              if (title != null) Expanded(child: title!),
+                              if (title == null) const Spacer(),
+                              if (actions.isNotEmpty) ...[
+                                const SizedBox(width: MetroSpacing.sm),
+                                Wrap(
+                                  spacing: MetroSpacing.xs,
+                                  children: actions,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: effectiveTheme.contentPadding!,
+                    child: DefaultTextStyle.merge(
+                      style: effectiveTheme.contentStyle,
+                      child: child,
+                    ),
+                  ),
                 ),
-              ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: effectiveTheme.contentPadding!,
-                child: DefaultTextStyle.merge(
-                  style: effectiveTheme.contentStyle,
-                  child: child,
+              ],
+            ),
+          ),
+          // The panel shares the page background, so without an outline an
+          // edge-docked flyout is a panel the eye cannot find. The hairline
+          // paints over the panel edge rather than insetting the content, so
+          // the declared width and the content area stay what they were.
+          IgnorePointer(
+            child: DecoratedBox(
+              key: const ValueKey<String>('metro-flyout-panel'),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: effectiveTheme.borderColor ?? const Color(0x00000000),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
     panel = Semantics(

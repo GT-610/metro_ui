@@ -85,14 +85,14 @@ The dark theme keeps light fields with black text, exactly as the era did.
 | --- | --- | --- |
 | App bar | `#f0f0f0` light, `#000000` dark, 80 tall, commands at least 100 by 80 | identical |
 | Command glyph ring | 40 by 40, 2px, hover fill `rgba(0,0,0,0.13)`, checked ring filled with the bar foreground | identical |
-| Command label | 9pt | `caption` |
+| Command label | 9pt, bar foreground in every state, 40 percent only when disabled; the caption sits on the bar, below the ring, so it never takes the inverted glyph color | `caption` |
 | Bare command | 60 tall bar with icon-only commands, 56 wide by 40 tall, 8px glyph inset | `MetroCommandButton` without a label plus `MetroCommandBar.height: 60` |
 | Minimized bar | 60 by 40 invoke area at the bar edge holding a 56 by 21 bordered ellipsis | `MetroCommandBarLayer.minimalInvokeButton` |
 | Back button | 45 by 45 including a 2px ring (41 plus border), hover `0.13`, pressed inversion | identical |
 | Pivot header | 45pt, weight 400, 0/9 padding, 19 content inset, 72 header band | identical |
 | FlipView navigation | 69 by 39 blocks, fill `rgba(213,213,213,0.35)`, hover `rgba(215,215,215,0.94)`, pressed `rgba(41,41,41,0.74)`, glyph `rgba(0,0,0,0.6)` | identical |
 | Tooltip | `#ffffff` panel, `#808080` 2px border, text `rgba(0,0,0,0.6)`, padding 10/6/10/7, maximum width 380 | identical |
-| Flyout | 346 wide (345 plus border), header padding 40/32, content padding 40/33, header on the panel surface, label 20pt | identical |
+| Flyout | 346 wide including a 1px foreground outline, header padding 40/32, content padding 40/33, header on the panel surface, label 20pt | identical |
 | Place list (navigation rail) | Accent-tinted rail with text-only items, no icons, no dividers, and no ring around the current place; labels keep one color in both states and the current place is a full-width lifted tint of the rail kept dark enough for that label; horizontal place bars use 210 wide items and the tile content rule | `MetroListTile` with a rail style and `showSelectionMark: false` |
 | Slider | 11px track and thumb, upper fill `rgba(0,0,0,0.1)`, hover `0.15`, disabled `0.2` and thumb `#929292`, ticks `0.5` | identical |
 
